@@ -898,7 +898,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (activeTool === 'callout' && Text) {
       Text.drawCalloutPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth, activeCalloutStyle);
     } else if (activeTool === 'blur' && Blur) {
-      Blur.drawBlurPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y);
+      Blur.drawBlurPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeBlurType);
     }
   });
 
@@ -1034,7 +1034,9 @@ document.addEventListener('DOMContentLoaded', async () => {
           y1: startPos.y,
           x2: currentPos.x,
           y2: currentPos.y,
-          blurType: activeBlurType
+          blurType: activeBlurType,
+          intensity: activeBlurIntensity,
+          rounded: true
         });
       }
     }
