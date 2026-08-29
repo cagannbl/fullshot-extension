@@ -375,21 +375,36 @@
           <span class="sidebar-section-title">ARAÇ AYARLARI</span>
         </div>
 
-        <!-- Color Swatches -->
+        <!-- Color Swatches & Pro Palette -->
         <div class="option-card" id="colorOptionGroup">
-          <span class="option-card-label">Renk Paleti:</span>
-          <div class="color-palette" role="radiogroup" aria-label="Renk Seçimi">
-            <button class="color-swatch active" data-color="#000000" style="--c: #000000;" role="radio" aria-checked="true" title="Siyah (Varsayılan)" aria-label="Siyah (#000000)"></button>
-            <button class="color-swatch" data-color="#ffffff" style="--c: #ffffff;" role="radio" aria-checked="false" title="Beyaz" aria-label="Beyaz (#ffffff)"></button>
-            <button class="color-swatch" data-color="#ff3366" style="--c: #ff3366;" role="radio" aria-checked="false" title="Kırmızı" aria-label="Kırmızı (#ff3366)"></button>
-            <button class="color-swatch" data-color="#00d2ff" style="--c: #00d2ff;" role="radio" aria-checked="false" title="Mavi" aria-label="Mavi (#00d2ff)"></button>
-            <button class="color-swatch" data-color="#ffd700" style="--c: #ffd700;" role="radio" aria-checked="false" title="Sarı" aria-label="Sarı (#ffd700)"></button>
-            <button class="color-swatch" data-color="#00e676" style="--c: #00e676;" role="radio" aria-checked="false" title="Yeşil" aria-label="Yeşil (#00e676)"></button>
-            <button class="color-swatch" data-color="#9333ea" style="--c: #9333ea;" role="radio" aria-checked="false" title="Mor" aria-label="Mor (#9333ea)"></button>
-            <label class="custom-color-picker" title="Özel Renk Seç" aria-label="Özel Renk Seç">
-              <input type="color" id="customColorInput" value="#000000" aria-label="Özel Renk Seçimi">
-              <span class="custom-color-indicator" id="customColorIndicator"></span>
-            </label>
+          <div class="option-card-header">
+            <span class="option-card-label">Renk Paleti:</span>
+            <span class="active-color-badge" id="activeColorBadge" title="Aktif Renk Kodu">#000000</span>
+          </div>
+
+          <!-- 2-Row Pro Swatches Grid -->
+          <div class="color-palette-grid" role="radiogroup" aria-label="Renk Seçimi">
+            <button class="color-swatch active" data-color="#000000" style="--c: #000000;" role="radio" aria-checked="true" title="Obsidian Siyah (#000000)" aria-label="Obsidian Siyah"></button>
+            <button class="color-swatch" data-color="#ffffff" style="--c: #ffffff;" role="radio" aria-checked="false" title="Saf Beyaz (#ffffff)" aria-label="Saf Beyaz"></button>
+            <button class="color-swatch" data-color="#6D8196" style="--c: #6D8196;" role="radio" aria-checked="false" title="Slate Vurgu (#6D8196)" aria-label="Slate Vurgu"></button>
+            <button class="color-swatch" data-color="#ff3366" style="--c: #ff3366;" role="radio" aria-checked="false" title="Neon Mercan / Kırmızı (#ff3366)" aria-label="Neon Kırmızı"></button>
+            
+            <button class="color-swatch" data-color="#00d2ff" style="--c: #00d2ff;" role="radio" aria-checked="false" title="Cyber Cyan / Mavi (#00d2ff)" aria-label="Cyber Cyan"></button>
+            <button class="color-swatch" data-color="#ffd700" style="--c: #ffd700;" role="radio" aria-checked="false" title="Altın Sarısı (#ffd700)" aria-label="Altın Sarısı"></button>
+            <button class="color-swatch" data-color="#00e676" style="--c: #00e676;" role="radio" aria-checked="false" title="Zümrüt Yeşili (#00e676)" aria-label="Zümrüt Yeşili"></button>
+            <button class="color-swatch" data-color="#9333ea" style="--c: #9333ea;" role="radio" aria-checked="false" title="Elektrik Moru (#9333ea)" aria-label="Elektrik Moru"></button>
+          </div>
+
+          <!-- Custom Color Studio Trigger Button -->
+          <div class="custom-color-trigger-wrap">
+            <button class="custom-color-trigger-btn" id="customColorTriggerBtn" type="button" aria-haspopup="dialog" aria-expanded="false" title="Özel Renk Seçici & Damlalık (HSV, HEX, RGB)">
+              <span class="custom-color-disc" id="customColorDisc" style="background-color: #000000;"></span>
+              <span class="custom-color-text">Özel Renk & Damlalık</span>
+              <svg class="custom-color-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -1055,6 +1070,7 @@
   <script src="tools/magnifier.js"></script>
   <script src="tools/stamp.js"></script>
   <script src="tools/eraser.js"></script>
+  <script src="tools/color-picker.js"></script>
 
   <!-- Core Canvas Engines -->
   <script src="engine/history-stack.js"></script>

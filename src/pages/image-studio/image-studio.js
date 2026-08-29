@@ -60,8 +60,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const stampOptionGroup = document.getElementById('stampOptionGroup');
 
   const colorSwatches = document.querySelectorAll('.color-swatch');
-  const customColorInput = document.getElementById('customColorInput');
-  const customColorIndicator = document.getElementById('customColorIndicator');
+  const activeColorBadge = document.getElementById('activeColorBadge');
+  const customColorTriggerBtn = document.getElementById('customColorTriggerBtn');
+  const customColorDisc = document.getElementById('customColorDisc');
   const strokeButtons = document.querySelectorAll('.stroke-btn');
   const penTypeButtons = document.querySelectorAll('.pen-type-btn');
   const lineSolidBtn = document.getElementById('lineSolidBtn');
@@ -444,6 +445,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Initialize Dark-Themed Color Studio Picker
+  let colorPicker = null;
+  if (window.FullShotCanvas && window.FullShotCanvas.ColorPicker) {
+    colorPicker = new window.FullShotCanvas.ColorPicker({
+      container: document.body,
+      initialColor: activeColor,
+      onColorChange: (hex) => {
+        activeColor = hex;
+        if (activeColorBadge) activeColorBadge.textContent = hex;
+        if (customColorDisc) customColorDisc.style.backgroundColor = hex;
+
+        colorSwatches.forEach(s => {
+          const isMatch = s.dataset.color.toLowerCase() === hex.toLowerCase();
+          s.classList.toggle('active', isMatch);
+          s.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+        });
+
+        updateStepBadgePreview();
+      }
+    });
+  }
+
+  if (customColorTriggerBtn && colorPicker) {
+    customColorTriggerBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      colorPicker.toggle(customColorTriggerBtn);
+    });
+  }
+
   // Color Swatch Selection
   colorSwatches.forEach(swatch => {
     swatch.addEventListener('click', () => {
@@ -454,24 +484,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       swatch.classList.add('active');
       swatch.setAttribute('aria-checked', 'true');
       activeColor = swatch.dataset.color;
+      if (activeColorBadge) activeColorBadge.textContent = activeColor;
+      if (customColorDisc) customColorDisc.style.backgroundColor = activeColor;
+      if (colorPicker) colorPicker.setColor(activeColor, false);
       updateStepBadgePreview();
     });
   });
-
-  // Custom Color Input
-  if (customColorInput) {
-    customColorInput.addEventListener('input', (e) => {
-      activeColor = e.target.value;
-      colorSwatches.forEach(s => {
-        s.classList.remove('active');
-        s.setAttribute('aria-checked', 'false');
-      });
-      if (customColorIndicator) {
-        customColorIndicator.style.backgroundColor = activeColor;
-      }
-      updateStepBadgePreview();
-    });
-  }
 
   // Stroke Width Selection
   strokeButtons.forEach(btn => {
