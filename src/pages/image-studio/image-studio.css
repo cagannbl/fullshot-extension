@@ -559,22 +559,30 @@ html, body {
   position: absolute;
   top: 3px;
   right: 3px;
+  min-width: 14px;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 8px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 700;
-  padding: 1px 4px;
+  padding: 0;
   border-radius: 3px;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.45);
   color: var(--text-muted);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   pointer-events: none;
-  line-height: 1.1;
+  line-height: 1;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 .tool-icon-btn.active .tool-btn-key {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.25);
   color: #FFFFE3;
-  border-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .sidebar-divider {
@@ -1126,13 +1134,18 @@ html, body {
   height: 0 !important;
 }
 
+.canvas-stage,
+.studio-canvas,
+#mainCanvas {
+  box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  transition: box-shadow 0.2s ease, transform 0.12s ease-out;
+}
+
 .canvas-stage {
   position: relative;
   margin: auto;
   transform-origin: center center;
-  transition: transform 0.12s ease-out;
-  box-shadow: var(--shadow-card);
-  border-radius: var(--radius-xs);
   background-color: #ffffff;
 }
 
