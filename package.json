@@ -1,0 +1,23 @@
+{
+  "name": "fullshot-pro",
+  "version": "1.2.0",
+  "description": "FullShot Pro - Modern Chrome Full Page Screenshot & Video Recording Extension (Manifest V3)",
+  "main": "src/background/background.js",
+  "type": "module",
+  "scripts": {
+    "test": "node scripts/validate.js",
+    "validate": "node scripts/validate.js",
+    "build:zip": "node scripts/package-zip.js"
+  },
+  "keywords": [
+    "chrome-extension",
+    "manifest-v3",
+    "screenshot",
+    "full-page-screenshot",
+    "screen-recorder",
+    "canvas-editor",
+    "pdf-export"
+  ],
+  "author": "FullShot Pro Team",
+  "license": "MIT"
+}

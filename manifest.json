@@ -1,0 +1,87 @@
+{
+  "manifest_version": 3,
+  "name": "FullShot Pro - Tam Sayfa Ekran Görüntüsü & Video Kaydedici",
+  "version": "1.2.0",
+  "description": "Web sayfalarının tamamını veya seçili bölgesini yakalayın; sekme, ekran ve ses kaydı alarak WebM/MP4 veya PDF/PNG olarak kaydedin.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "downloads",
+    "unlimitedStorage",
+    "tabCapture",
+    "offscreen",
+    "desktopCapture"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "commands": {
+    "capture-fullpage": {
+      "suggested_key": {
+        "default": "Alt+Shift+F",
+        "mac": "Alt+Shift+F"
+      },
+      "description": "Tam Sayfa Ekran Görüntüsü Yakala"
+    },
+    "capture-visible": {
+      "suggested_key": {
+        "default": "Alt+Shift+V",
+        "mac": "Alt+Shift+V"
+      },
+      "description": "Görünür Alanı Yakala"
+    },
+    "capture-selected": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Seçili Alanı Yakala"
+    },
+    "capture-element": {
+      "suggested_key": {
+        "default": "Alt+Shift+E",
+        "mac": "Alt+Shift+E"
+      },
+      "description": "Öğe / Bölüm Yakala"
+    }
+  },
+  "action": {
+    "default_popup": "src/pages/popup/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "src/background/background.js"
+  },
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/content/*",
+        "src/content/capture/*",
+        "src/content/hud/*",
+        "src/pages/*",
+        "src/pages/image-studio/*",
+        "src/pages/video-studio/*",
+        "src/offscreen/*",
+        "src/shared/*",
+        "assets/*",
+        "assets/icons/*",
+        "assets/branding/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

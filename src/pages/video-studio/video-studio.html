@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FullShot Pro - Video Önizleme & Oynatıcı Stüdyosu</title>
+  <link rel="icon" type="image/svg+xml" href="../../../assets/branding/fullshot-logo.svg">
+  <link rel="alternate icon" type="image/png" href="../../../assets/icons/icon32.png">
+  <link rel="stylesheet" href="video-studio.css">
+</head>
+<body class="dark-theme">
+  <!-- TOP NAVIGATION / HEADER TOOLBAR -->
+  <header class="top-bar">
+    <div class="bar-left">
+      <div class="brand">
+        <img src="../../../assets/branding/fullshot-header-logo.png" alt="FullShot" class="brand-logo-img" style="height: 36px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(109, 129, 150, 0.45));">
+        <span class="badge-video" style="font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: rgba(109, 129, 150, 0.2); color: #FFFFE3; border: 1px solid rgba(109, 129, 150, 0.4);">VIDEO</span>
+      </div>
+
+      <div class="page-meta" id="pageMeta">
+        <div class="page-title-row">
+          <svg class="meta-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span class="page-title" id="pageTitle" title="Video Başlığı">Ekran Kaydı Yükleniyor...</span>
+        </div>
+        <span class="page-url" id="pageUrl" title="Kaynak URL">https://...</span>
+      </div>
+    </div>
+
+    <!-- Video Stats & Status Badges -->
+    <div class="bar-center">
+      <div class="info-pill" id="resolutionBadge" title="Video Çözünürlüğü ve Kare Hızı">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        <span id="resolutionText">1920 × 1080 (HD)</span>
+      </div>
+
+      <div class="info-pill" id="durationBadge" title="Video Süresi">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span id="durationText">00:00</span>
+      </div>
+
+      <div class="info-pill" id="fileSizeBadge" title="Tahmini Dosya Boyutu">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+        </svg>
+        <span id="fileSizeText">0.0 MB</span>
+      </div>
+    </div>
+
+    <!-- Actions / Export Buttons -->
+    <div class="bar-right">
+      <button class="action-btn secondary" id="shortcutsBtn" title="Klavye Kısayolları ( ? )" aria-label="Klavye Kısayolları">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>
+        <span class="btn-text-desktop">Kısayollar</span>
+      </button>
+
+      <button class="action-btn secondary" id="topSnapshotBtn" title="Mevcut Kareyi Yakala ( S )" aria-label="Mevcut Kareyi Yakala">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+        <span class="btn-text-desktop">Kare Yakala</span>
+      </button>
+
+      <button class="action-btn primary" id="topDownloadWebmBtn" title="WebM Olarak İndir ( Ctrl+S )" aria-label="WebM Olarak İndir">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span>WebM İndir</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN STUDIO LAYOUT -->
+  <main class="studio-layout">
+    <!-- LEFT / CENTER: VIDEO WORKSPACE & CUSTOM PLAYER -->
+    <section class="video-workspace" id="videoWorkspace">
+      <!-- Ambient Glow Behind Video -->
+      <div class="ambient-glow" id="ambientGlow"></div>
+
+      <!-- Main Video Container -->
+      <div class="video-player-container" id="videoPlayerContainer">
+        <!-- HTML5 Video Element -->
+        <video id="mainVideo" playsinline preload="metadata" tabindex="0">
+          Tarayıcınız HTML5 video etiketini desteklemiyor.
+        </video>
+
+        <!-- Video Overlay (Click to Play/Pause, Big Center Icons) -->
+        <div class="video-click-overlay" id="videoClickOverlay">
+          <div class="center-play-button" id="centerPlayButton">
+            <svg class="icon-play" width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <svg class="icon-pause hidden" width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+          </div>
+
+          <!-- Quick Feedback Badge (e.g. "+5s", "-5s", "Ses: %80") -->
+          <div class="action-feedback-badge hidden" id="actionFeedbackBadge"></div>
+
+          <!-- Buffering Spinner -->
+          <div class="buffering-spinner hidden" id="bufferingSpinner">
+            <div class="spinner-ring"></div>
+          </div>
+        </div>
+
+        <!-- CUSTOM VIDEO CONTROLS BAR -->
+        <div class="custom-controls" id="customControls">
+          <!-- TOP ROW: TIMELINE / SEEKBAR -->
+          <div class="timeline-container" id="timelineContainer">
+            <div class="time-tooltip" id="timeTooltip">00:00</div>
+            <div class="timeline-track" id="timelineTrack">
+              <div class="timeline-buffer" id="timelineBuffer"></div>
+              <div class="timeline-trim-region hidden" id="timelineTrimRegion"></div>
+              <div class="timeline-progress" id="timelineProgress"></div>
+              <div class="timeline-trim-handle trim-in-handle hidden" id="trimInHandle" title="Kırpma Başlangıcı ["></div>
+              <div class="timeline-trim-handle trim-out-handle hidden" id="trimOutHandle" title="Kırpma Bitişi ]"></div>
+              <div class="timeline-thumb" id="timelineThumb"></div>
+            </div>
+          </div>
+
+          <!-- BOTTOM ROW: PLAYER BUTTONS & SETTINGS -->
+          <div class="controls-bar-row">
+            <!-- Left Group: Playback & Volume -->
+            <div class="controls-group left">
+              <!-- Play / Pause Button -->
+              <button class="ctrl-btn" id="playPauseBtn" title="Oynat / Duraklat (Boşluk / K)">
+                <svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <svg class="icon-pause hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <rect x="6" y="4" width="4" height="16"></rect>
+                  <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+              </button>
+
+              <!-- Skip 5s Back -->
+              <button class="ctrl-btn" id="skipBackBtn" title="5 Saniye Geri Sar (Sol Ok / J)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"></path>
+                </svg>
+                <span class="skip-label">-5s</span>
+              </button>
+
+              <!-- Skip 5s Forward -->
+              <button class="ctrl-btn" id="skipForwardBtn" title="5 Saniye İleri Sar (Sağ Ok / L)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M13 17l5-5-5-5M6 17l5-5-5-5"></path>
+                </svg>
+                <span class="skip-label">+5s</span>
+              </button>
+
+              <!-- Frame Step Back (1/30 sec) -->
+              <button class="ctrl-btn" id="framePrevBtn" title="1 Kare Geri ( , )">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="6" y1="5" x2="6" y2="19"></line>
+                  <polygon points="18 5 10 12 18 19 18 5" fill="currentColor"></polygon>
+                </svg>
+              </button>
+
+              <!-- Frame Step Forward (1/30 sec) -->
+              <button class="ctrl-btn" id="frameNextBtn" title="1 Kare İleri ( . )">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="5" x2="18" y2="19"></line>
+                  <polygon points="6 5 14 12 6 19 6 5" fill="currentColor"></polygon>
+                </svg>
+              </button>
+
+              <!-- Volume Container -->
+              <div class="volume-container" id="volumeContainer">
+                <button class="ctrl-btn" id="volumeBtn" title="Sesi Aç / Kapat ( M )">
+                  <svg class="vol-high" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  </svg>
+                  <svg class="vol-low hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
+                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                  </svg>
+                  <svg class="vol-muted hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="currentColor"></polygon>
+                    <line x1="23" y1="9" x2="17" y2="15"></line>
+                    <line x1="17" y1="9" x2="23" y2="15"></line>
+                  </svg>
+                </button>
+                <div class="volume-slider-wrap">
+                  <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="1" aria-label="Ses Seviyesi">
+                </div>
+              </div>
+
+              <!-- Time Counter -->
+              <div class="time-display" id="timeDisplay">
+                <span class="time-current" id="timeCurrent">00:00</span>
+                <span class="time-sep">/</span>
+                <span class="time-total" id="timeTotal">00:00</span>
+              </div>
+            </div>
+
+            <!-- Right Group: Trim Toggle, Speed, PiP, Fullscreen -->
+            <div class="controls-group right">
+              <!-- Trim Toggle Button -->
+              <button class="ctrl-btn" id="trimToggleBtn" title="Kırpma Modu Aç / Kapat ( T )">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="6" cy="6" r="3"></circle>
+                  <circle cx="6" cy="18" r="3"></circle>
+                  <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+                  <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+                  <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+                </svg>
+              </button>
+
+              <!-- Loop Toggle Button -->
+              <button class="ctrl-btn" id="loopToggleBtn" title="Tekrar Oynat / Döngü">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="17 1 21 5 17 9"></polyline>
+                  <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                  <polyline points="7 23 3 19 7 15"></polyline>
+                  <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                </svg>
+              </button>
+
+              <!-- Speed Selector Dropdown -->
+              <div class="speed-menu-container">
+                <button class="ctrl-btn speed-btn" id="speedMenuBtn" title="Oynatma Hızı">
+                  <span id="speedValueText">1x</span>
+                </button>
+                <div class="speed-dropdown hidden" id="speedDropdown">
+                  <button class="speed-opt" data-speed="0.5">0.5x (Ağır Çekim)</button>
+                  <button class="speed-opt" data-speed="0.75">0.75x</button>
+                  <button class="speed-opt active" data-speed="1">1.0x (Normal)</button>
+                  <button class="speed-opt" data-speed="1.25">1.25x</button>
+                  <button class="speed-opt" data-speed="1.5">1.5x (Hızlı)</button>
+                  <button class="speed-opt" data-speed="1.75">1.75x</button>
+                  <button class="speed-opt" data-speed="2">2.0x (2 Kat Hızlı)</button>
+                </div>
+              </div>
+
+              <!-- Picture-in-Picture Button -->
+              <button class="ctrl-btn" id="pipBtn" title="Pencere İçinde Pencere (PiP)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                  <rect x="12" y="10" width="8" height="8" rx="1" fill="currentColor" fill-opacity="0.3"></rect>
+                </svg>
+              </button>
+
+              <!-- Fullscreen Button -->
+              <button class="ctrl-btn" id="fullscreenBtn" title="Tam Ekran ( F )">
+                <svg class="icon-expand" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                </svg>
+                <svg class="icon-compress hidden" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fallback / Empty State Container -->
+      <div class="empty-state-card hidden" id="emptyStateCard">
+        <div class="empty-state-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          </svg>
+        </div>
+        <h2 class="empty-title">Aktif Video Kaydı Bulunamadı</h2>
+        <p class="empty-desc">
+          Henüz kaydedilmiş bir ekran videosu bulunamadı. Yerel bir video dosyasını stüdyoya yükleyebilir veya demo klip oluşturup oynatıcıyı test edebilirsiniz.
+        </p>
+        <div class="empty-actions">
+          <label class="btn-file-upload">
+            <input type="file" id="localVideoInput" accept="video/webm,video/mp4,video/*" class="hidden">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Yerel Video Seç</span>
+          </label>
+
+          <button class="action-btn secondary" id="generateDemoVideoBtn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Demo Klip Oluştur</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: EXPORT & METADATA INSPECTOR SIDEBAR -->
+    <aside class="studio-sidebar" id="studioSidebar">
+      <!-- Section 1: File Naming Card -->
+      <div class="sidebar-card">
+        <div class="card-header">
+          <div class="card-header-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>Dosya Adlandırma</span>
+          </div>
+          <button class="btn-icon-subtle" id="resetFilenameBtn" title="Varsayılan ada dön">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="filename-input-wrap">
+          <input type="text" class="filename-input" id="fileNameInput" placeholder="FullShot_Video_...">
+          <span class="filename-ext" id="activeExtLabel">.webm</span>
+        </div>
+        <div class="filename-hint">Şablon: FullShot_Video_[SayfaBaşlığı]_[Tarih]</div>
+      </div>
+
+      <!-- Section 2: Video Trimming Card -->
+      <div class="sidebar-card" id="trimCard">
+        <div class="card-header">
+          <div class="card-header-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="6" cy="6" r="3"></circle>
+              <circle cx="6" cy="18" r="3"></circle>
+              <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+              <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+              <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+            </svg>
+            <span>Video Kırpma &amp; Kesme</span>
+          </div>
+          <button class="btn-icon-subtle" id="resetTrimBtn" title="Kırpmayı Sıfırla ( \ )">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="trim-range-wrap">
+          <div class="trim-time-box">
+            <span class="trim-time-label">Başlangıç (In)</span>
+            <div class="trim-input-row">
+              <span class="trim-time-val" id="trimStartTimeText">00:00</span>
+              <button class="trim-set-btn" id="setTrimInBtn" title="Mevcut Kareyi Başlangıç Yap ( [ / I )" aria-label="Başlangıç Ayarla">Ayarla [</button>
+            </div>
+          </div>
+          <div class="trim-time-box">
+            <span class="trim-time-label">Bitiş (Out)</span>
+            <div class="trim-input-row">
+              <span class="trim-time-val" id="trimEndTimeText">00:00</span>
+              <button class="trim-set-btn" id="setTrimOutBtn" title="Mevcut Kareyi Bitiş Yap ( ] / O )" aria-label="Bitiş Ayarla">Ayarla ]</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trim-summary-row">
+          <div class="trim-dur-label">
+            <span>Kırpılan Süre:</span>
+            <strong id="trimDurationText">00:00</strong>
+          </div>
+          <button class="trim-play-btn" id="playTrimmedBtn" title="Sadece Kırpılan Bölümü Oynat" aria-label="Kırpılanı Oynat">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Kırpılanı Oynat</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Section 3: Quick Download & Export Options -->
+      <div class="sidebar-card">
+        <div class="card-header">
+          <div class="card-header-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            <span>Dışa Aktarma &amp; İndirme</span>
+          </div>
+        </div>
+
+        <div class="export-buttons-stack">
+          <!-- WebM Primary Button -->
+          <button class="export-btn export-webm" id="exportWebmBtn" title="WebM Olarak İndir (Ctrl+S)" aria-label="WebM Olarak İndir">
+            <div class="export-btn-icon webm-glow">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <div class="export-btn-content">
+              <div class="export-btn-title">
+                <span>WebM Olarak İndir</span>
+                <span class="badge-tag webm-tag" id="webmBadgeTag">Orijinal HD</span>
+              </div>
+              <span class="export-btn-desc" id="webmExportDesc">Kayıpsız kalite, anında hızlı indirme</span>
+            </div>
+            <div class="export-btn-meta" id="webmSizeMeta">-- MB</div>
+          </button>
+
+          <!-- MP4 Export Button -->
+          <button class="export-btn export-mp4" id="exportMp4Btn" title="MP4 Olarak İndir" aria-label="MP4 Olarak İndir">
+            <div class="export-btn-icon mp4-glow">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+              </svg>
+            </div>
+            <div class="export-btn-content">
+              <div class="export-btn-title">
+                <span>MP4 Olarak İndir</span>
+                <span class="badge-tag mp4-tag">Evrensel</span>
+              </div>
+              <span class="export-btn-desc">Tüm cihazlar ve sosyal medya ile uyumlu</span>
+            </div>
+            <div class="export-btn-meta">MP4</div>
+          </button>
+
+          <!-- Snapshot Grabber Card -->
+          <div class="snapshot-card">
+            <div class="snapshot-header">
+              <span class="snapshot-title">📸 Anlık Kare Yakala (Snapshot)</span>
+              <span class="snapshot-time" id="snapshotCurrentTime">00:00</span>
+            </div>
+            <div class="snapshot-actions">
+              <button class="snapshot-sub-btn highlight" id="openImageStudioSnapshotBtn" title="Kareyi Görsel Stüdyosu'nda Aç ve Düzenle" aria-label="Görsel Stüdyosunda Aç">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                </svg>
+                <span>Stüdyo'da Düzenle</span>
+              </button>
+              <button class="snapshot-sub-btn" id="downloadSnapshotBtn" title="Kareyi PNG Olarak İndir ( S )" aria-label="PNG İndir">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>PNG İndir</span>
+              </button>
+              <button class="snapshot-sub-btn" id="copySnapshotBtn" title="Kareyi Panoya Kopyala" aria-label="Panoya Kopyala">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span>Panoya Kopyala</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Detailed Video Metadata & Specs -->
+      <div class="sidebar-card">
+        <div class="card-header">
+          <div class="card-header-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>Teknik Özellikler</span>
+          </div>
+        </div>
+
+        <div class="spec-grid">
+          <div class="spec-item">
+            <span class="spec-label">Çözünürlük</span>
+            <span class="spec-value" id="specResolution">-- × --</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Süre</span>
+            <span class="spec-value" id="specDuration">00:00</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Dosya Boyutu</span>
+            <span class="spec-value" id="specFileSize">-- MB</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Kare Hızı (FPS)</span>
+            <span class="spec-value" id="specFps">~60 FPS</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Video Formatı</span>
+            <span class="spec-value" id="specFormat">video/webm (VP9)</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Kayıt Tarihi</span>
+            <span class="spec-value" id="specDate">Bugün</span>
+          </div>
+        </div>
+
+        <div class="copy-url-wrap">
+          <button class="btn-copy-url" id="copyVideoBlobBtn" title="Video URL/Blob bağlantısını kopyala">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            <span>Video Bağlantısını Kopyala</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- KEYBOARD SHORTCUTS MODAL -->
+  <div class="modal-backdrop shortcuts-modal hidden" id="shortcutsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </div>
+          <h3 class="modal-title">Klavye Kısayolları</h3>
+        </div>
+        <button class="modal-close-btn" id="closeShortcutsBtn" title="Kapat (ESC)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="shortcuts-grid shortcut-grid">
+          <div class="shortcut-item">
+            <span class="sc-desc">Oynat / Duraklat</span>
+            <div class="sc-keys"><kbd>Boşluk</kbd> / <kbd>K</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Kırpma Modu Aç / Kapat</span>
+            <div class="sc-keys"><kbd>T</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Kırpma Başlangıcı Belirle (In-Point)</span>
+            <div class="sc-keys"><kbd>[</kbd> / <kbd>I</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Kırpma Bitişi Belirle (Out-Point)</span>
+            <div class="sc-keys"><kbd>]</kbd> / <kbd>O</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Kırpmayı Sıfırla</span>
+            <div class="sc-keys"><kbd>\</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Tam Ekran Aç / Kapat</span>
+            <div class="sc-keys"><kbd>F</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">5 Saniye Geri Sar</span>
+            <div class="sc-keys"><kbd>←</kbd> / <kbd>J</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">5 Saniye İleri Sar</span>
+            <div class="sc-keys"><kbd>→</kbd> / <kbd>L</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">1 Kare Geri / İleri</span>
+            <div class="sc-keys"><kbd>,</kbd> / <kbd>.</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Sesi Aç / Kapat (Mute)</span>
+            <div class="sc-keys"><kbd>M</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Anlık Kare Yakala (Snapshot)</span>
+            <div class="sc-keys"><kbd>S</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">WebM İndir</span>
+            <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></div>
+          </div>
+          <div class="shortcut-item">
+            <span class="sc-desc">Pencere İçinde Pencere (PiP)</span>
+            <div class="sc-keys"><kbd>P</kbd></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT / TRANSCODE PROGRESS MODAL -->
+  <div class="modal-backdrop export-modal hidden" id="exportProgressModal">
+    <div class="modal-card" style="max-width: 400px; text-align: center; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+      <div class="spinner-ring" style="width: 44px; height: 44px; margin-bottom: 6px;"></div>
+      <h3 class="modal-title" id="exportProgressTitle" style="font-size: 16px;">Video Kırpılıyor...</h3>
+      <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;" id="exportProgressDesc">Seçili video aralığı kayıpsız işleniyor, lütfen bekleyin.</p>
+      <div style="background: rgba(255,255,255,0.1); width: 100%; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 6px;">
+        <div id="exportProgressBar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.1s ease;"></div>
+      </div>
+      <span id="exportProgressPct" style="font-size: 12px; font-family: var(--font-mono); font-weight: 700; color: var(--text-primary);">%0</span>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast" class="toast hidden">
+    <div class="toast-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="toast-content">
+      <div class="toast-title" id="toastTitle">Başarılı</div>
+      <div class="toast-text" id="toastText">İşlem tamamlandı.</div>
+    </div>
+    <div class="toast-progress"></div>
+  </div>
+
+  <script src="../../shared/db.js"></script>
+  <script src="video-studio.js"></script>
+</body>
+</html>

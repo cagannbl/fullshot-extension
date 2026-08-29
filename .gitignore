@@ -1,0 +1,20 @@
+﻿# Dependencies
+node_modules/
+package-lock.json
+
+# Build & Distribution Packages
+dist/
+build/
+*.zip
+*.crx
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.log
+
+# Temp files
+*.tmp
+*.bak
