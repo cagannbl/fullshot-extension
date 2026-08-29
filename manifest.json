@@ -8,6 +8,7 @@
     "scripting",
     "storage",
     "downloads",
+    "clipboardWrite",
     "unlimitedStorage",
     "tabCapture",
     "offscreen",
@@ -75,6 +76,7 @@
         "src/pages/video-studio/*",
         "src/offscreen/*",
         "src/shared/*",
+        "preview/*",
         "assets/*",
         "assets/icons/*",
         "assets/branding/*"

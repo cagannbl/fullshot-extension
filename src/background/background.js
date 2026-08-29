@@ -725,25 +725,36 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Async response
   }
 
-  if (action === 'openPreview') {
-    chrome.tabs.create({
-      url: chrome.runtime.getURL(PREVIEW_IMAGE_PATH)
-    });
-    sendResponse({ success: true });
+  if (action === 'openPreview' || action === 'OPEN_IN_STUDIO' || action === 'ACTION_OPEN_STUDIO') {
+    if (request.captureData) {
+      chrome.storage.local.set({ fullshot_current_capture: request.captureData }, () => {
+        chrome.tabs.create({
+          url: chrome.runtime.getURL(PREVIEW_IMAGE_PATH)
+        });
+        sendResponse({ success: true });
+      });
+    } else {
+      chrome.tabs.create({
+        url: chrome.runtime.getURL(PREVIEW_IMAGE_PATH)
+      });
+      sendResponse({ success: true });
+    }
     return true;
   }
 
-  if (action === 'downloadImage') {
-    const { dataUrl, filename } = request;
+  if (action === 'downloadImage' || action === 'DIRECT_DOWNLOAD' || action === 'ACTION_QUICK_DOWNLOAD') {
+    const { dataUrl, filename, saveAs } = request;
     if (!dataUrl) {
       sendResponse({ success: false, error: 'İndirilecek görüntü verisi bulunamadı.' });
       return true;
     }
 
+    const shouldSaveAs = typeof saveAs === 'boolean' ? saveAs : (action === 'downloadImage' && request.saveAs !== false);
+
     chrome.downloads.download({
       url: dataUrl,
       filename: filename || `FullShot_${Date.now()}.png`,
-      saveAs: true
+      saveAs: shouldSaveAs
     }, (downloadId) => {
       if (chrome.runtime.lastError) {
         sendResponse({ success: false, error: chrome.runtime.lastError.message });
@@ -752,6 +763,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     });
     return true;
+  }
+
+  if (action === 'COPY_TO_CLIPBOARD' || action === 'ACTION_QUICK_COPY') {
+    // Background coordinator response for quick copy
+    sendResponse({ success: true });
+    return false;
   }
 
   if (action === 'captureVisibleArea') {
@@ -1031,6 +1048,7 @@ chrome.commands.onCommand.addListener(async (command) => {
       files: [
         'src/content/hud/progress-hud.js',
         'src/content/hud/toast-hud.js',
+        'src/content/hud/quick-bar-hud.js',
         'src/content/hud/area-selector.js',
         'src/content/hud/element-picker.js',
         'src/content/hud/recording-bar.js',

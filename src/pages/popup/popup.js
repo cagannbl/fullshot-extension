@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Top Header & Settings Elements
   const settingsToggleBtn = document.getElementById('settingsToggleBtn');
   const settingsPanel = document.getElementById('settingsPanel');
+  const captureBehaviorSelect = document.getElementById('captureBehaviorSelect');
   const formatSelect = document.getElementById('formatSelect');
   const delaySelect = document.getElementById('delaySelect');
   const hideFixedCheckbox = document.getElementById('hideFixedCheckbox');
@@ -53,6 +54,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // --- STATE INITIALIZATION & SETTINGS LOAD ---
   const savedSettings = await chrome.storage.sync.get({
+    captureBehavior: 'quick_bar',
     format: 'png',
     scrollDelay: 250,
     hideFixed: true,
@@ -66,6 +68,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // Hydrate Screenshot Settings
+  if (captureBehaviorSelect) captureBehaviorSelect.value = savedSettings.captureBehavior || 'quick_bar';
   if (formatSelect) formatSelect.value = savedSettings.format || 'png';
   if (delaySelect) delaySelect.value = String(savedSettings.scrollDelay || 250);
   if (hideFixedCheckbox) hideFixedCheckbox.checked = savedSettings.hideFixed !== false;
@@ -132,12 +135,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Save general screenshot settings
   const saveScreenshotSettings = () => {
     chrome.storage.sync.set({
+      captureBehavior: captureBehaviorSelect ? captureBehaviorSelect.value : 'quick_bar',
       format: formatSelect ? formatSelect.value : 'png',
       scrollDelay: delaySelect ? parseInt(delaySelect.value, 10) : 250,
       hideFixed: hideFixedCheckbox ? hideFixedCheckbox.checked : true
     });
   };
 
+  async function getActiveTabAndInject() {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: [
+          'src/content/hud/progress-hud.js',
+          'src/content/hud/toast-hud.js',
+          'src/content/hud/quick-bar-hud.js',
+          'src/content/hud/area-selector.js',
+          'src/content/hud/element-picker.js',
+          'src/content/hud/recording-bar.js',
+          'src/content/hud/countdown-hud.js',
+          'src/content/capture/dom-measurer.js',
+          'src/content/capture/sticky-filter.js',
+          'src/content/capture/scroll-stitcher.js',
+          'src/content/content.js'
+        ]
+      });
+    } catch (e) {
+      console.debug('Script enjeksiyon uyarısı:', e);
+    }
+
+    return tab;
+  }
+
+  function getCommonScreenshotOptions() {
+    return {
+      captureBehavior: captureBehaviorSelect ? captureBehaviorSelect.value : 'quick_bar',
+      format: formatSelect ? formatSelect.value : 'png',
+      scrollDelay: delaySelect ? parseInt(delaySelect.value, 10) : 250,
+      hideFixed: hideFixedCheckbox ? hideFixedCheckbox.checked : true,
+      countdown: currentCountdown,
+      quality: 95
+    };
+  }
+
+  if (captureBehaviorSelect) captureBehaviorSelect.addEventListener('change', saveScreenshotSettings);
   if (formatSelect) formatSelect.addEventListener('change', saveScreenshotSettings);
   if (delaySelect) delaySelect.addEventListener('change', saveScreenshotSettings);
   if (hideFixedCheckbox) hideFixedCheckbox.addEventListener('change', saveScreenshotSettings);
@@ -604,58 +646,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // --- SCREENSHOT LOGIC (PRESERVED & ISOLATED) ---
-  async function getActiveTabAndInject() {
-    const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tabs || !tabs[0]) {
-      throw new Error('Aktif bir sekme bulunamadı.');
-    }
-    const tab = tabs[0];
-    const url = tab.url || '';
-
-    if (
-      url.startsWith('chrome://') ||
-      url.startsWith('chrome-extension://') ||
-      url.startsWith('edge://') ||
-      url.startsWith('about:') ||
-      url.startsWith('view-source:') ||
-      url.includes('chrome.google.com/webstore') ||
-      url.includes('chromewebstore.google.com')
-    ) {
-      throw new Error('Tarayıcı güvenlik kısıtlaması nedeniyle bu sistem sayfasında ekran görüntüsü alınamaz.');
-    }
-
-    try {
-      await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: [
-          'src/content/hud/progress-hud.js',
-          'src/content/hud/toast-hud.js',
-          'src/content/hud/area-selector.js',
-          'src/content/hud/element-picker.js',
-          'src/content/hud/recording-bar.js',
-          'src/content/hud/countdown-hud.js',
-          'src/content/capture/dom-measurer.js',
-          'src/content/capture/sticky-filter.js',
-          'src/content/capture/scroll-stitcher.js',
-          'src/content/content.js'
-        ]
-      });
-    } catch (e) {
-      console.debug('Script enjeksiyon uyarısı:', e);
-    }
-
-    return tab;
-  }
-
-  function getCommonScreenshotOptions() {
-    return {
-      format: formatSelect ? formatSelect.value : 'png',
-      scrollDelay: delaySelect ? parseInt(delaySelect.value, 10) : 250,
-      hideFixed: hideFixedCheckbox ? hideFixedCheckbox.checked : true,
-      countdown: currentCountdown,
-      quality: 95
-    };
-  }
 
   // Mode 1: Full Page Capture
   if (captureFullPageBtn) {

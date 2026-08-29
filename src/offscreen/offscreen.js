@@ -1090,6 +1090,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         .catch((err) => sendResponse({ success: false, error: err.message }));
       return true;
 
+    case 'COPY_TO_CLIPBOARD':
+    case 'copyToClipboard':
+      (async () => {
+        try {
+          if (message.text) {
+            await navigator.clipboard.writeText(message.text);
+            sendResponse({ success: true });
+            return;
+          }
+          if (message.dataUrl) {
+            const res = await fetch(message.dataUrl);
+            const blob = await res.blob();
+            const mime = blob.type || message.mimeType || 'image/png';
+            await navigator.clipboard.write([
+              new ClipboardItem({ [mime]: blob })
+            ]);
+            sendResponse({ success: true });
+            return;
+          }
+          sendResponse({ success: true });
+        } catch (clipErr) {
+          console.warn('[Offscreen] Clipboard yazma hatası:', clipErr);
+          sendResponse({ success: false, error: clipErr.message });
+        }
+      })();
+      return true;
+
     default:
       return false;
   }

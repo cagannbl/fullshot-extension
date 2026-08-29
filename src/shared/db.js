@@ -191,28 +191,40 @@ const FullShotDB = {
 
   /**
    * Saves a screenshot/capture entry to IndexedDB.
-   * @param {string} id Capture ID
-   * @param {Blob|string} data Base64 dataUrl or Image Blob
-   * @param {Object} metadata Title, URL, dimensions, format, etc.
+   * @param {string|Object} id Capture ID or capture item object
+   * @param {Blob|string} [data] Base64 dataUrl or Image Blob
+   * @param {Object} [metadata={}] Title, URL, dimensions, format, etc.
    * @returns {Promise<string>} Capture ID
    */
   async saveCapture(id, data, metadata = {}) {
-    if (!data) throw new Error('Kaydedilecek ekran görüntüsü verisi bulunamadı.');
+    let targetId = id;
+    let targetData = data;
+    let targetMeta = metadata;
+
+    if (typeof id === 'object' && id !== null && !data) {
+      const item = id;
+      targetId = item.id || `cap_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      targetData = item.dataUrl || item.data || item.blob;
+      targetMeta = item;
+    }
+
+    if (!targetData) throw new Error('Kaydedilecek ekran görüntüsü verisi bulunamadı.');
     const db = await this.open();
-    const recordId = id || `cap_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const recordId = targetId || `cap_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const isBlob = (typeof Blob !== 'undefined' && targetData instanceof Blob);
     const record = {
       id: recordId,
-      data: data,
-      dataUrl: typeof data === 'string' ? data : null,
-      blob: data instanceof Blob ? data : null,
-      title: metadata.title || 'Ekran Görüntüsü',
-      url: metadata.url || '',
-      type: metadata.type || 'screenshot',
-      format: metadata.format || 'png',
-      width: metadata.width || 0,
-      height: metadata.height || 0,
-      timestamp: metadata.timestamp || Date.now(),
-      metadata: metadata
+      data: targetData,
+      dataUrl: typeof targetData === 'string' ? targetData : null,
+      blob: isBlob ? targetData : null,
+      title: targetMeta.title || 'Ekran Görüntüsü',
+      url: targetMeta.url || '',
+      type: targetMeta.type || 'screenshot',
+      format: targetMeta.format || 'png',
+      width: targetMeta.width || 0,
+      height: targetMeta.height || 0,
+      timestamp: targetMeta.timestamp || Date.now(),
+      metadata: targetMeta
     };
 
     return new Promise((resolve, reject) => {

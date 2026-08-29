@@ -15,10 +15,16 @@ const ACTIONS = {
   CAPTURE_SELECTED_AREA: 'startSelectedAreaCapture',
   CAPTURE_ELEMENT_PICKER: 'startElementPicker',
   
-  // Navigation & Studio
+  // Navigation & Studio & Quick Actions
   OPEN_IMAGE_STUDIO: 'openPreview',
+  OPEN_IN_STUDIO: 'OPEN_IN_STUDIO',
+  ACTION_OPEN_STUDIO: 'ACTION_OPEN_STUDIO',
   OPEN_VIDEO_STUDIO: 'openVideoPreview',
   DOWNLOAD_IMAGE: 'downloadImage',
+  DIRECT_DOWNLOAD: 'DIRECT_DOWNLOAD',
+  ACTION_QUICK_DOWNLOAD: 'ACTION_QUICK_DOWNLOAD',
+  COPY_TO_CLIPBOARD: 'COPY_TO_CLIPBOARD',
+  ACTION_QUICK_COPY: 'ACTION_QUICK_COPY',
   DOWNLOAD_VIDEO: 'downloadVideo',
   
   // Video Recording Actions
@@ -45,7 +51,8 @@ const STORAGE_KEYS = {
   CURRENT_VIDEO: 'fullshot_current_video',
   RECORDING_STATE: 'fullshot_recording_state',
   VIDEO_RECORDINGS: 'fullshot_recordings',
-  USER_PREFERENCES: 'fullshot_preferences'
+  USER_PREFERENCES: 'fullshot_preferences',
+  CAPTURE_BEHAVIOR: 'fullshot_capture_behavior'
 };
 
 // ==========================================

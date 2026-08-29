@@ -13,7 +13,7 @@
   <header class="top-bar">
     <div class="bar-left">
       <div class="brand">
-        <img src="../../../assets/branding/fullshot-header-logo.png" alt="FullShot" class="brand-logo-img" style="height: 36px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(109, 129, 150, 0.45));">
+        <img src="../../../assets/branding/fullshot-header-logo.png" alt="FullShot" class="brand-logo-img">
       </div>
 
       <div class="page-meta" id="pageMeta">
@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <!-- Zoom & Dimensions Control -->
+    <!-- Center: Dimensions, Zoom & History Controls -->
     <div class="bar-center">
       <div class="info-pill" id="dimensionsBadge" title="Görüntü Boyutları">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -39,31 +39,52 @@
       </div>
 
       <div class="zoom-controls">
-        <button class="tool-btn" id="zoomOutBtn" title="Uzaklaştır ( - )">
+        <button class="tool-btn" id="zoomOutBtn" title="Uzaklaştır ( - )" aria-label="Uzaklaştır">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </button>
         <span class="zoom-level" id="zoomLevel" title="Ölçek">100%</span>
-        <button class="tool-btn" id="zoomInBtn" title="Yakınlaştır ( + )">
+        <button class="tool-btn" id="zoomInBtn" title="Yakınlaştır ( + )" aria-label="Yakınlaştır">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
         </button>
         <div class="zoom-divider"></div>
-        <button class="tool-btn" id="zoomFitBtn" title="Ekrana Sığdır ( 0 )">
+        <button class="tool-btn" id="zoomFitBtn" title="Ekrana Sığdır ( 0 )" aria-label="Ekrana Sığdır">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
           </svg>
         </button>
-        <button class="tool-btn" id="zoomActualBtn" title="Gerçek Boyut (%100)">
+        <button class="tool-btn" id="zoomActualBtn" title="Gerçek Boyut (%100)" aria-label="Gerçek Boyut">
           <span style="font-size: 10px; font-weight: 700;">1:1</span>
+        </button>
+      </div>
+
+      <div class="history-controls">
+        <button class="tool-btn" id="undoBtn" title="Geri Al ( Ctrl+Z )" aria-label="Geri Al" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 7v6h6"></path>
+            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+          </svg>
+        </button>
+        <button class="tool-btn" id="redoBtn" title="İleri Al ( Ctrl+Y )" aria-label="İleri Al" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 7v6h-6"></path>
+            <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
+          </svg>
+        </button>
+        <button class="tool-btn danger-hover" id="clearBtn" title="Tüm Çizimleri Temizle" aria-label="Temizle">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
         </button>
       </div>
     </div>
 
-    <!-- Actions / Export Buttons -->
+    <!-- Right Actions -->
     <div class="bar-right">
       <button class="action-btn secondary" id="shortcutsBtn" title="Klavye Kısayolları ( ? )" aria-label="Klavye Kısayolları">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -157,275 +178,282 @@
     </div>
   </header>
 
-  <!-- FLOATING ANNOTATION TOOLBAR -->
-  <aside class="floating-toolbar" id="floatingToolbar">
-    <!-- Tool Groups -->
-    <div class="toolbar-section">
-      <!-- Select / Move -->
-      <button class="tool-icon-btn active" data-tool="select" id="toolSelect" title="Seçim / Gezin ( V )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 3l7 18 3-7 7-3L3 3z"></path>
-        </svg>
-        <span class="tool-tooltip">Seçim <kbd>V</kbd></span>
-      </button>
+  <!-- Main Workspace Layout with Fixed Sidebar -->
+  <div class="studio-workspace">
+    <!-- Fixed Left Sidebar -->
+    <aside class="studio-sidebar" id="studioSidebar">
+      <!-- Section 1: Tool Palette -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-header">
+          <span class="sidebar-section-title">ARAÇLAR</span>
+        </div>
+        <div class="tools-grid">
+          <!-- Select / Move -->
+          <button class="tool-icon-btn active" data-tool="select" id="toolSelect" title="Seçim / Gezin ( V )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3l7 18 3-7 7-3L3 3z"></path>
+            </svg>
+            <span class="tool-btn-label">Seçim</span>
+            <kbd class="tool-btn-key">V</kbd>
+          </button>
 
-      <!-- Pan / Hand Tool -->
-      <button class="tool-icon-btn" data-tool="pan" id="toolPan" title="El / Tuvali Kaydır ( Boşluk Tuşu + Sürükle )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3"></path>
-          <path d="M14 9V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6"></path>
-          <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
-          <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
-        </svg>
-        <span class="tool-tooltip">El / Kaydır <kbd>Space</kbd></span>
-      </button>
+          <!-- Pan / Hand -->
+          <button class="tool-icon-btn" data-tool="pan" id="toolPan" title="El / Tuvali Kaydır ( Space )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3"></path>
+              <path d="M14 9V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6"></path>
+              <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+              <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
+            </svg>
+            <span class="tool-btn-label">El</span>
+            <kbd class="tool-btn-key">Space</kbd>
+          </button>
 
-      <!-- Pen -->
-      <button class="tool-icon-btn" data-tool="pen" id="toolPen" title="Serbest Çizim / Kalem ( P )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-          <path d="M2 2l7.586 7.586"></path>
-          <circle cx="11" cy="11" r="2"></circle>
-        </svg>
-        <span class="tool-tooltip">Kalem <kbd>P</kbd></span>
-      </button>
+          <!-- Pen -->
+          <button class="tool-icon-btn" data-tool="pen" id="toolPen" title="Serbest Çizim / Kalem ( P )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
+              <path d="M2 2l7.586 7.586"></path>
+              <circle cx="11" cy="11" r="2"></circle>
+            </svg>
+            <span class="tool-btn-label">Kalem</span>
+            <kbd class="tool-btn-key">P</kbd>
+          </button>
 
-      <!-- Straight Line -->
-      <button class="tool-icon-btn" data-tool="line" id="toolLine" title="Düz Çizgi ( L )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="4" y1="20" x2="20" y2="4"></line>
-        </svg>
-        <span class="tool-tooltip">Düz Çizgi <kbd>L</kbd></span>
-      </button>
+          <!-- Highlighter -->
+          <button class="tool-icon-btn" data-tool="highlighter" id="toolHighlighter" title="Vurgulayıcı / Fosforlu ( H )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2l4 4L7 17H3v-4L14 2z"></path>
+              <path d="M3 22h18"></path>
+            </svg>
+            <span class="tool-btn-label">Vurgu</span>
+            <kbd class="tool-btn-key">H</kbd>
+          </button>
 
-      <!-- Highlighter / Fosforlu Kalem -->
-      <button class="tool-icon-btn" data-tool="highlighter" id="toolHighlighter" title="Vurgulayıcı / Fosforlu ( H )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M14 2l4 4L7 17H3v-4L14 2z"></path>
-          <path d="M3 22h18"></path>
-        </svg>
-        <span class="tool-tooltip">Vurgulayıcı <kbd>H</kbd></span>
-      </button>
+          <!-- Line -->
+          <button class="tool-icon-btn" data-tool="line" id="toolLine" title="Düz Çizgi ( L )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="4" y1="20" x2="20" y2="4"></line>
+            </svg>
+            <span class="tool-btn-label">Çizgi</span>
+            <kbd class="tool-btn-key">L</kbd>
+          </button>
 
-      <!-- Arrow -->
-      <button class="tool-icon-btn" data-tool="arrow" id="toolArrow" title="Ok Çiz ( A )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="5" y1="19" x2="19" y2="5"></line>
-          <polyline points="10 5 19 5 19 14"></polyline>
-        </svg>
-        <span class="tool-tooltip">Ok <kbd>A</kbd></span>
-      </button>
+          <!-- Arrow -->
+          <button class="tool-icon-btn" data-tool="arrow" id="toolArrow" title="Ok Çiz ( A )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="19" x2="19" y2="5"></line>
+              <polyline points="10 5 19 5 19 14"></polyline>
+            </svg>
+            <span class="tool-btn-label">Ok</span>
+            <kbd class="tool-btn-key">A</kbd>
+          </button>
 
-      <!-- Rectangle -->
-      <button class="tool-icon-btn" data-tool="rect" id="toolRect" title="Dikdörtgen Çerçeve ( R )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-        </svg>
-        <span class="tool-tooltip">Dikdörtgen <kbd>R</kbd></span>
-      </button>
+          <!-- Rectangle -->
+          <button class="tool-icon-btn" data-tool="rect" id="toolRect" title="Dikdörtgen Çerçeve ( R )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            </svg>
+            <span class="tool-btn-label">Kutu</span>
+            <kbd class="tool-btn-key">R</kbd>
+          </button>
 
-      <!-- Circle / Ellipse -->
-      <button class="tool-icon-btn" data-tool="circle" id="toolCircle" title="Daire / Elips ( C )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="9"></circle>
-        </svg>
-        <span class="tool-tooltip">Daire <kbd>C</kbd></span>
-      </button>
+          <!-- Circle -->
+          <button class="tool-icon-btn" data-tool="circle" id="toolCircle" title="Daire / Elips ( C )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"></circle>
+            </svg>
+            <span class="tool-btn-label">Daire</span>
+            <kbd class="tool-btn-key">C</kbd>
+          </button>
 
-      <!-- Step Counter / Badge -->
-      <button class="tool-icon-btn" data-tool="step" id="toolStep" title="Numaralı Adım Rozeti ( S )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="9"></circle>
-          <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" stroke="none">1</text>
-        </svg>
-        <span class="tool-tooltip">Adım Rozeti <kbd>S</kbd></span>
-      </button>
+          <!-- Step Badge -->
+          <button class="tool-icon-btn" data-tool="step" id="toolStep" title="Numaralı Adım Rozeti ( S )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"></circle>
+              <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" stroke="none">1</text>
+            </svg>
+            <span class="tool-btn-label">Adım</span>
+            <kbd class="tool-btn-key">S</kbd>
+          </button>
 
-      <!-- Callout / Speech Bubble Tool -->
-      <button class="tool-icon-btn" data-tool="callout" id="toolCallout" title="Konuşma Balonu & Açıklama ( Q )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-        </svg>
-        <span class="tool-tooltip">Konuşma Balonu <kbd>Q</kbd></span>
-      </button>
+          <!-- Text -->
+          <button class="tool-icon-btn" data-tool="text" id="toolText" title="Metin Ekle ( T )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="4 7 4 4 20 4 20 7"></polyline>
+              <line x1="9" y1="20" x2="15" y2="20"></line>
+              <line x1="12" y1="4" x2="12" y2="20"></line>
+            </svg>
+            <span class="tool-btn-label">Metin</span>
+            <kbd class="tool-btn-key">T</kbd>
+          </button>
 
-      <!-- Blur / Redact / Pixelate (CRITICAL) -->
-      <button class="tool-icon-btn highlight-blur" data-tool="blur" id="toolBlur" title="Bulanıklaştır / Sansürle ( B )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="3" width="7" height="7"></rect>
-          <rect x="14" y="3" width="7" height="7"></rect>
-          <rect x="14" y="14" width="7" height="7"></rect>
-          <rect x="3" y="14" width="7" height="7"></rect>
-        </svg>
-        <span class="tool-tooltip">Sansür / Blur <kbd>B</kbd></span>
-      </button>
+          <!-- Callout -->
+          <button class="tool-icon-btn" data-tool="callout" id="toolCallout" title="Konuşma Balonu ( Q )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+            <span class="tool-btn-label">Balon</span>
+            <kbd class="tool-btn-key">Q</kbd>
+          </button>
 
-      <!-- Text -->
-      <button class="tool-icon-btn" data-tool="text" id="toolText" title="Metin Ekle ( T )">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="4 7 4 4 20 4 20 7"></polyline>
-          <line x1="9" y1="20" x2="15" y2="20"></line>
-          <line x1="12" y1="4" x2="12" y2="20"></line>
-        </svg>
-        <span class="tool-tooltip">Metin <kbd>T</kbd></span>
-      </button>
-    </div>
-
-    <div class="toolbar-separator"></div>
-
-    <!-- History Controls -->
-    <div class="toolbar-section history-section">
-      <button class="tool-icon-btn" id="undoBtn" title="Geri Al (Ctrl+Z)" disabled>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M3 7v6h6"></path>
-          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-        </svg>
-        <span class="tool-tooltip">Geri Al <kbd>Ctrl+Z</kbd></span>
-      </button>
-
-      <button class="tool-icon-btn" id="redoBtn" title="İleri Al (Ctrl+Y)" disabled>
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 7v6h-6"></path>
-          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path>
-        </svg>
-        <span class="tool-tooltip">İleri Al <kbd>Ctrl+Y</kbd></span>
-      </button>
-
-      <button class="tool-icon-btn danger-hover" id="clearBtn" title="Tüm Çizimleri Temizle">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="3 6 5 6 21 6"></polyline>
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-        </svg>
-        <span class="tool-tooltip">Temizle</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- SECONDARY OPTIONS DOCK (Color, Size, Step, Blur Type) -->
-  <div class="options-dock" id="optionsDock">
-    <!-- Color Swatches (for Pen, Line, Arrow, Rect, Circle, Step, Text) -->
-    <div class="option-group" id="colorOptionGroup">
-      <span class="option-label">Renk:</span>
-      <div class="color-palette">
-        <button class="color-swatch active" data-color="#ff3366" style="--c: #ff3366;" title="Kırmızı"></button>
-        <button class="color-swatch" data-color="#00d2ff" style="--c: #00d2ff;" title="Neon Camgöbeği"></button>
-        <button class="color-swatch" data-color="#ffd700" style="--c: #ffd700;" title="Sarı"></button>
-        <button class="color-swatch" data-color="#00e676" style="--c: #00e676;" title="Yeşil"></button>
-        <button class="color-swatch" data-color="#9333ea" style="--c: #9333ea;" title="Mor"></button>
-        <button class="color-swatch" data-color="#ffffff" style="--c: #ffffff;" title="Beyaz"></button>
-        <button class="color-swatch" data-color="#000000" style="--c: #000000;" title="Siyah"></button>
-        <label class="custom-color-picker" title="Özel Renk Seç">
-          <input type="color" id="customColorInput" value="#ff3366">
-          <span class="custom-color-indicator" id="customColorIndicator"></span>
-        </label>
-      </div>
-    </div>
-
-    <!-- Stroke Width Selector -->
-    <div class="option-group" id="strokeOptionGroup">
-      <span class="option-label">Kalınlık:</span>
-      <div class="stroke-selector">
-        <button class="stroke-btn" data-width="2" title="İnce (2px)">
-          <span class="stroke-dot" style="width: 3px; height: 3px;"></span>
-        </button>
-        <button class="stroke-btn active" data-width="4" title="Orta (4px)">
-          <span class="stroke-dot" style="width: 6px; height: 6px;"></span>
-        </button>
-        <button class="stroke-btn" data-width="8" title="Kalın (8px)">
-          <span class="stroke-dot" style="width: 10px; height: 10px;"></span>
-        </button>
-        <button class="stroke-btn" data-width="16" title="Ekstra Kalın (16px)">
-          <span class="stroke-dot" style="width: 14px; height: 14px;"></span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Line Style & Arrow Mode Options (Solid vs Dashed & Single/Double Arrow) -->
-    <div class="option-group hidden" id="lineStyleOptionGroup">
-      <span class="option-label">Çizgi:</span>
-      <div class="line-style-selector">
-        <button class="line-style-btn active" data-style="solid" id="lineSolidBtn" title="Düz Çizgi">
-          <svg width="18" height="6" viewBox="0 0 18 6"><line x1="1" y1="3" x2="17" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-        </button>
-        <button class="line-style-btn" data-style="dashed" id="lineDashedBtn" title="Kesikli Çizgi">
-          <svg width="18" height="6" viewBox="0 0 18 6"><line x1="1" y1="3" x2="17" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="3,3"/></svg>
-        </button>
-      </div>
-      <div class="arrow-mode-selector hidden" id="arrowModeSelector">
-        <span class="option-label" style="margin-left: 6px;">Ok:</span>
-        <button class="arrow-mode-btn active" data-arrowmode="single" id="arrowSingleBtn" title="Tek Yönlü Ok">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"></line><polyline points="10 5 19 5 19 14"></polyline></svg>
-        </button>
-        <button class="arrow-mode-btn" data-arrowmode="double" id="arrowDoubleBtn" title="Çift Yönlü Ok">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="10 6 18 6 18 14"></polyline><polyline points="14 18 6 18 6 10"></polyline></svg>
-        </button>
-      </div>
-    </div>
-
-    <!-- Step Counter Options -->
-    <div class="option-group hidden" id="stepOptionGroup">
-      <span class="option-label">Sıradaki:</span>
-      <div class="step-controls">
-        <span class="step-badge-preview" id="stepBadgePreview">#1</span>
-        <button class="step-reset-btn" id="stepResetBtn" title="Numara sayacını 1'e sıfırla">Sıfırla (1 Yap)</button>
-      </div>
-    </div>
-
-    <!-- Blur Mode Selector (Pixelate vs Blackout) -->
-    <div class="option-group hidden" id="blurOptionGroup">
-      <span class="option-label">Sansür Tipi:</span>
-      <div class="blur-type-selector">
-        <button class="blur-type-btn active" data-blur="pixelate" id="blurPixelateBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-          <span>Mozaik / Piksel</span>
-        </button>
-        <button class="blur-type-btn" data-blur="blackout" id="blurBlackoutBtn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="3" y="3" width="18" height="18" rx="2"></rect>
-          </svg>
-          <span>Karartma / Maske</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Text Size Selector -->
-    <div class="option-group hidden" id="textSizeOptionGroup">
-      <span class="option-label">Yazı Boyutu:</span>
-      <div class="text-size-selector">
-        <button class="text-size-btn" data-fontsize="16">Küçük</button>
-        <button class="text-size-btn active" data-fontsize="24">Orta</button>
-        <button class="text-size-btn" data-fontsize="36">Büyük</button>
-        <button class="text-size-btn" data-fontsize="48">Dev</button>
-      </div>
-      <label class="text-bg-toggle" title="Okunabilirlik için koyu arka plan kartı ekle">
-        <input type="checkbox" id="textBgCheckbox" checked>
-      </label>
-    </div>
-  </div>
-
-  <!-- Workspace / Image & Canvas Viewport -->
-  <main class="viewport" id="viewport">
-    <div class="canvas-stage" id="canvasStage">
-      <!-- Main render canvas containing screenshot + annotations -->
-      <canvas id="mainCanvas"></canvas>
-      <!-- Interactive overlay canvas for real-time drawing feedback -->
-      <canvas id="overlayCanvas"></canvas>
-      <!-- Floating Text Input Overlay -->
-      <div id="textInputContainer" class="text-input-container hidden">
-        <textarea id="textInputField" placeholder="Metninizi yazın... (Bitirmek için dışarı tıklayın veya Shift+Enter)"></textarea>
-        <div class="text-input-actions">
-          <button id="textApplyBtn" class="text-act-btn primary">Tamamla</button>
-          <button id="textCancelBtn" class="text-act-btn secondary">İptal</button>
+          <!-- Blur / Redact -->
+          <button class="tool-icon-btn highlight-blur" data-tool="blur" id="toolBlur" title="Sansürle / Bulanıklaştır ( B )">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span class="tool-btn-label">Sansür</span>
+            <kbd class="tool-btn-key">B</kbd>
+          </button>
         </div>
       </div>
-    </div>
-  </main>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Section 2: Contextual Tool Options -->
+      <div class="sidebar-section options-section" id="sidebarOptions">
+        <div class="sidebar-section-header">
+          <span class="sidebar-section-title">ARAÇ AYARLARI</span>
+        </div>
+
+        <!-- Color Swatches -->
+        <div class="option-card" id="colorOptionGroup">
+          <span class="option-card-label">Renk Paleti:</span>
+          <div class="color-palette">
+            <button class="color-swatch active" data-color="#ff3366" style="--c: #ff3366;" title="Kırmızı"></button>
+            <button class="color-swatch" data-color="#00d2ff" style="--c: #00d2ff;" title="Neon Camgöbeği"></button>
+            <button class="color-swatch" data-color="#ffd700" style="--c: #ffd700;" title="Sarı"></button>
+            <button class="color-swatch" data-color="#00e676" style="--c: #00e676;" title="Yeşil"></button>
+            <button class="color-swatch" data-color="#9333ea" style="--c: #9333ea;" title="Mor"></button>
+            <button class="color-swatch" data-color="#ffffff" style="--c: #ffffff;" title="Beyaz"></button>
+            <button class="color-swatch" data-color="#000000" style="--c: #000000;" title="Siyah"></button>
+            <label class="custom-color-picker" title="Özel Renk Seç">
+              <input type="color" id="customColorInput" value="#ff3366">
+              <span class="custom-color-indicator" id="customColorIndicator"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Stroke Width Selector -->
+        <div class="option-card" id="strokeOptionGroup">
+          <span class="option-card-label">Çizgi Kalınlığı:</span>
+          <div class="stroke-selector">
+            <button class="stroke-btn" data-width="2" title="İnce (2px)">
+              <span class="stroke-dot" style="width: 3px; height: 3px;"></span>
+              <span class="stroke-label">2px</span>
+            </button>
+            <button class="stroke-btn active" data-width="4" title="Orta (4px)">
+              <span class="stroke-dot" style="width: 6px; height: 6px;"></span>
+              <span class="stroke-label">4px</span>
+            </button>
+            <button class="stroke-btn" data-width="8" title="Kalın (8px)">
+              <span class="stroke-dot" style="width: 9px; height: 9px;"></span>
+              <span class="stroke-label">8px</span>
+            </button>
+            <button class="stroke-btn" data-width="12" title="Ekstra (12px)">
+              <span class="stroke-dot" style="width: 12px; height: 12px;"></span>
+              <span class="stroke-label">12px</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Line Style & Arrow Mode -->
+        <div class="option-card hidden" id="lineStyleOptionGroup">
+          <span class="option-card-label">Çizgi & Ok Tipi:</span>
+          <div class="line-style-controls">
+            <div class="line-style-selector">
+              <button class="line-style-btn active" data-style="solid" id="lineSolidBtn" title="Düz Çizgi">
+                <svg width="18" height="6" viewBox="0 0 18 6"><line x1="1" y1="3" x2="17" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+                <span>Düz</span>
+              </button>
+              <button class="line-style-btn" data-style="dashed" id="lineDashedBtn" title="Kesikli Çizgi">
+                <svg width="18" height="6" viewBox="0 0 18 6"><line x1="1" y1="3" x2="17" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="3,3"/></svg>
+                <span>Kesikli</span>
+              </button>
+            </div>
+            <div class="arrow-mode-selector hidden" id="arrowModeSelector">
+              <button class="arrow-mode-btn active" data-arrowmode="single" id="arrowSingleBtn" title="Tek Yönlü Ok">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"></line><polyline points="10 5 19 5 19 14"></polyline></svg>
+                <span>Tek Ok</span>
+              </button>
+              <button class="arrow-mode-btn" data-arrowmode="double" id="arrowDoubleBtn" title="Çift Yönlü Ok">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="10 6 18 6 18 14"></polyline><polyline points="14 18 6 18 6 10"></polyline></svg>
+                <span>Çift Ok</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Counter -->
+        <div class="option-card hidden" id="stepOptionGroup">
+          <span class="option-card-label">Sıradaki Adım Rozeti:</span>
+          <div class="step-controls">
+            <span class="step-badge-preview" id="stepBadgePreview">#1</span>
+            <button class="step-reset-btn" id="stepResetBtn" title="Numara sayacını 1'e sıfırla">Sıfırla (1 Yap)</button>
+          </div>
+        </div>
+
+        <!-- Blur Mode -->
+        <div class="option-card hidden" id="blurOptionGroup">
+          <span class="option-card-label">Sansür Modu:</span>
+          <div class="blur-type-selector">
+            <button class="blur-type-btn active" data-blur="pixelate" id="blurPixelateBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>Mozaik / Piksel</span>
+            </button>
+            <button class="blur-type-btn" data-blur="blackout" id="blurBlackoutBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+              </svg>
+              <span>Karartma / Maske</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Text Size & Background -->
+        <div class="option-card hidden" id="textSizeOptionGroup">
+          <span class="option-card-label">Yazı Boyutu & Arka Plan:</span>
+          <div class="text-size-selector">
+            <button class="text-size-btn" data-fontsize="16">S</button>
+            <button class="text-size-btn active" data-fontsize="24">M</button>
+            <button class="text-size-btn" data-fontsize="36">L</button>
+            <button class="text-size-btn" data-fontsize="48">XL</button>
+          </div>
+          <label class="text-bg-toggle" title="Okunabilirlik için koyu arka plan kartı ekle">
+            <input type="checkbox" id="textBgCheckbox" checked>
+            <span>Koyu Arka Plan</span>
+          </label>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Workspace / Image & Canvas Viewport -->
+    <main class="viewport" id="viewport">
+      <div class="canvas-stage" id="canvasStage">
+        <!-- Main render canvas containing screenshot + annotations -->
+        <canvas id="mainCanvas"></canvas>
+        <!-- Interactive overlay canvas for real-time drawing feedback -->
+        <canvas id="overlayCanvas"></canvas>
+        <!-- Floating Text Input Overlay -->
+        <div id="textInputContainer" class="text-input-container hidden">
+          <textarea id="textInputField" placeholder="Metninizi yazın... (Bitirmek için dışarı tıklayın veya Shift+Enter)"></textarea>
+          <div class="text-input-actions">
+            <button id="textApplyBtn" class="text-act-btn primary">Tamamla</button>
+            <button id="textCancelBtn" class="text-act-btn secondary">İptal</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
 
   <!-- Keyboard Shortcuts Modal -->
   <div class="modal-backdrop shortcuts-modal hidden" id="shortcutsModal">
@@ -524,7 +552,6 @@
               <kbd>Alt+Shift+F</kbd> Tam Sayfa &nbsp;|&nbsp; <kbd>Alt+Shift+V</kbd> Görünür &nbsp;|&nbsp; <kbd>Alt+Shift+E</kbd> DOM &nbsp;|&nbsp; <kbd>Alt+Shift+S</kbd> Kırp
             </div>
           </div>
-
         </div>
       </div>
     </div>
