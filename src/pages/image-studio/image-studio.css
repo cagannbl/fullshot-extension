@@ -1180,14 +1180,15 @@ html, body {
   border: 2px solid #FFFFE3;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   cursor: grab;
-  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.12s ease;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.12s ease, box-shadow 0.12s ease;
 }
 
 .yt-scrubber-range:hover::-webkit-slider-thumb,
 .yt-scrubber-range:active::-webkit-slider-thumb {
-  transform: scale(1.25);
-  background: #ff3366;
-  border-color: #ffffff;
+  transform: scale(1.2);
+  background: #849cb3;
+  border-color: #FFFFE3;
+  box-shadow: 0 0 0 4px rgba(109, 129, 150, 0.3), 0 2px 6px rgba(0, 0, 0, 0.5);
   cursor: grabbing;
 }
 
