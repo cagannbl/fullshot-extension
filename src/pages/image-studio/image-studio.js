@@ -632,19 +632,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     stampSelectorGrid.innerHTML = '';
     const presets = window.FullShotCanvas.Stamp?.STAMP_PRESETS || {};
 
+    if (category === 'emoji') {
+      stampSelectorGrid.className = 'stamp-selector-grid emoji-grid';
+    } else if (category === 'key') {
+      stampSelectorGrid.className = 'stamp-selector-grid keycap-grid';
+    } else {
+      stampSelectorGrid.className = 'stamp-selector-grid badge-grid';
+    }
+
     for (const [id, item] of Object.entries(presets)) {
       if (item.category === category) {
         const btn = document.createElement('button');
-        btn.className = `stamp-item-btn ${id === activeStampId ? 'active' : ''}`;
+        btn.type = 'button';
+        btn.className = `stamp-item-btn ${id === activeStampId ? 'active' : ''} ${item.type === 'emoji' ? 'stamp-emoji-btn' : ''}`;
         btn.dataset.stamp = id;
         btn.title = item.label || item.key || item.char || id;
+        btn.setAttribute('aria-label', item.label || item.key || item.char || id);
 
         if (item.type === 'keycap') {
-          btn.textContent = `[${item.key}]`;
+          btn.innerHTML = `<span class="stamp-keycap-text">${item.key}</span>`;
         } else if (item.type === 'emoji') {
-          btn.textContent = `${item.char} ${id.replace('emoji-', '')}`;
+          btn.innerHTML = `<span class="stamp-emoji-char">${item.char}</span>`;
         } else {
-          btn.textContent = `${item.icon} ${item.label}`;
+          btn.innerHTML = `<span class="stamp-badge-icon">${item.icon}</span> <span class="stamp-badge-label">${item.label}</span>`;
         }
 
         btn.addEventListener('click', () => {

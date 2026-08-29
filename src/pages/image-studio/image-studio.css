@@ -2545,9 +2545,11 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 2px;
-  gap: 2px;
+  padding: 3px;
+  gap: 3px;
   margin-bottom: 8px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .stamp-tab {
@@ -2555,12 +2557,16 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 4px 6px;
+  padding: 6px 4px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
+  text-align: center;
+  user-select: none;
+  outline: none;
 }
 
 .stamp-tab:hover {
@@ -2570,49 +2576,110 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
 
 .stamp-tab.active {
   background: var(--primary);
-  color: #ffffff;
+  color: #FFFFE3;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .stamp-selector-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
-  gap: 4px;
-  max-height: 140px;
+  gap: 5px;
+  max-height: 165px;
   overflow-y: auto;
-  scrollbar-width: none;
+  scrollbar-width: none !important;
   padding: 2px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .stamp-selector-grid::-webkit-scrollbar {
-  display: none;
+  display: none !important;
+}
+
+/* Category-specific grid column layouts */
+.stamp-selector-grid.badge-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stamp-selector-grid.keycap-grid {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.stamp-selector-grid.emoji-grid {
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .stamp-item-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-primary);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 6px 4px;
+  padding: 7px 6px;
+  min-height: 32px;
   text-align: center;
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  outline: none;
+  box-sizing: border-box;
+  line-height: 1.25;
 }
 
 .stamp-item-btn:hover {
   background: var(--bg-surface-hover);
   border-color: var(--border-medium);
+  transform: translateY(-1px);
+}
+
+.stamp-item-btn:active {
+  transform: scale(0.96);
 }
 
 .stamp-item-btn.active {
   border-color: #10b981;
-  background: rgba(16, 185, 129, 0.18);
+  background: rgba(16, 185, 129, 0.22);
   color: #34d399;
+  box-shadow: 0 0 0 1px #10b981;
+}
+
+.stamp-badge-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.stamp-badge-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.stamp-keycap-text {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+/* Emoji Sticker Button (4x3 large crisp emoji picker) */
+.stamp-item-btn.stamp-emoji-btn {
+  min-height: 38px;
+  padding: 4px;
+}
+
+.stamp-emoji-char {
+  font-size: 20px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.stamp-item-btn.stamp-emoji-btn:hover .stamp-emoji-char {
+  transform: scale(1.22);
 }
 
 

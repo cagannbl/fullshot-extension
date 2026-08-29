@@ -76,18 +76,18 @@
     'key-space': { category: 'key', type: 'keycap', key: 'Space ␣' },
 
     // 3. Emojis
-    'emoji-check': { category: 'emoji', type: 'emoji', char: '✅' },
-    'emoji-cross': { category: 'emoji', type: 'emoji', char: '❌' },
-    'emoji-warning': { category: 'emoji', type: 'emoji', char: '⚠️' },
-    'emoji-rocket': { category: 'emoji', type: 'emoji', char: '🚀' },
-    'emoji-bulb': { category: 'emoji', type: 'emoji', char: '💡' },
-    'emoji-bug': { category: 'emoji', type: 'emoji', char: '🐛' },
-    'emoji-fire': { category: 'emoji', type: 'emoji', char: '🔥' },
-    'emoji-target': { category: 'emoji', type: 'emoji', char: '🎯' },
-    'emoji-like': { category: 'emoji', type: 'emoji', char: '👍' },
-    'emoji-dislike': { category: 'emoji', type: 'emoji', char: '👎' },
-    'emoji-star': { category: 'emoji', type: 'emoji', char: '⭐' },
-    'emoji-lock': { category: 'emoji', type: 'emoji', char: '🔒' }
+    'emoji-check': { category: 'emoji', type: 'emoji', char: '✅', label: 'Onaylandı (Tik)' },
+    'emoji-cross': { category: 'emoji', type: 'emoji', char: '❌', label: 'Hatalı / İptal (Çarpı)' },
+    'emoji-warning': { category: 'emoji', type: 'emoji', char: '⚠️', label: 'Uyarı / Dikkat' },
+    'emoji-rocket': { category: 'emoji', type: 'emoji', char: '🚀', label: 'Lansman / Hız' },
+    'emoji-bulb': { category: 'emoji', type: 'emoji', char: '💡', label: 'Fikir / İpucu' },
+    'emoji-bug': { category: 'emoji', type: 'emoji', char: '🐛', label: 'Yazılım Hatası (Bug)' },
+    'emoji-fire': { category: 'emoji', type: 'emoji', char: '🔥', label: 'Kritik / Sıcak' },
+    'emoji-target': { category: 'emoji', type: 'emoji', char: '🎯', label: 'Hedef / Odak' },
+    'emoji-like': { category: 'emoji', type: 'emoji', char: '👍', label: 'Beğeni / Harika' },
+    'emoji-dislike': { category: 'emoji', type: 'emoji', char: '👎', label: 'Beğenmeme' },
+    'emoji-star': { category: 'emoji', type: 'emoji', char: '⭐', label: 'Yıldız / Favori' },
+    'emoji-lock': { category: 'emoji', type: 'emoji', char: '🔒', label: 'Gizli / Güvenli' }
   };
 
   /**
