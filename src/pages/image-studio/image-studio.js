@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Option Groups
   const colorOptionGroup = document.getElementById('colorOptionGroup');
   const strokeOptionGroup = document.getElementById('strokeOptionGroup');
+  const penTypeOptionGroup = document.getElementById('penTypeOptionGroup');
   const lineStyleOptionGroup = document.getElementById('lineStyleOptionGroup');
   const stepOptionGroup = document.getElementById('stepOptionGroup');
   const blurOptionGroup = document.getElementById('blurOptionGroup');
@@ -62,6 +63,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const customColorInput = document.getElementById('customColorInput');
   const customColorIndicator = document.getElementById('customColorIndicator');
   const strokeButtons = document.querySelectorAll('.stroke-btn');
+  const penTypeButtons = document.querySelectorAll('.pen-type-btn');
   const lineSolidBtn = document.getElementById('lineSolidBtn');
   const lineDashedBtn = document.getElementById('lineDashedBtn');
   const arrowModeSelector = document.getElementById('arrowModeSelector');
@@ -157,6 +159,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeTool = 'select'; // 'select' | 'pan' | 'pen' | 'line' | 'highlighter' | 'arrow' | 'rect' | 'circle' | 'step' | 'callout' | 'blur' | 'text' | 'spotlight' | 'magnifier' | 'stamp'
   let activeColor = '#000000';
   let activeStrokeWidth = 4;
+  let activePenType = 'ballpoint'; // 'ballpoint' | 'calligraphy' | 'neon' | 'pencil'
   let activeLineDashed = false;
   let activeArrowMode = 'single'; // 'single' | 'double'
   let activeArrowCurved = false;
@@ -357,6 +360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Adjust Options Dock visibility
     if (colorOptionGroup) colorOptionGroup.classList.add('hidden');
     if (strokeOptionGroup) strokeOptionGroup.classList.add('hidden');
+    if (penTypeOptionGroup) penTypeOptionGroup.classList.add('hidden');
     if (lineStyleOptionGroup) lineStyleOptionGroup.classList.add('hidden');
     if (stepOptionGroup) stepOptionGroup.classList.add('hidden');
     if (blurOptionGroup) blurOptionGroup.classList.add('hidden');
@@ -365,7 +369,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (magnifierOptionGroup) magnifierOptionGroup.classList.add('hidden');
     if (stampOptionGroup) stampOptionGroup.classList.add('hidden');
 
-    if (toolName === 'blur') {
+    if (toolName === 'pen') {
+      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
+      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
+      if (penTypeOptionGroup) penTypeOptionGroup.classList.remove('hidden');
+    } else if (toolName === 'blur') {
       if (blurOptionGroup) blurOptionGroup.classList.remove('hidden');
     } else if (toolName === 'spotlight') {
       if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
@@ -408,7 +416,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (toolName === 'select' || toolName === 'pan') {
       // No extra tool options needed
     } else {
-      // Pen, Highlighter
+      // Highlighter etc.
       if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
       if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
     }
@@ -633,6 +641,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Pen Type Selection
+  penTypeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      penTypeButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      activePenType = btn.dataset.pentype || 'ballpoint';
+    });
+  });
+
   // Callout & Text Style Listeners
   calloutStyleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -744,7 +765,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (activeTool === 'pen' && Pen) {
       penPath.push(currentPos);
-      Pen.drawSmoothedPath(renderer.overlayCtx, penPath, activeColor, activeStrokeWidth, 1.0, false);
+      Pen.drawSmoothedPath(renderer.overlayCtx, penPath, activeColor, activeStrokeWidth, 1.0, false, activePenType);
     } else if (activeTool === 'highlighter' && Highlighter) {
       penPath.push(currentPos);
       Highlighter.drawHighlighter(renderer.overlayCtx, penPath, activeColor, activeStrokeWidth * 4, 0.45);
@@ -779,7 +800,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         type: 'pen',
         points: [...penPath],
         color: activeColor,
-        width: activeStrokeWidth
+        width: activeStrokeWidth,
+        penType: activePenType
       });
     } else if (activeTool === 'highlighter' && penPath.length > 1) {
       pushAction({

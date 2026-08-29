@@ -1977,7 +1977,8 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   box-sizing: border-box;
 }
 
-.callout-style-selector {
+.callout-style-selector,
+.pen-type-selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4px;
@@ -1993,7 +1994,8 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
 .spotlight-dark-btn,
 .mag-zoom-btn,
 .arrow-curve-btn,
-.callout-style-btn {
+.callout-style-btn,
+.pen-type-btn {
   flex: 1;
   background: transparent;
   border: none;
@@ -2016,7 +2018,8 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
 .spotlight-dark-btn:hover,
 .mag-zoom-btn:hover,
 .arrow-curve-btn:hover,
-.callout-style-btn:hover {
+.callout-style-btn:hover,
+.pen-type-btn:hover {
   background: var(--bg-surface-hover);
   color: var(--text-primary);
 }
@@ -2025,7 +2028,8 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
 .spotlight-dark-btn.active,
 .mag-zoom-btn.active,
 .arrow-curve-btn.active,
-.callout-style-btn.active {
+.callout-style-btn.active,
+.pen-type-btn.active {
   background: var(--primary);
   color: #ffffff;
   font-weight: 600;

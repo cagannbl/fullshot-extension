@@ -405,6 +405,25 @@
           </div>
         </div>
 
+        <!-- Pen Type Selector (visible when Pen is active) -->
+        <div class="option-card hidden" id="penTypeOptionGroup">
+          <span class="option-card-label">Kalem Türü & Tarzı:</span>
+          <div class="pen-type-selector" role="radiogroup" aria-label="Kalem Türü">
+            <button class="pen-type-btn active" data-pentype="ballpoint" role="radio" aria-checked="true" title="Tükenmez Kalem (Pürüzsüz Vektör)">
+              <span>🖊️ Tükenmez</span>
+            </button>
+            <button class="pen-type-btn" data-pentype="calligraphy" role="radio" aria-checked="false" title="Dolma / Kaligrafi Kalemi (Açılı Mürekkep)">
+              <span>✒️ Dolma</span>
+            </button>
+            <button class="pen-type-btn" data-pentype="neon" role="radio" aria-checked="false" title="Neon / Işıltılı Kalem (Cyber Glow)">
+              <span>✨ Neon</span>
+            </button>
+            <button class="pen-type-btn" data-pentype="pencil" role="radio" aria-checked="false" title="Karakalem / Tebeşir (Eskiz Dokulu)">
+              <span>✏️ Karakalem</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Line Style & Arrow Mode -->
         <div class="option-card hidden" id="lineStyleOptionGroup">
           <span class="option-card-label">Çizgi & Ok Tipi:</span>

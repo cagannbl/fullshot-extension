@@ -124,7 +124,7 @@
       switch (action.type) {
         case 'pen':
           if (tools.Pen) {
-            tools.Pen.drawSmoothedPath(ctx, action.points, action.color, action.width, 1.0, false);
+            tools.Pen.drawSmoothedPath(ctx, action.points, action.color, action.width, 1.0, false, action.penType || 'ballpoint');
           }
           break;
 
