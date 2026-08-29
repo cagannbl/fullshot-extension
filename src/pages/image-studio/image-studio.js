@@ -713,6 +713,22 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const coords = renderer.getCanvasCoordinates(e);
 
+    // Smart Object Eraser Tool (Click/Touch to Delete Annotation)
+    if (activeTool === 'eraser') {
+      if (window.FullShotCanvas && window.FullShotCanvas.Eraser) {
+        const hitIdx = window.FullShotCanvas.Eraser.findHitActionIndex(coords.x, coords.y, history.getStack(), history.getIndex());
+        if (hitIdx !== -1) {
+          history.removeAt(hitIdx);
+          renderer.redrawAll(history.getStack(), history.getIndex(), baseImage);
+          syncStepCounterFromHistory();
+          updateHistoryUI();
+          renderer.clearOverlay();
+          showToast('Silindi', 'Anotasyon nesnesi kaldırıldı.');
+        }
+      }
+      return;
+    }
+
     // Numbered Step Badge Tool
     if (activeTool === 'step') {
       const badgeRadius = Math.max(14, Math.min(26, Math.round(activeStrokeWidth * 3.5)));
@@ -923,6 +939,27 @@ document.addEventListener('DOMContentLoaded', async () => {
           blurType: activeBlurType
         });
       }
+    }
+  });
+
+  // Eraser Tool Live Hover Feedback
+  overlayCanvas.addEventListener('mousemove', (e) => {
+    if (activeTool === 'eraser' && !isDrawing && window.FullShotCanvas && window.FullShotCanvas.Eraser) {
+      const hoverCoords = renderer.getCanvasCoordinates(e);
+      const hitIdx = window.FullShotCanvas.Eraser.findHitActionIndex(hoverCoords.x, hoverCoords.y, history.getStack(), history.getIndex());
+      renderer.clearOverlay();
+      if (hitIdx !== -1) {
+        window.FullShotCanvas.Eraser.drawHitHighlight(renderer.overlayCtx, history.getStack()[hitIdx]);
+        window.FullShotCanvas.Eraser.drawEraserCursor(renderer.overlayCtx, hoverCoords.x, hoverCoords.y, true);
+      } else {
+        window.FullShotCanvas.Eraser.drawEraserCursor(renderer.overlayCtx, hoverCoords.x, hoverCoords.y, false);
+      }
+    }
+  });
+
+  overlayCanvas.addEventListener('mouseleave', () => {
+    if (activeTool === 'eraser') {
+      renderer.clearOverlay();
     }
   });
 
@@ -1846,6 +1883,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if ((e.key === 'z' || e.key === 'Z') && !e.ctrlKey && !e.metaKey) {
       setActiveTool('magnifier');
     } else if (e.key === 'e' || e.key === 'E') {
+      setActiveTool('eraser');
+    } else if (e.key === 'k' || e.key === 'K') {
       setActiveTool('stamp');
     } else if (e.key === 'm' || e.key === 'M') {
       if (mockupTrap) {

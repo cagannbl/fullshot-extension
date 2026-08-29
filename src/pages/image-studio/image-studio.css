@@ -858,6 +858,7 @@ html, body {
 .canvas-stage.cursor-pan { cursor: grab; }
 .canvas-stage.cursor-pan:active, .canvas-stage.is-panning { cursor: grabbing !important; }
 .canvas-stage.cursor-pen { cursor: crosshair; }
+.canvas-stage.cursor-eraser { cursor: crosshair; }
 .canvas-stage.cursor-line { cursor: crosshair; }
 .canvas-stage.cursor-highlighter { cursor: crosshair; }
 .canvas-stage.cursor-arrow { cursor: crosshair; }
@@ -1959,6 +1960,12 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   background: rgba(5, 150, 105, 0.22);
   border-color: #10b981;
   color: #34d399;
+}
+
+.tool-icon-btn.highlight-eraser.active {
+  background: rgba(255, 51, 102, 0.22);
+  border-color: #ff3366;
+  color: #ff3366;
 }
 
 /* Spotlight Shape & Darkness Selectors */

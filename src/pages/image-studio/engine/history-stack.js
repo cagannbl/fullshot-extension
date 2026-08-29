@@ -120,6 +120,18 @@
       return this.index;
     }
 
+    /**
+     * Remove an action at a specific index from visible history.
+     * @param {number} idx 
+     * @returns {Object|null}
+     */
+    removeAt(idx) {
+      if (idx < 0 || idx > this.index || idx >= this.stack.length) return null;
+      const removed = this.stack.splice(idx, 1)[0];
+      this.index--;
+      return removed;
+    }
+
     getCurrentAction() {
       if (this.index >= 0 && this.index < this.stack.length) {
         return this.stack[this.index];
