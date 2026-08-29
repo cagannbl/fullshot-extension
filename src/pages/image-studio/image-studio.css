@@ -186,7 +186,8 @@ html, body {
   color: var(--primary);
 }
 
-.zoom-controls {
+.zoom-controls,
+.history-controls {
   display: flex;
   align-items: center;
   background: var(--bg-surface);
@@ -194,9 +195,13 @@ html, body {
   border-radius: var(--radius-md);
   padding: 3px;
   gap: 2px;
+  height: 34px;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
-.zoom-divider {
+.zoom-divider,
+.history-divider {
   width: 1px;
   height: 16px;
   background: var(--border-subtle);
@@ -224,6 +229,17 @@ html, body {
 
 .tool-btn:active {
   transform: scale(0.94);
+}
+
+.tool-btn.danger-hover:hover {
+  background: rgba(255, 51, 102, 0.2);
+  color: #ff3366;
+}
+
+.tool-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .zoom-level {
