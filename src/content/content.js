@@ -174,7 +174,8 @@
     '__fullshot_recording_widget_host__',
     '__fullshot_countdown_host__',
     '__fullshot_selection_host__',
-    '__fullshot_picker_host__'
+    '__fullshot_picker_host__',
+    '__fullshot_quickbar_host__'
   ];
 
   function hideOverlaysForCapture() {
@@ -300,9 +301,15 @@
     }
   }
 
-  function removeCountdownOverlay() {
-    if (window.FullShotHUD?.countdown?.remove) {
-      window.FullShotHUD.countdown.remove();
+  function showQuickBar(bounds, options = {}) {
+    if (window.FullShotHUD?.quickBar?.show) {
+      window.FullShotHUD.quickBar.show(bounds, options);
+    }
+  }
+
+  function hideQuickBar() {
+    if (window.FullShotHUD?.quickBar?.hide) {
+      window.FullShotHUD.quickBar.hide();
     }
   }
 
@@ -383,6 +390,8 @@
   window.FullShotHUD.removeRecordingWidget = removeRecordingWidget;
   window.FullShotHUD.showCountdown = showCountdownOverlay;
   window.FullShotHUD.cancelCountdown = cancelCountdownOverlay;
+  window.FullShotHUD.showQuickBar = showQuickBar;
+  window.FullShotHUD.hideQuickBar = hideQuickBar;
   window.FullShotHUD.hideOverlaysForCapture = hideOverlaysForCapture;
   window.FullShotHUD.restoreOverlaysAfterCapture = restoreOverlaysAfterCapture;
   window.FullShotHUD.waitForDoubleRAF = waitForDoubleRAF;
@@ -398,4 +407,6 @@
   window.__fullshot_hide_toast__ = removeHUDToast;
   window.__fullshot_start_area_selection__ = startAreaSelection;
   window.__fullshot_start_element_picker__ = startElementPicker;
+  window.__fullshot_show_quick_bar__ = showQuickBar;
+  window.__fullshot_hide_quick_bar__ = hideQuickBar;
 })();

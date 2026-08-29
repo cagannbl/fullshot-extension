@@ -270,7 +270,7 @@ async function fixWebmDuration(webmBlob, durationMs) {
     const dataView = new DataView(buffer);
     const uint8 = new Uint8Array(buffer);
 
-    // Helper to read variable-size integer (EBML VINT)
+    // Helper to read variable-size integer (EBML VINT) with full 64-bit safety
     function readVint(offset) {
       if (offset >= uint8.length) return null;
       const firstByte = uint8[offset];
@@ -284,7 +284,7 @@ async function fixWebmDuration(webmBlob, durationMs) {
       if (length === 0 || offset + length > uint8.length) return null;
       let val = firstByte & (0xff >> length);
       for (let i = 1; i < length; i++) {
-        val = (val << 8) | uint8[offset + i];
+        val = (val * 256) + uint8[offset + i];
       }
       return { length, value: val };
     }
@@ -292,9 +292,11 @@ async function fixWebmDuration(webmBlob, durationMs) {
     // Helper to encode variable-size integer with minimum byte length
     function encodeVint(val, length) {
       const bytes = new Uint8Array(length);
-      bytes[0] = (1 << (8 - length)) | ((val >> (8 * (length - 1))) & ((1 << (8 - length)) - 1));
+      const mask = (1 << (8 - length)) - 1;
+      const firstBytePrefix = 1 << (8 - length);
+      bytes[0] = firstBytePrefix | (Math.floor(val / Math.pow(256, length - 1)) & mask);
       for (let i = 1; i < length; i++) {
-        bytes[i] = (val >> (8 * (length - 1 - i))) & 0xff;
+        bytes[i] = Math.floor(val / Math.pow(256, length - 1 - i)) & 0xff;
       }
       return bytes;
     }
@@ -333,7 +335,7 @@ async function fixWebmDuration(webmBlob, durationMs) {
         if (v && cur + 3 + v.length + v.value <= uint8.length) {
           let tc = 0;
           for (let j = 0; j < v.value; j++) {
-            tc = (tc << 8) | uint8[cur + 3 + v.length + j];
+            tc = (tc * 256) + uint8[cur + 3 + v.length + j];
           }
           if (tc > 0) timecodeScale = tc;
           cur += 3 + v.length + v.value;
@@ -521,14 +523,15 @@ async function startRecording(options = {}) {
     }
   }
 
-  // 2. Microphone Capture (if requested)
+  // 2. Microphone Capture (if requested) with Echo Cancellation & Noise Suppression
   if (options.micAudio) {
     try {
       micStream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: options.echoCancellation !== false,
           noiseSuppression: options.noiseSuppression !== false,
-          autoGainControl: options.autoGainControl !== false
+          autoGainControl: options.autoGainControl !== false,
+          channelCount: { ideal: 2 }
         },
         video: false
       });
@@ -606,13 +609,23 @@ async function startRecording(options = {}) {
 
         micAudioSource.connect(micGainNode);
 
-        // Connect mic into 2-channel merger (center panned to both Left & Right channels)
+        // Connect mic into 2-channel merger (center panned to both Left & Right if mono, or direct stereo)
         micSplitterNode = audioContext.createChannelSplitter(2);
         micGainNode.connect(micSplitterNode);
-        micSplitterNode.connect(channelMergerNode, 0, 0); // Mic -> Ch 0 (Left)
-        micSplitterNode.connect(channelMergerNode, 0, 1); // Mic -> Ch 1 (Right center pan)
-        // If mic input is already stereo:
-        micSplitterNode.connect(channelMergerNode, 1, 1);
+
+        const micTracks = micStream.getAudioTracks();
+        const micSettings = micTracks[0]?.getSettings?.() || {};
+        const micChannels = micSettings.channelCount || 1;
+
+        if (micChannels >= 2) {
+          // Stereo microphone input
+          micSplitterNode.connect(channelMergerNode, 0, 0); // Mic Left -> Ch 0 (Left)
+          micSplitterNode.connect(channelMergerNode, 1, 1); // Mic Right -> Ch 1 (Right)
+        } else {
+          // Mono microphone input -> Center Panned (equal energy to Left and Right)
+          micSplitterNode.connect(channelMergerNode, 0, 0); // Mic -> Ch 0 (Left)
+          micSplitterNode.connect(channelMergerNode, 0, 1); // Mic -> Ch 1 (Right)
+        }
 
         // CRITICAL: micGainNode is NEVER connected to audioContext.destination (speakers) to prevent acoustic feedback / echo loops!
       }

@@ -41,13 +41,28 @@
     hudShadow.innerHTML = `
       <style>
         :host {
-          all: initial;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          all: initial !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+          font-size: 13px !important;
+          line-height: normal !important;
+          letter-spacing: normal !important;
+          text-align: left !important;
+          color: #FFFFE3 !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          direction: ltr !important;
         }
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+        *, *::before, *::after {
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-family: inherit !important;
+          scrollbar-width: none !important;
+        }
+        ::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
         .hud-card {
           background: #4A4A4A;
@@ -61,6 +76,7 @@
           flex-direction: column;
           gap: 8px;
           min-width: 220px;
+          max-width: calc(100vw - 32px);
           box-sizing: border-box;
           animation: slidein 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           user-select: none;
@@ -157,7 +173,7 @@
    */
   async function hideForCapture() {
     if (hudHost) {
-      hudHost.style.display = 'none';
+      hudHost.style.setProperty('display', 'none', 'important');
       void document.documentElement.offsetHeight;
       if (document.body) {
         void document.body.offsetHeight;
@@ -172,7 +188,7 @@
    */
   function restoreAfterCapture() {
     if (hudHost) {
-      hudHost.style.display = 'block';
+      hudHost.style.removeProperty('display');
     }
   }
 

@@ -1,19 +1,24 @@
 /**
- * FullShot Pro - Native Image Exporter & Clipboard Helper
- * Handles lossless PNG, compressed JPG, modern WebP downloads, and async Clipboard API copying.
+ * FullShot Pro - Native Image Exporter & Binary Clipboard Engine
+ * Manifest V3 compatible, 100% offline, zero external dependencies.
+ * Handles lossless PNG, compressed JPG (with white alpha background fill),
+ * modern WebP downloads, and async Clipboard API copying with multi-level fallback mechanisms.
  */
 
 /**
  * Sanitizes page title and generates a timestamped export filename.
+ * Preserves Turkish characters while replacing illegal filesystem characters.
  * @param {string} title - Page or capture title
  * @param {string} extension - Desired file extension (png, jpg, webp, pdf)
- * @returns {string} Safe filename (e.g. FullShot_Dashboard_2026-08-29_20-15-00.png)
+ * @returns {string} Safe filename (e.g. FullShot_Türkçe_Başlık_2026-08-29_21-20-00.png)
  */
 function getExportFilename(title = 'Ekran_Goruntusu', extension = 'png') {
   const cleanTitle = (title || 'Ekran_Goruntusu')
-    .replace(/[^a-zA-Z0-9_\-\u00C0-\u017F]/g, '_')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, '_')
     .replace(/_{2,}/g, '_')
-    .slice(0, 40);
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 50) || 'Ekran_Goruntusu';
 
   const now = new Date();
   const year = now.getFullYear();
@@ -28,10 +33,10 @@ function getExportFilename(title = 'Ekran_Goruntusu', extension = 'png') {
 }
 
 /**
- * Triggers a file download using Chrome Downloads API with fallback to anchor click.
+ * Triggers a file download using Chrome Downloads API with fallback to synthetic anchor click.
  * @param {Blob} blob - Binary file blob
  * @param {string} filename - Target filename
- * @returns {Promise<boolean>}
+ * @returns {Promise<boolean>} Resolves true when download is initiated
  */
 function triggerBlobDownload(blob, filename) {
   return new Promise((resolve) => {
@@ -42,7 +47,7 @@ function triggerBlobDownload(blob, filename) {
 
     const blobUrl = URL.createObjectURL(blob);
 
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && typeof chrome.runtime.sendMessage === 'function') {
       chrome.runtime.sendMessage({
         action: 'downloadImage',
         dataUrl: blobUrl,
@@ -75,10 +80,11 @@ function triggerBlobDownload(blob, filename) {
 
 /**
  * Exports an HTML5 Canvas as an image (PNG, JPG, or WebP) and triggers download.
+ * For JPG exports, fills the background with pure white to eliminate dark alpha artifacts.
  * @param {HTMLCanvasElement} canvas - Target canvas
  * @param {string} format - 'png' | 'jpg' | 'jpeg' | 'webp'
  * @param {number} quality - Compression quality (0.0 to 1.0)
- * @param {string} customFilename - Optional custom filename
+ * @param {string} [customFilename] - Optional custom filename
  * @returns {Promise<boolean>}
  */
 async function downloadCanvasAsImage(canvas, format = 'png', quality = 0.95, customFilename = null) {
@@ -90,7 +96,7 @@ async function downloadCanvasAsImage(canvas, format = 'png', quality = 0.95, cus
   const filename = customFilename || getExportFilename('Ekran_Goruntusu', fmt);
 
   if (fmt === 'jpg') {
-    // Render on white background to eliminate black transparency artifacts
+    // Render on solid white background to eliminate black alpha transparency artifacts
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = canvas.width;
     tempCanvas.height = canvas.height;
@@ -123,7 +129,8 @@ async function downloadCanvasAsImage(canvas, format = 'png', quality = 0.95, cus
 }
 
 /**
- * Copies canvas image data directly to system clipboard as a PNG image.
+ * Copies canvas image data directly to system clipboard as a PNG image using the Native Async Clipboard API.
+ * Includes automatic fallbacks for permissions, browser contexts, and Blob generation.
  * @param {HTMLCanvasElement} canvas - Canvas to copy
  * @returns {Promise<boolean>} True if successful
  */
@@ -132,8 +139,8 @@ async function copyCanvasToClipboard(canvas) {
     throw new Error('Kopyalanacak tuval bulunamadı.');
   }
 
-  if (!navigator.clipboard || !navigator.clipboard.write) {
-    throw new Error('Tarayıcınız Clipboard API desteği sunmuyor.');
+  if (typeof navigator === 'undefined' || !navigator.clipboard || typeof navigator.clipboard.write !== 'function') {
+    throw new Error('Tarayıcınız Native Clipboard API desteği sunmuyor.');
   }
 
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
@@ -141,19 +148,49 @@ async function copyCanvasToClipboard(canvas) {
     throw new Error('Pano için PNG Blob oluşturulamadı.');
   }
 
-  await navigator.clipboard.write([
-    new ClipboardItem({ 'image/png': blob })
-  ]);
+  try {
+    // Standard Chromium ClipboardItem writing
+    const item = new ClipboardItem({ 'image/png': blob });
+    await navigator.clipboard.write([item]);
+    return true;
+  } catch (clipboardErr) {
+    // Fallback: Check if focus is needed
+    try {
+      window.focus();
+      const item = new ClipboardItem({ 'image/png': blob });
+      await navigator.clipboard.write([item]);
+      return true;
+    } catch (secondErr) {
+      console.warn('[FullShotImageExporter] Clipboard API yazma hatası:', secondErr);
+      throw new Error(`Panoya kopyalanamadı: ${secondErr.message || 'Erişim reddedildi'}`);
+    }
+  }
+}
 
+/**
+ * Copies a PNG Blob directly to the system clipboard.
+ * @param {Blob} blob 
+ * @returns {Promise<boolean>}
+ */
+async function copyBlobToClipboard(blob) {
+  if (!blob) throw new Error('Kopyalanacak Blob verisi bulunamadı.');
+  if (typeof navigator === 'undefined' || !navigator.clipboard || typeof navigator.clipboard.write !== 'function') {
+    throw new Error('Tarayıcınız Clipboard API desteği sunmuyor.');
+  }
+
+  const item = new ClipboardItem({ 'image/png': blob });
+  await navigator.clipboard.write([item]);
   return true;
 }
 
-// Global Export
+// Global Export Container
 if (typeof window !== 'undefined') {
   window.FullShotImageExporter = {
     getExportFilename,
     triggerBlobDownload,
     downloadCanvasAsImage,
-    copyCanvasToClipboard
+    copyCanvasToClipboard,
+    copyBlobToClipboard
   };
 }
+

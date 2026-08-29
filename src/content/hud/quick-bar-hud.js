@@ -1,6 +1,7 @@
 /**
  * FullShot Pro - In-Page Quick Bar HUD Component
  * Renders an isolated, boundary-aware floating Quick Action Bar inside a Shadow DOM.
+ * 4-Color Slate/Charcoal Palette (#4A4A4A, #CBCBCB, #FFFFE3, #6D8196)
  * Actions: Copy to Clipboard, Direct Download, Open in Advanced Studio, Cancel.
  */
 
@@ -12,6 +13,21 @@
   let currentHost = null;
   let currentShadow = null;
   let activeCallback = null;
+  let activeCancelCallback = null;
+  let resizeListener = null;
+
+  /**
+   * Helper: Double rAF layout sync
+   */
+  function waitForDoubleRAF() {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          resolve();
+        });
+      });
+    });
+  }
 
   /**
    * Helper: Copy dataURL to clipboard as image/png
@@ -33,6 +49,41 @@
   }
 
   /**
+   * Calculates boundary-aware clamped coordinates for the floating Quick Bar.
+   * @param {Object} bounds - { x, y, width, height }
+   * @param {number} barWidth - Width of the Quick Bar
+   * @param {number} barHeight - Height of the Quick Bar
+   * @param {number} [margin=12] - Margin from viewport edges
+   * @returns {{ left: number, top: number }}
+   */
+  function calculateClampedPosition(bounds, barWidth, barHeight, margin = 12) {
+    const selX = typeof bounds.x === 'number' ? bounds.x : (bounds.left || 0);
+    const selY = typeof bounds.y === 'number' ? bounds.y : (bounds.top || 0);
+    const selW = typeof bounds.width === 'number' ? bounds.width : (bounds.w || 0);
+    const selH = typeof bounds.height === 'number' ? bounds.height : (bounds.h || 0);
+
+    // Horizontal placement: align to right edge if wide enough, or center if smaller than bar
+    let posX = selX + selW - barWidth;
+    if (selW < barWidth) {
+      posX = selX + (selW / 2) - (barWidth / 2);
+    }
+    // Strict horizontal boundary clamping
+    const maxLeft = Math.max(margin, window.innerWidth - barWidth - margin);
+    posX = Math.max(margin, Math.min(posX, maxLeft));
+
+    // Vertical placement: place below selection if space exists, otherwise above
+    let posY = selY + selH + 10;
+    if (posY + barHeight > window.innerHeight - margin) {
+      posY = selY - barHeight - 10;
+    }
+    // Strict vertical boundary clamping
+    const maxTop = Math.max(margin, window.innerHeight - barHeight - margin);
+    posY = Math.max(margin, Math.min(posY, maxTop));
+
+    return { left: Math.round(posX), top: Math.round(posY) };
+  }
+
+  /**
    * Shows the Quick Action Bar near the selected region.
    * @param {Object} bounds - { x, y, width, height }
    * @param {Object} options - { dataUrl, format, title, onAction, onCancel }
@@ -42,35 +93,52 @@
 
     const host = document.createElement('div');
     host.id = '__fullshot_quickbar_host__';
-    host.style.cssText = 'all: initial !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; pointer-events: none !important; user-select: none !important;';
+    host.style.cssText = 'all: initial !important; position: fixed !important; top: 0 !important; left: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 2147483647 !important; pointer-events: none !important; user-select: none !important; -webkit-user-select: none !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;';
 
     const shadow = host.attachShadow({ mode: 'open' });
     shadow.innerHTML = `
       <style>
         :host {
-          all: initial;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          all: initial !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+          font-size: 13px !important;
+          line-height: normal !important;
+          letter-spacing: normal !important;
+          text-align: left !important;
+          color: #FFFFE3 !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          direction: ltr !important;
         }
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+        *, *::before, *::after {
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-family: inherit !important;
+          scrollbar-width: none !important;
+        }
+        ::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
         .quickbar-wrapper {
           position: fixed;
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: #2b2e33;
+          background: #4A4A4A;
           border: 1px solid #545862;
           border-radius: 12px;
           padding: 6px 8px;
-          box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(109, 129, 150, 0.3);
+          box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(109, 129, 150, 0.35);
           z-index: 2147483647;
           animation: qbPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: default;
           pointer-events: auto;
           user-select: none;
+          -webkit-user-select: none;
+          max-width: calc(100vw - 24px);
         }
         @keyframes qbPop {
           from { transform: scale(0.92); opacity: 0; }
@@ -79,6 +147,7 @@
         .qb-btn {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
           background: #373a40;
           color: #FFFFE3;
@@ -92,6 +161,7 @@
           transition: all 0.15s ease;
           white-space: nowrap;
           outline: none;
+          line-height: 1;
         }
         .qb-btn:hover {
           background: #6D8196;
@@ -105,9 +175,11 @@
         .qb-btn.qb-studio {
           background: #6D8196;
           border-color: #6D8196;
+          color: #FFFFE3;
         }
         .qb-btn.qb-studio:hover {
           background: #8297ac;
+          border-color: #8297ac;
         }
         .qb-btn.qb-cancel {
           padding: 7px 9px;
@@ -121,6 +193,7 @@
         .qb-btn svg {
           display: block;
           flex-shrink: 0;
+          pointer-events: none;
         }
       </style>
       <div class="quickbar-wrapper" id="qbWrapper">
@@ -150,6 +223,7 @@
     currentHost = host;
     currentShadow = shadow;
     activeCallback = options.onAction;
+    activeCancelCallback = options.onCancel;
 
     const wrapper = shadow.getElementById('qbWrapper');
     const qbCopyBtn = shadow.getElementById('qbCopyBtn');
@@ -162,20 +236,19 @@
     const barHeight = 44;
     const padding = 12;
 
-    const selX = bounds.x || 0;
-    const selY = bounds.y || 0;
-    const selW = bounds.width || bounds.w || 0;
-    const selH = bounds.height || bounds.h || 0;
+    const updatePosition = () => {
+      if (!wrapper) return;
+      const { left, top } = calculateClampedPosition(bounds, barWidth, barHeight, padding);
+      wrapper.style.left = `${left}px`;
+      wrapper.style.top = `${top}px`;
+    };
 
-    let posX = Math.min(window.innerWidth - barWidth - padding, Math.max(padding, selX + selW - barWidth));
-    let posY = selY + selH + 10;
+    updatePosition();
 
-    if (posY + barHeight > window.innerHeight - padding) {
-      posY = Math.max(padding, selY - barHeight - 10);
-    }
-
-    wrapper.style.left = `${posX}px`;
-    wrapper.style.top = `${posY}px`;
+    resizeListener = () => {
+      updatePosition();
+    };
+    window.addEventListener('resize', resizeListener);
 
     const triggerAction = (actionType) => {
       hide();
@@ -184,59 +257,76 @@
       }
     };
 
-    qbCopyBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      triggerAction('copy');
-    });
+    if (qbCopyBtn) {
+      qbCopyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerAction('copy');
+      });
+    }
 
-    qbDownloadBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      triggerAction('download');
-    });
+    if (qbDownloadBtn) {
+      qbDownloadBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerAction('download');
+      });
+    }
 
-    qbStudioBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      triggerAction('studio');
-    });
+    if (qbStudioBtn) {
+      qbStudioBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        triggerAction('studio');
+      });
+    }
 
-    qbCancelBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      hide();
-      if (typeof options.onCancel === 'function') {
-        options.onCancel();
-      }
-    });
+    if (qbCancelBtn) {
+      qbCancelBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hide();
+        if (typeof activeCancelCallback === 'function') {
+          activeCancelCallback();
+        }
+      });
+    }
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
+        window.removeEventListener('keydown', onKeyDown);
         hide();
-        if (typeof options.onCancel === 'function') {
-          options.onCancel();
+        if (typeof activeCancelCallback === 'function') {
+          activeCancelCallback();
         }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
         e.preventDefault();
+        window.removeEventListener('keydown', onKeyDown);
         triggerAction('copy');
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
+        window.removeEventListener('keydown', onKeyDown);
         triggerAction('download');
       } else if (e.key === 'Enter') {
         e.preventDefault();
+        window.removeEventListener('keydown', onKeyDown);
         triggerAction('studio');
       }
     };
 
-    window.addEventListener('keydown', onKeyDown, { once: true });
+    window.addEventListener('keydown', onKeyDown);
   }
 
   /**
    * Hides and removes the Quick Action Bar
    */
   function hide() {
+    if (resizeListener) {
+      window.removeEventListener('resize', resizeListener);
+      resizeListener = null;
+    }
     if (currentHost) {
       currentHost.remove();
       currentHost = null;
       currentShadow = null;
       activeCallback = null;
+      activeCancelCallback = null;
     }
     const existing = document.getElementById('__fullshot_quickbar_host__');
     if (existing) {
@@ -244,10 +334,53 @@
     }
   }
 
+  /**
+   * Hides Quick Bar with complete ghosting protection before taking a screenshot.
+   */
+  async function hideForCapture() {
+    if (currentHost) {
+      currentHost.style.setProperty('display', 'none', 'important');
+      void document.documentElement.offsetHeight;
+      if (document.body) {
+        void document.body.offsetHeight;
+      }
+      await waitForDoubleRAF();
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
+
+  /**
+   * Restores visibility after screenshot capture.
+   */
+  function restoreAfterCapture() {
+    if (currentHost) {
+      currentHost.style.removeProperty('display');
+    }
+  }
+
+  /**
+   * Checks if Quick Bar is visible.
+   */
+  function isVisible() {
+    return !!currentHost && document.contains(currentHost);
+  }
+
+  /**
+   * Returns host element reference.
+   */
+  function getHost() {
+    return currentHost;
+  }
+
   // Export module
   window.FullShotHUD.quickBar = {
     show,
     hide,
+    remove: hide,
+    hideForCapture,
+    restoreAfterCapture,
+    isVisible,
+    getHost,
     copyDataUrlToClipboard
   };
 })();

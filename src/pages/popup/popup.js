@@ -5,8 +5,11 @@
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Top Header & Settings Elements
+  const shortcutsToggleBtn = document.getElementById('shortcutsToggleBtn');
   const settingsToggleBtn = document.getElementById('settingsToggleBtn');
   const settingsPanel = document.getElementById('settingsPanel');
+  const popupShortcutsModal = document.getElementById('popupShortcutsModal');
+  const closePopupShortcutsBtn = document.getElementById('closePopupShortcutsBtn');
   const captureBehaviorSelect = document.getElementById('captureBehaviorSelect');
   const formatSelect = document.getElementById('formatSelect');
   const delaySelect = document.getElementById('delaySelect');
@@ -37,20 +40,99 @@ document.addEventListener('DOMContentLoaded', async () => {
   const videoFpsGroup = document.getElementById('videoFpsGroup');
   const startRecordingBtn = document.getElementById('startRecordingBtn');
 
-  // Video Tab: Active Recording View Elements
-  const videoActivePanel = document.getElementById('videoActivePanel');
-  const liveStatusBadge = document.getElementById('liveStatusBadge');
-  const liveStatusText = document.getElementById('liveStatusText');
-  const activeScopeLabel = document.getElementById('activeScopeLabel');
-  const activeQualityLabel = document.getElementById('activeQualityLabel');
-  const recordingTimerDisplay = document.getElementById('recordingTimerDisplay');
-  const chipSystemAudio = document.getElementById('chipSystemAudio');
-  const chipMicAudio = document.getElementById('chipMicAudio');
-  const togglePauseRecordingBtn = document.getElementById('togglePauseRecordingBtn');
-  const pauseBtnIcon = document.getElementById('pauseBtnIcon');
-  const pauseBtnText = document.getElementById('pauseBtnText');
-  const stopRecordingBtn = document.getElementById('stopRecordingBtn');
-  const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
+  // --- ACCESSIBLE FOCUS TRAP HELPER ---
+  function createFocusTrap(modalElement, onCloseCallback) {
+    let previousActiveElement = null;
+
+    function getFocusableElements() {
+      return Array.from(modalElement.querySelectorAll(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter(el => {
+        return el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement;
+      });
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const focusables = getFocusableElements();
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || !modalElement.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !modalElement.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+
+    function open(triggerEl = null) {
+      previousActiveElement = triggerEl || document.activeElement;
+      modalElement.classList.remove('hidden');
+      modalElement.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', handleKeyDown, true);
+
+      requestAnimationFrame(() => {
+        const focusables = getFocusableElements();
+        if (focusables.length > 0) {
+          focusables[0].focus();
+        } else {
+          modalElement.focus();
+        }
+      });
+    }
+
+    function close() {
+      modalElement.classList.add('hidden');
+      modalElement.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', handleKeyDown, true);
+
+      if (onCloseCallback) {
+        onCloseCallback();
+      }
+
+      if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+        previousActiveElement.focus();
+      }
+    }
+
+    return { open, close, handleKeyDown };
+  }
+
+  // Bind Shortcuts Modal Trap
+  let shortcutsTrap = null;
+  if (popupShortcutsModal) {
+    shortcutsTrap = createFocusTrap(popupShortcutsModal);
+    if (shortcutsToggleBtn) {
+      shortcutsToggleBtn.addEventListener('click', () => shortcutsTrap.open(shortcutsToggleBtn));
+    }
+    if (closePopupShortcutsBtn) {
+      closePopupShortcutsBtn.addEventListener('click', () => shortcutsTrap.close());
+    }
+    popupShortcutsModal.addEventListener('click', (e) => {
+      if (e.target === popupShortcutsModal) {
+        shortcutsTrap.close();
+      }
+    });
+  }
 
   // --- STATE INITIALIZATION & SETTINGS LOAD ---
   const savedSettings = await chrome.storage.sync.get({
@@ -87,24 +169,34 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sec = parseInt(pill.getAttribute('data-seconds'), 10);
     if (sec === currentCountdown) {
       pill.classList.add('active');
+      pill.setAttribute('aria-checked', 'true');
     } else {
       pill.classList.remove('active');
+      pill.setAttribute('aria-checked', 'false');
     }
 
     pill.addEventListener('click', () => {
-      timerPills.forEach(p => p.classList.remove('active'));
+      timerPills.forEach(p => {
+        p.classList.remove('active');
+        p.setAttribute('aria-checked', 'false');
+      });
       pill.classList.add('active');
+      pill.setAttribute('aria-checked', 'true');
       currentCountdown = parseInt(pill.getAttribute('data-seconds'), 10);
       chrome.storage.sync.set({ countdownSeconds: currentCountdown });
     });
   });
 
-  // --- TAB SWITCHER LOGIC ---
+  // --- TAB SWITCHER LOGIC (ACCESSIBLE ARIA TABS) ---
   function activateScreenshotTab() {
     tabScreenshotBtn?.classList.add('active');
     tabScreenshotBtn?.classList.remove('inactive');
+    tabScreenshotBtn?.setAttribute('aria-selected', 'true');
+
     tabVideoBtn?.classList.remove('active');
     tabVideoBtn?.classList.add('inactive');
+    tabVideoBtn?.setAttribute('aria-selected', 'false');
+
     screenshotTabContent?.classList.remove('hidden');
     videoTabContent?.classList.add('hidden');
     chrome.storage.sync.set({ activeTab: 'screenshot' });
@@ -113,8 +205,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   function activateVideoTab() {
     tabVideoBtn?.classList.add('active');
     tabVideoBtn?.classList.remove('inactive');
+    tabVideoBtn?.setAttribute('aria-selected', 'true');
+
     tabScreenshotBtn?.classList.remove('active');
     tabScreenshotBtn?.classList.add('inactive');
+    tabScreenshotBtn?.setAttribute('aria-selected', 'false');
+
     videoTabContent?.classList.remove('hidden');
     screenshotTabContent?.classList.add('hidden');
     chrome.storage.sync.set({ activeTab: 'video' });
@@ -128,9 +224,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Toggle Settings Panel
   if (settingsToggleBtn && settingsPanel) {
     settingsToggleBtn.addEventListener('click', () => {
-      settingsPanel.classList.toggle('hidden');
+      const isHidden = settingsPanel.classList.toggle('hidden');
+      settingsToggleBtn.setAttribute('aria-expanded', String(!isHidden));
     });
   }
+  const videoActivePanel = document.getElementById('videoActivePanel');
+  const liveStatusBadge = document.getElementById('liveStatusBadge');
+  const liveStatusText = document.getElementById('liveStatusText');
+  const activeScopeLabel = document.getElementById('activeScopeLabel');
+  const activeQualityLabel = document.getElementById('activeQualityLabel');
+  const recordingTimerDisplay = document.getElementById('recordingTimerDisplay');
+  const chipSystemAudio = document.getElementById('chipSystemAudio');
+  const chipMicAudio = document.getElementById('chipMicAudio');
+  const togglePauseRecordingBtn = document.getElementById('togglePauseRecordingBtn');
+  const pauseBtnIcon = document.getElementById('pauseBtnIcon');
+  const pauseBtnText = document.getElementById('pauseBtnText');
+  const stopRecordingBtn = document.getElementById('stopRecordingBtn');
+  const cancelRecordingBtn = document.getElementById('cancelRecordingBtn');
 
   // Save general screenshot settings
   const saveScreenshotSettings = () => {
@@ -216,10 +326,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentVideoScope = scope;
     if (scope === 'tab') {
       scopeTabBtn?.classList.add('active');
+      scopeTabBtn?.setAttribute('aria-checked', 'true');
       scopeScreenBtn?.classList.remove('active');
+      scopeScreenBtn?.setAttribute('aria-checked', 'false');
     } else {
       scopeScreenBtn?.classList.add('active');
+      scopeScreenBtn?.setAttribute('aria-checked', 'true');
       scopeTabBtn?.classList.remove('active');
+      scopeTabBtn?.setAttribute('aria-checked', 'false');
     }
     chrome.storage.sync.set({ videoScope: scope });
   }
@@ -255,13 +369,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     resPills.forEach(pill => {
       if (pill.getAttribute('data-res') === currentResolution) {
         pill.classList.add('active');
+        pill.setAttribute('aria-checked', 'true');
       } else {
         pill.classList.remove('active');
+        pill.setAttribute('aria-checked', 'false');
       }
 
       pill.addEventListener('click', () => {
-        resPills.forEach(p => p.classList.remove('active'));
+        resPills.forEach(p => {
+          p.classList.remove('active');
+          p.setAttribute('aria-checked', 'false');
+        });
         pill.classList.add('active');
+        pill.setAttribute('aria-checked', 'true');
         currentResolution = pill.getAttribute('data-res') || '1080p';
         chrome.storage.sync.set({ videoResolution: currentResolution });
       });
@@ -275,13 +395,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       const fpsVal = parseInt(pill.getAttribute('data-fps'), 10);
       if (fpsVal === currentFps) {
         pill.classList.add('active');
+        pill.setAttribute('aria-checked', 'true');
       } else {
         pill.classList.remove('active');
+        pill.setAttribute('aria-checked', 'false');
       }
 
       pill.addEventListener('click', () => {
-        fpsPills.forEach(p => p.classList.remove('active'));
+        fpsPills.forEach(p => {
+          p.classList.remove('active');
+          p.setAttribute('aria-checked', 'false');
+        });
         pill.classList.add('active');
+        pill.setAttribute('aria-checked', 'true');
         currentFps = parseInt(pill.getAttribute('data-fps'), 10) || 60;
         chrome.storage.sync.set({ videoFps: currentFps });
       });
@@ -755,4 +881,64 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+
+  // --- KEYBOARD SHORTCUTS & NAVIGATION HANDLER ---
+  window.addEventListener('keydown', (e) => {
+    // Ignore when focus is inside text input, select, etc.
+    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') {
+      if (e.key === 'Escape') {
+        document.activeElement.blur();
+      }
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      if (popupShortcutsModal && !popupShortcutsModal.classList.contains('hidden')) {
+        if (shortcutsTrap) shortcutsTrap.close();
+        return;
+      }
+      if (settingsPanel && !settingsPanel.classList.contains('hidden')) {
+        settingsPanel.classList.add('hidden');
+        if (settingsToggleBtn) {
+          settingsToggleBtn.setAttribute('aria-expanded', 'false');
+          settingsToggleBtn.focus();
+        }
+        return;
+      }
+    }
+
+    if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      e.preventDefault();
+      if (shortcutsTrap) {
+        if (popupShortcutsModal && popupShortcutsModal.classList.contains('hidden')) {
+          shortcutsTrap.open(shortcutsToggleBtn);
+        } else {
+          shortcutsTrap.close();
+        }
+      }
+      return;
+    }
+
+    if (e.key === '1') {
+      activateScreenshotTab();
+      tabScreenshotBtn?.focus();
+      return;
+    }
+
+    if (e.key === '2') {
+      activateVideoTab();
+      tabVideoBtn?.focus();
+      return;
+    }
+
+    // Spacebar to Pause / Resume active recording
+    if (e.code === 'Space' && currentRecordingState && (currentRecordingState.status === 'recording' || currentRecordingState.status === 'paused')) {
+      if (document.activeElement?.tagName.toLowerCase() !== 'button') {
+        e.preventDefault();
+        togglePauseRecordingBtn?.click();
+      }
+    }
+  });
 });
+

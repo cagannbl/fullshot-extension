@@ -1,7 +1,7 @@
 /**
  * FullShot Pro - Canvas Renderer Engine
- * Manages dual-layer 2D canvas drawing, layer clears, action execution dispatch,
- * watermark stamp rendering, and macOS mockup frame generation.
+ * Manages dual-layer 2D canvas drawing, Retina / High-DPI scaling, layer clears,
+ * action execution dispatch, watermark stamp rendering, and macOS mockup frame generation.
  */
 
 (function () {
@@ -19,25 +19,45 @@
       this.overlayCanvas = overlayCanvas;
       this.mainCtx = mainCanvas ? mainCanvas.getContext('2d', { willReadFrequently: true }) : null;
       this.overlayCtx = overlayCanvas ? overlayCanvas.getContext('2d') : null;
+      this.dpr = typeof window !== 'undefined' && window.devicePixelRatio ? Math.max(1, window.devicePixelRatio) : 1;
+      this.displayWidth = 0;
+      this.displayHeight = 0;
     }
 
     /**
-     * Set native pixel dimensions for both canvas layers.
-     * @param {number} width 
-     * @param {number} height 
+     * Set pixel buffer and display dimensions for both canvas layers with Retina / High-DPI precision.
+     * @param {number} width Native image width
+     * @param {number} height Native image height
+     * @param {number} [customDpr] Optional DPR override (defaults to window.devicePixelRatio)
      */
-    setSize(width, height) {
+    setSize(width, height, customDpr = null) {
+      if (customDpr) {
+        this.dpr = Math.max(1, customDpr);
+      } else if (typeof window !== 'undefined' && window.devicePixelRatio) {
+        this.dpr = Math.max(1, window.devicePixelRatio);
+      }
+
+      this.displayWidth = width;
+      this.displayHeight = height;
+
       if (this.mainCanvas) {
         this.mainCanvas.width = width;
         this.mainCanvas.height = height;
+        this.mainCanvas.style.width = `${width}px`;
+        this.mainCanvas.style.height = `${height}px`;
+
         if (this.mainCtx) {
           this.mainCtx.imageSmoothingEnabled = true;
           this.mainCtx.imageSmoothingQuality = 'high';
         }
       }
+
       if (this.overlayCanvas) {
         this.overlayCanvas.width = width;
         this.overlayCanvas.height = height;
+        this.overlayCanvas.style.width = `${width}px`;
+        this.overlayCanvas.style.height = `${height}px`;
+
         if (this.overlayCtx) {
           this.overlayCtx.imageSmoothingEnabled = true;
           this.overlayCtx.imageSmoothingQuality = 'high';
@@ -60,14 +80,16 @@
      */
     drawBaseImage(baseImage) {
       if (!this.mainCtx || !this.mainCanvas || !baseImage) return;
+      this.mainCtx.save();
       this.mainCtx.imageSmoothingEnabled = true;
       this.mainCtx.imageSmoothingQuality = 'high';
       this.mainCtx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
       this.mainCtx.drawImage(baseImage, 0, 0, this.mainCanvas.width, this.mainCanvas.height);
+      this.mainCtx.restore();
     }
 
     /**
-     * Transform screen mouse event coordinates to exact canvas pixel coordinates.
+     * Transform screen mouse event coordinates to exact canvas pixel coordinates with sub-pixel precision.
      * @param {MouseEvent} e 
      * @returns {{x: number, y: number}}
      */
@@ -92,6 +114,12 @@
       if (!ctx || !action) return;
 
       const tools = window.FullShotCanvas;
+      const canvasW = this.mainCanvas?.width || ctx.canvas?.width || 4096;
+      const canvasH = this.mainCanvas?.height || ctx.canvas?.height || 4096;
+
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
       switch (action.type) {
         case 'pen':
@@ -103,6 +131,8 @@
         case 'highlighter':
           if (tools.Highlighter) {
             tools.Highlighter.drawHighlighter(ctx, action.points, action.color, action.width, 0.45);
+          } else if (tools.Pen) {
+            tools.Pen.drawSmoothedPath(ctx, action.points, action.color, action.width, 0.45, true);
           }
           break;
 
@@ -132,7 +162,7 @@
 
         case 'step':
           if (tools.Badge) {
-            tools.Badge.drawStepBadge(ctx, action.x, action.y, action.number, action.color, action.radius);
+            tools.Badge.drawStepBadge(ctx, action.x, action.y, action.number, action.color, action.radius, canvasW, canvasH);
           }
           break;
 
@@ -144,19 +174,19 @@
 
         case 'blur':
           if (tools.Blur) {
-            tools.Blur.applyRedaction(ctx, action.x1, action.y1, action.x2, action.y2, action.blurType, this.mainCanvas?.width, this.mainCanvas?.height);
+            tools.Blur.applyRedaction(ctx, action.x1, action.y1, action.x2, action.y2, action.blurType, canvasW, canvasH);
           }
           break;
 
         case 'text':
           if (tools.Text) {
-            tools.Text.renderTextOnCanvas(ctx, action.text, action.x, action.y, action.fontSize, action.color, action.hasBg, this.mainCanvas?.width, this.mainCanvas?.height);
+            tools.Text.renderTextOnCanvas(ctx, action.text, action.x, action.y, action.fontSize, action.color, action.hasBg, canvasW, canvasH);
           }
           break;
 
         case 'watermark':
           if (window.FullShotWatermark) {
-            window.FullShotWatermark.renderWatermark(ctx, action.text, action.position, action.style, this.mainCanvas?.width, this.mainCanvas?.height);
+            window.FullShotWatermark.renderWatermark(ctx, action.text, action.position, action.style, canvasW, canvasH);
           } else {
             this.renderWatermark(ctx, action.text, action.position, action.style);
           }
@@ -171,6 +201,8 @@
           }
           break;
       }
+
+      ctx.restore();
     }
 
     /**
@@ -182,12 +214,18 @@
     redrawAll(historyStack, historyIndex, baseImage) {
       if (!this.mainCtx || !this.mainCanvas || !baseImage) return;
 
+      this.mainCtx.save();
+      this.mainCtx.imageSmoothingEnabled = true;
+      this.mainCtx.imageSmoothingQuality = 'high';
       this.mainCtx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
       this.mainCtx.drawImage(baseImage, 0, 0, this.mainCanvas.width, this.mainCanvas.height);
 
       for (let i = 0; i <= historyIndex; i++) {
-        this.executeAction(this.mainCtx, historyStack[i], baseImage);
+        if (historyStack[i]) {
+          this.executeAction(this.mainCtx, historyStack[i], baseImage);
+        }
       }
+      this.mainCtx.restore();
     }
 
     /**
@@ -343,6 +381,8 @@
       outCanvas.width = totalW;
       outCanvas.height = totalH;
       const mCtx = outCanvas.getContext('2d');
+      mCtx.imageSmoothingEnabled = true;
+      mCtx.imageSmoothingQuality = 'high';
       const shapes = window.FullShotCanvas.Shapes;
 
       // 1. Draw Backdrop Themes

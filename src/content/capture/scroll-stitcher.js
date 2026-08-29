@@ -210,7 +210,8 @@
       masterCanvas.width = targetWidth;
       masterCanvas.height = targetHeight;
       const ctx = masterCanvas.getContext('2d', { alpha: format === 'png' });
-      ctx.imageSmoothingEnabled = false;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
 
       if (format === 'jpeg') {
         ctx.fillStyle = '#ffffff';
@@ -231,13 +232,13 @@
       }
 
       // 7. Lock scrollbar and apply zero-shift padding compensation
-      document.documentElement.style.overflow = 'hidden';
-      if (document.body) {
-        document.body.style.overflow = 'hidden';
-      }
       if (scrollbarWidth > 0) {
         const computedHtmlPaddingRight = parseFloat(window.getComputedStyle(document.documentElement).paddingRight) || 0;
         document.documentElement.style.setProperty('padding-right', `${computedHtmlPaddingRight + scrollbarWidth}px`, 'important');
+      }
+      document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+      if (document.body) {
+        document.body.style.overflow = 'hidden';
       }
 
       try {
@@ -264,26 +265,34 @@
 
           // C. Dynamic Infinite Scroll Detection: Check if document expanded during scrolling
           const currentMeasuredHeight = this.domMeasurer.getRealDocumentHeight();
-          if (currentMeasuredHeight > fullHeight) {
+          if (currentMeasuredHeight > fullHeight && ySteps.length < 100) {
             const newFullHeight = currentMeasuredHeight;
-            const newTargetHeight = Math.min(maxDim, Math.round(newFullHeight * dpr));
+            const newDim = this.domMeasurer.calculateCanvasDimensions(fullWidth, newFullHeight, window.devicePixelRatio || 1);
 
-            if (newTargetHeight <= maxDim && (targetWidth * newTargetHeight) <= maxArea && ySteps.length < 100) {
+            if (newDim.targetHeight !== targetHeight || newDim.targetWidth !== targetWidth) {
               const tempCanvas = document.createElement('canvas');
               tempCanvas.width = masterCanvas.width;
               tempCanvas.height = masterCanvas.height;
               const tempCtx = tempCanvas.getContext('2d');
               tempCtx.drawImage(masterCanvas, 0, 0);
 
-              masterCanvas.height = newTargetHeight;
+              masterCanvas.width = newDim.targetWidth;
+              masterCanvas.height = newDim.targetHeight;
               if (format === 'jpeg') {
                 ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, targetWidth, newTargetHeight);
+                ctx.fillRect(0, 0, newDim.targetWidth, newDim.targetHeight);
               }
-              ctx.drawImage(tempCanvas, 0, 0);
+
+              // Rescale previous canvas content to new dimensions if DPR shifted
+              const scaleRatio = newDim.dpr / (dpr || 1);
+              const oldScaledW = Math.round(tempCanvas.width * scaleRatio);
+              const oldScaledH = Math.round(tempCanvas.height * scaleRatio);
+              ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, oldScaledW, oldScaledH);
 
               fullHeight = newFullHeight;
-              targetHeight = newTargetHeight;
+              targetHeight = newDim.targetHeight;
+              targetWidth = newDim.targetWidth;
+              dpr = newDim.dpr;
 
               // Expand scroll steps dynamically
               const newMaxScrollY = Math.max(0, fullHeight - viewportHeight);
@@ -361,39 +370,45 @@
               0, 0, targetWidth, targetHeight
             );
           } else if (i === totalSteps - 1) {
-            // Last slice: mathematically calculate non-overlapping unique height
-            const uniqueHeight = fullHeight - ((totalSteps - 1) * viewportHeight);
-            const sh = Math.round(uniqueHeight * imgDpr);
-            const sy = Math.max(0, imgHeight - sh);
-            const sw = Math.min(imgWidth, Math.round(fullWidth * imgDpr));
-            const sx = 0;
+            // Last slice: calculate non-overlapping unique height
+            const prevStepY = i > 0 ? ySteps[i - 1] : 0;
+            const uniqueHeight = Math.max(0, fullHeight - (prevStepY + viewportHeight));
 
-            const dy = Math.round((fullHeight - uniqueHeight) * dpr);
-            const dh = Math.max(0, targetHeight - dy);
-            const dx = 0;
-            const dw = targetWidth;
+            if (uniqueHeight > 0) {
+              const sh = Math.round(uniqueHeight * imgDpr);
+              const sy = Math.max(0, imgHeight - sh);
+              const sw = Math.min(imgWidth, Math.round(fullWidth * imgDpr));
+              const sx = 0;
 
-            if (dh > 0) {
-              ctx.drawImage(
-                sliceImg,
-                sx, sy, sw, sh,
-                dx, dy, dw, dh
-              );
+              const dy = Math.round((fullHeight - uniqueHeight) * dpr);
+              const dh = Math.max(0, targetHeight - dy);
+              const dx = 0;
+              const dw = targetWidth;
+
+              if (dh > 0 && sh > 0) {
+                ctx.drawImage(
+                  sliceImg,
+                  sx, sy, sw, sh,
+                  dx, dy, dw, dh
+                );
+              }
             }
           } else {
             // Intermediate slice
+            const nextStepY = ySteps[i + 1];
+            const sliceH = Math.min(viewportHeight, nextStepY - stepY);
+
             const sx = 0;
             const sy = 0;
             const sw = Math.min(imgWidth, Math.round(fullWidth * imgDpr));
-            const sh = imgHeight;
+            const sh = Math.round(sliceH * imgDpr);
 
             const dx = 0;
-            const dy = Math.round(i * viewportHeight * dpr);
-            const nextDy = Math.round((i + 1) * viewportHeight * dpr);
+            const dy = Math.round(stepY * dpr);
             const dw = targetWidth;
-            const dh = Math.min(targetHeight - dy, nextDy - dy);
+            const dh = Math.min(targetHeight - dy, Math.round(sliceH * dpr));
 
-            if (dh > 0) {
+            if (dh > 0 && sh > 0) {
               ctx.drawImage(
                 sliceImg,
                 sx, sy, sw, sh,

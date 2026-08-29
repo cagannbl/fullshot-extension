@@ -125,7 +125,7 @@
       </button>
 
       <div class="dropdown-container">
-        <button class="action-btn primary" id="downloadDropdownBtn" title="İndirme & Dışa Aktarma Seçenekleri" aria-label="Dışa Aktar">
+        <button class="action-btn primary" id="downloadDropdownBtn" title="İndirme & Dışa Aktarma Seçenekleri" aria-label="Dışa Aktar" aria-haspopup="true" aria-expanded="false" aria-controls="downloadMenu">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -136,22 +136,22 @@
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </button>
-        <div class="dropdown-menu hidden" id="downloadMenu">
-          <button class="dropdown-item" id="downloadPngBtn" title="PNG İndir (Ctrl+S)">
+        <div class="dropdown-menu hidden" id="downloadMenu" role="menu" aria-label="Dışa Aktarma Formatları">
+          <button class="dropdown-item" id="downloadPngBtn" role="menuitem" title="PNG İndir (Ctrl+S)">
             <div class="item-text">
               <span class="item-title">PNG İndir (HD)</span>
               <span class="item-desc">Kayıpsız, net orijinal kalite</span>
             </div>
             <span class="format-pill">PNG <kbd>Ctrl+S</kbd></span>
           </button>
-          <button class="dropdown-item" id="downloadJpgBtn" title="JPG İndir">
+          <button class="dropdown-item" id="downloadJpgBtn" role="menuitem" title="JPG İndir">
             <div class="item-text">
               <span class="item-title">JPG İndir</span>
               <span class="item-desc">Küçük dosya boyutu, hızlı paylaşım</span>
             </div>
             <span class="format-pill">JPG</span>
           </button>
-          <button class="dropdown-item" id="downloadWebpBtn" title="WebP İndir">
+          <button class="dropdown-item" id="downloadWebpBtn" role="menuitem" title="WebP İndir">
             <div class="item-text">
               <span class="item-title">WebP İndir</span>
               <span class="item-desc">Modern sıkıştırma, ultra hafif</span>
@@ -159,14 +159,14 @@
             <span class="format-pill webp-pill">WEBP</span>
           </button>
           <div class="dropdown-divider"></div>
-          <button class="dropdown-item" id="downloadSinglePdfBtn" title="Tek Sayfa PDF İndir (Ctrl+P)">
+          <button class="dropdown-item" id="downloadSinglePdfBtn" role="menuitem" title="Tek Sayfa PDF İndir (Ctrl+P)">
             <div class="item-text">
               <span class="item-title">📄 Tek Sayfa PDF</span>
               <span class="item-desc">Orijinal en/boy oranında tek parça</span>
             </div>
             <span class="format-pill pdf-pill">PDF <kbd>Ctrl+P</kbd></span>
           </button>
-          <button class="dropdown-item" id="downloadMultiPdfBtn" title="Çok Sayfalı A4 PDF İndir">
+          <button class="dropdown-item" id="downloadMultiPdfBtn" role="menuitem" title="Çok Sayfalı A4 PDF İndir">
             <div class="item-text">
               <span class="item-title">📑 Çok Sayfalı A4 PDF</span>
               <span class="item-desc">Yazdırılabilir A4 sayfalarına bölünmüş</span>
@@ -181,15 +181,15 @@
   <!-- Main Workspace Layout with Fixed Sidebar -->
   <div class="studio-workspace">
     <!-- Fixed Left Sidebar -->
-    <aside class="studio-sidebar" id="studioSidebar">
+    <aside class="studio-sidebar" id="studioSidebar" aria-label="Çizim Araç Çubuğu">
       <!-- Section 1: Tool Palette -->
       <div class="sidebar-section">
         <div class="sidebar-section-header">
           <span class="sidebar-section-title">ARAÇLAR</span>
         </div>
-        <div class="tools-grid">
+        <div class="tools-grid" role="toolbar" aria-label="Çizim ve Vektör Araçları">
           <!-- Select / Move -->
-          <button class="tool-icon-btn active" data-tool="select" id="toolSelect" title="Seçim / Gezin ( V )">
+          <button class="tool-icon-btn active" data-tool="select" id="toolSelect" role="button" aria-pressed="true" title="Seçim / Gezin ( V )" aria-label="Seçim Aracı (V)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M3 3l7 18 3-7 7-3L3 3z"></path>
             </svg>
@@ -198,7 +198,7 @@
           </button>
 
           <!-- Pan / Hand -->
-          <button class="tool-icon-btn" data-tool="pan" id="toolPan" title="El / Tuvali Kaydır ( Space )">
+          <button class="tool-icon-btn" data-tool="pan" id="toolPan" role="button" aria-pressed="false" title="El / Tuvali Kaydır ( Space )" aria-label="El / Tuval Kaydırma Aracı (Space)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3"></path>
               <path d="M14 9V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6"></path>
@@ -210,7 +210,7 @@
           </button>
 
           <!-- Pen -->
-          <button class="tool-icon-btn" data-tool="pen" id="toolPen" title="Serbest Çizim / Kalem ( P )">
+          <button class="tool-icon-btn" data-tool="pen" id="toolPen" role="button" aria-pressed="false" title="Serbest Çizim / Kalem ( P )" aria-label="Serbest Kalem Çizimi (P)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
               <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
@@ -222,7 +222,7 @@
           </button>
 
           <!-- Highlighter -->
-          <button class="tool-icon-btn" data-tool="highlighter" id="toolHighlighter" title="Vurgulayıcı / Fosforlu ( H )">
+          <button class="tool-icon-btn" data-tool="highlighter" id="toolHighlighter" role="button" aria-pressed="false" title="Vurgulayıcı / Fosforlu ( H )" aria-label="Fosforlu Vurgulayıcı (H)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M14 2l4 4L7 17H3v-4L14 2z"></path>
               <path d="M3 22h18"></path>
@@ -232,7 +232,7 @@
           </button>
 
           <!-- Line -->
-          <button class="tool-icon-btn" data-tool="line" id="toolLine" title="Düz Çizgi ( L )">
+          <button class="tool-icon-btn" data-tool="line" id="toolLine" role="button" aria-pressed="false" title="Düz Çizgi ( L )" aria-label="Düz Çizgi (L)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="4" y1="20" x2="20" y2="4"></line>
             </svg>
@@ -241,7 +241,7 @@
           </button>
 
           <!-- Arrow -->
-          <button class="tool-icon-btn" data-tool="arrow" id="toolArrow" title="Ok Çiz ( A )">
+          <button class="tool-icon-btn" data-tool="arrow" id="toolArrow" role="button" aria-pressed="false" title="Ok Çiz ( A )" aria-label="Ok Çizimi (A)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="19" x2="19" y2="5"></line>
               <polyline points="10 5 19 5 19 14"></polyline>
@@ -251,7 +251,7 @@
           </button>
 
           <!-- Rectangle -->
-          <button class="tool-icon-btn" data-tool="rect" id="toolRect" title="Dikdörtgen Çerçeve ( R )">
+          <button class="tool-icon-btn" data-tool="rect" id="toolRect" role="button" aria-pressed="false" title="Dikdörtgen Çerçeve ( R )" aria-label="Dikdörtgen Kutu (R)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2"></rect>
             </svg>
@@ -260,7 +260,7 @@
           </button>
 
           <!-- Circle -->
-          <button class="tool-icon-btn" data-tool="circle" id="toolCircle" title="Daire / Elips ( C )">
+          <button class="tool-icon-btn" data-tool="circle" id="toolCircle" role="button" aria-pressed="false" title="Daire / Elips ( C )" aria-label="Daire / Elips (C)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="9"></circle>
             </svg>
@@ -269,7 +269,7 @@
           </button>
 
           <!-- Step Badge -->
-          <button class="tool-icon-btn" data-tool="step" id="toolStep" title="Numaralı Adım Rozeti ( S )">
+          <button class="tool-icon-btn" data-tool="step" id="toolStep" role="button" aria-pressed="false" title="Numaralı Adım Rozeti ( S )" aria-label="Numaralı Adım Rozeti (S)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="9"></circle>
               <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" stroke="none">1</text>
@@ -279,7 +279,7 @@
           </button>
 
           <!-- Text -->
-          <button class="tool-icon-btn" data-tool="text" id="toolText" title="Metin Ekle ( T )">
+          <button class="tool-icon-btn" data-tool="text" id="toolText" role="button" aria-pressed="false" title="Metin Ekle ( T )" aria-label="Metin Ekle (T)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="4 7 4 4 20 4 20 7"></polyline>
               <line x1="9" y1="20" x2="15" y2="20"></line>
@@ -290,7 +290,7 @@
           </button>
 
           <!-- Callout -->
-          <button class="tool-icon-btn" data-tool="callout" id="toolCallout" title="Konuşma Balonu ( Q )">
+          <button class="tool-icon-btn" data-tool="callout" id="toolCallout" role="button" aria-pressed="false" title="Konuşma Balonu ( Q )" aria-label="Konuşma Balonu (Q)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
             </svg>
@@ -299,7 +299,7 @@
           </button>
 
           <!-- Blur / Redact -->
-          <button class="tool-icon-btn highlight-blur" data-tool="blur" id="toolBlur" title="Sansürle / Bulanıklaştır ( B )">
+          <button class="tool-icon-btn highlight-blur" data-tool="blur" id="toolBlur" role="button" aria-pressed="false" title="Sansürle / Bulanıklaştır ( B )" aria-label="Sansürleme ve Bulanıklaştırma (B)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="7" height="7"></rect>
               <rect x="14" y="3" width="7" height="7"></rect>
@@ -315,7 +315,7 @@
       <div class="sidebar-divider"></div>
 
       <!-- Section 2: Contextual Tool Options -->
-      <div class="sidebar-section options-section" id="sidebarOptions">
+      <div class="sidebar-section options-section" id="sidebarOptions" aria-label="Araç Ayarları">
         <div class="sidebar-section-header">
           <span class="sidebar-section-title">ARAÇ AYARLARI</span>
         </div>
@@ -323,16 +323,16 @@
         <!-- Color Swatches -->
         <div class="option-card" id="colorOptionGroup">
           <span class="option-card-label">Renk Paleti:</span>
-          <div class="color-palette">
-            <button class="color-swatch active" data-color="#ff3366" style="--c: #ff3366;" title="Kırmızı"></button>
-            <button class="color-swatch" data-color="#00d2ff" style="--c: #00d2ff;" title="Neon Camgöbeği"></button>
-            <button class="color-swatch" data-color="#ffd700" style="--c: #ffd700;" title="Sarı"></button>
-            <button class="color-swatch" data-color="#00e676" style="--c: #00e676;" title="Yeşil"></button>
-            <button class="color-swatch" data-color="#9333ea" style="--c: #9333ea;" title="Mor"></button>
-            <button class="color-swatch" data-color="#ffffff" style="--c: #ffffff;" title="Beyaz"></button>
-            <button class="color-swatch" data-color="#000000" style="--c: #000000;" title="Siyah"></button>
-            <label class="custom-color-picker" title="Özel Renk Seç">
-              <input type="color" id="customColorInput" value="#ff3366">
+          <div class="color-palette" role="radiogroup" aria-label="Renk Seçimi">
+            <button class="color-swatch active" data-color="#ff3366" style="--c: #ff3366;" role="radio" aria-checked="true" title="Kırmızı" aria-label="Kırmızı (#ff3366)"></button>
+            <button class="color-swatch" data-color="#00d2ff" style="--c: #00d2ff;" role="radio" aria-checked="false" title="Neon Camgöbeği" aria-label="Neon Camgöbeği (#00d2ff)"></button>
+            <button class="color-swatch" data-color="#ffd700" style="--c: #ffd700;" role="radio" aria-checked="false" title="Sarı" aria-label="Sarı (#ffd700)"></button>
+            <button class="color-swatch" data-color="#00e676" style="--c: #00e676;" role="radio" aria-checked="false" title="Yeşil" aria-label="Yeşil (#00e676)"></button>
+            <button class="color-swatch" data-color="#9333ea" style="--c: #9333ea;" role="radio" aria-checked="false" title="Mor" aria-label="Mor (#9333ea)"></button>
+            <button class="color-swatch" data-color="#ffffff" style="--c: #ffffff;" role="radio" aria-checked="false" title="Beyaz" aria-label="Beyaz (#ffffff)"></button>
+            <button class="color-swatch" data-color="#000000" style="--c: #000000;" role="radio" aria-checked="false" title="Siyah" aria-label="Siyah (#000000)"></button>
+            <label class="custom-color-picker" title="Özel Renk Seç" aria-label="Özel Renk Seç">
+              <input type="color" id="customColorInput" value="#ff3366" aria-label="Özel Renk Seçimi">
               <span class="custom-color-indicator" id="customColorIndicator"></span>
             </label>
           </div>
@@ -341,20 +341,20 @@
         <!-- Stroke Width Selector -->
         <div class="option-card" id="strokeOptionGroup">
           <span class="option-card-label">Çizgi Kalınlığı:</span>
-          <div class="stroke-selector">
-            <button class="stroke-btn" data-width="2" title="İnce (2px)">
+          <div class="stroke-selector" role="radiogroup" aria-label="Çizgi Kalınlığı">
+            <button class="stroke-btn" data-width="2" role="radio" aria-checked="false" title="İnce (2px)" aria-label="İnce (2px)">
               <span class="stroke-dot" style="width: 3px; height: 3px;"></span>
               <span class="stroke-label">2px</span>
             </button>
-            <button class="stroke-btn active" data-width="4" title="Orta (4px)">
+            <button class="stroke-btn active" data-width="4" role="radio" aria-checked="true" title="Orta (4px)" aria-label="Orta (4px)">
               <span class="stroke-dot" style="width: 6px; height: 6px;"></span>
               <span class="stroke-label">4px</span>
             </button>
-            <button class="stroke-btn" data-width="8" title="Kalın (8px)">
+            <button class="stroke-btn" data-width="8" role="radio" aria-checked="false" title="Kalın (8px)" aria-label="Kalın (8px)">
               <span class="stroke-dot" style="width: 9px; height: 9px;"></span>
               <span class="stroke-label">8px</span>
             </button>
-            <button class="stroke-btn" data-width="12" title="Ekstra (12px)">
+            <button class="stroke-btn" data-width="12" role="radio" aria-checked="false" title="Ekstra (12px)" aria-label="Ekstra (12px)">
               <span class="stroke-dot" style="width: 12px; height: 12px;"></span>
               <span class="stroke-label">12px</span>
             </button>
@@ -365,22 +365,22 @@
         <div class="option-card hidden" id="lineStyleOptionGroup">
           <span class="option-card-label">Çizgi & Ok Tipi:</span>
           <div class="line-style-controls">
-            <div class="line-style-selector">
-              <button class="line-style-btn active" data-style="solid" id="lineSolidBtn" title="Düz Çizgi">
+            <div class="line-style-selector" role="radiogroup" aria-label="Çizgi Deseni">
+              <button class="line-style-btn active" data-style="solid" id="lineSolidBtn" role="radio" aria-checked="true" title="Düz Çizgi" aria-label="Düz Çizgi">
                 <svg width="18" height="6" viewBox="0 0 18 6"><line x1="1" y1="3" x2="17" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
                 <span>Düz</span>
               </button>
-              <button class="line-style-btn" data-style="dashed" id="lineDashedBtn" title="Kesikli Çizgi">
+              <button class="line-style-btn" data-style="dashed" id="lineDashedBtn" role="radio" aria-checked="false" title="Kesikli Çizgi" aria-label="Kesikli Çizgi">
                 <svg width="18" height="6" viewBox="0 0 18 6"><line x1="1" y1="3" x2="17" y2="3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="3,3"/></svg>
                 <span>Kesikli</span>
               </button>
             </div>
-            <div class="arrow-mode-selector hidden" id="arrowModeSelector">
-              <button class="arrow-mode-btn active" data-arrowmode="single" id="arrowSingleBtn" title="Tek Yönlü Ok">
+            <div class="arrow-mode-selector hidden" id="arrowModeSelector" role="radiogroup" aria-label="Ok Yönü">
+              <button class="arrow-mode-btn active" data-arrowmode="single" id="arrowSingleBtn" role="radio" aria-checked="true" title="Tek Yönlü Ok" aria-label="Tek Yönlü Ok">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="19" x2="19" y2="5"></line><polyline points="10 5 19 5 19 14"></polyline></svg>
                 <span>Tek Ok</span>
               </button>
-              <button class="arrow-mode-btn" data-arrowmode="double" id="arrowDoubleBtn" title="Çift Yönlü Ok">
+              <button class="arrow-mode-btn" data-arrowmode="double" id="arrowDoubleBtn" role="radio" aria-checked="false" title="Çift Yönlü Ok" aria-label="Çift Yönlü Ok">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="18" x2="18" y2="6"></line><polyline points="10 6 18 6 18 14"></polyline><polyline points="14 18 6 18 6 10"></polyline></svg>
                 <span>Çift Ok</span>
               </button>
@@ -392,16 +392,16 @@
         <div class="option-card hidden" id="stepOptionGroup">
           <span class="option-card-label">Sıradaki Adım Rozeti:</span>
           <div class="step-controls">
-            <span class="step-badge-preview" id="stepBadgePreview">#1</span>
-            <button class="step-reset-btn" id="stepResetBtn" title="Numara sayacını 1'e sıfırla">Sıfırla (1 Yap)</button>
+            <span class="step-badge-preview" id="stepBadgePreview" aria-label="Sıradaki Adım Numarası">#1</span>
+            <button class="step-reset-btn" id="stepResetBtn" title="Numara sayacını 1'e sıfırla" aria-label="Adım Sayacını 1'e Sıfırla">Sıfırla (1 Yap)</button>
           </div>
         </div>
 
         <!-- Blur Mode -->
         <div class="option-card hidden" id="blurOptionGroup">
           <span class="option-card-label">Sansür Modu:</span>
-          <div class="blur-type-selector">
-            <button class="blur-type-btn active" data-blur="pixelate" id="blurPixelateBtn">
+          <div class="blur-type-selector" role="radiogroup" aria-label="Sansürleme Modu">
+            <button class="blur-type-btn active" data-blur="pixelate" id="blurPixelateBtn" role="radio" aria-checked="true" aria-label="Mozaik / Pikselleme">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
@@ -410,7 +410,7 @@
               </svg>
               <span>Mozaik / Piksel</span>
             </button>
-            <button class="blur-type-btn" data-blur="blackout" id="blurBlackoutBtn">
+            <button class="blur-type-btn" data-blur="blackout" id="blurBlackoutBtn" role="radio" aria-checked="false" aria-label="Karartma / Maskeleme">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <rect x="3" y="3" width="18" height="18" rx="2"></rect>
               </svg>
@@ -422,14 +422,14 @@
         <!-- Text Size & Background -->
         <div class="option-card hidden" id="textSizeOptionGroup">
           <span class="option-card-label">Yazı Boyutu & Arka Plan:</span>
-          <div class="text-size-selector">
-            <button class="text-size-btn" data-fontsize="16">S</button>
-            <button class="text-size-btn active" data-fontsize="24">M</button>
-            <button class="text-size-btn" data-fontsize="36">L</button>
-            <button class="text-size-btn" data-fontsize="48">XL</button>
+          <div class="text-size-selector" role="radiogroup" aria-label="Yazı Boyutu">
+            <button class="text-size-btn" data-fontsize="16" role="radio" aria-checked="false" aria-label="Küçük Boyut (16px)">S</button>
+            <button class="text-size-btn active" data-fontsize="24" role="radio" aria-checked="true" aria-label="Orta Boyut (24px)">M</button>
+            <button class="text-size-btn" data-fontsize="36" role="radio" aria-checked="false" aria-label="Büyük Boyut (36px)">L</button>
+            <button class="text-size-btn" data-fontsize="48" role="radio" aria-checked="false" aria-label="Ekstra Büyük Boyut (48px)">XL</button>
           </div>
           <label class="text-bg-toggle" title="Okunabilirlik için koyu arka plan kartı ekle">
-            <input type="checkbox" id="textBgCheckbox" checked>
+            <input type="checkbox" id="textBgCheckbox" checked aria-label="Koyu Arka Plan Kartı Ekle">
             <span>Koyu Arka Plan</span>
           </label>
         </div>
@@ -437,18 +437,18 @@
     </aside>
 
     <!-- Workspace / Image & Canvas Viewport -->
-    <main class="viewport" id="viewport">
+    <main class="viewport" id="viewport" tabindex="0" aria-label="Görsel Tuvali Çalışma Alanı">
       <div class="canvas-stage" id="canvasStage">
         <!-- Main render canvas containing screenshot + annotations -->
-        <canvas id="mainCanvas"></canvas>
+        <canvas id="mainCanvas" aria-label="Düzenlenebilir Ana Tuval"></canvas>
         <!-- Interactive overlay canvas for real-time drawing feedback -->
-        <canvas id="overlayCanvas"></canvas>
+        <canvas id="overlayCanvas" aria-label="Çizim Katmanı"></canvas>
         <!-- Floating Text Input Overlay -->
-        <div id="textInputContainer" class="text-input-container hidden">
-          <textarea id="textInputField" placeholder="Metninizi yazın... (Bitirmek için dışarı tıklayın veya Shift+Enter)"></textarea>
+        <div id="textInputContainer" class="text-input-container hidden" role="region" aria-label="Metin Giriş Kutusu">
+          <textarea id="textInputField" placeholder="Metninizi yazın... (Bitirmek için dışarı tıklayın veya Shift+Enter)" aria-label="Metin Girişi"></textarea>
           <div class="text-input-actions">
-            <button id="textApplyBtn" class="text-act-btn primary">Tamamla</button>
-            <button id="textCancelBtn" class="text-act-btn secondary">İptal</button>
+            <button id="textApplyBtn" class="text-act-btn primary" aria-label="Metni Uygula">Tamamla</button>
+            <button id="textCancelBtn" class="text-act-btn secondary" aria-label="Metin Girişini İptal Et">İptal</button>
           </div>
         </div>
       </div>
@@ -456,101 +456,140 @@
   </div>
 
   <!-- Keyboard Shortcuts Modal -->
-  <div class="modal-backdrop shortcuts-modal hidden" id="shortcutsModal">
-    <div class="modal-card">
+  <div class="modal-backdrop shortcuts-modal hidden" id="shortcutsModal" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalTitle" aria-hidden="true">
+    <div class="modal-card shortcuts-modal-card">
       <div class="modal-header">
         <div class="modal-title">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="2" y="4" width="20" height="16" rx="2"></rect>
             <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M6 16h12"></path>
           </svg>
-          <span>Klavye Kısayolları</span>
+          <span id="shortcutsModalTitle">Klavye Kısayolları Kılavuzu</span>
         </div>
-        <button class="modal-close-btn" id="closeShortcutsBtn">✕</button>
+        <button class="modal-close-btn" id="closeShortcutsBtn" title="Kapat (ESC)" aria-label="Kapat (ESC)">✕</button>
       </div>
       <div class="modal-body">
-        <div class="shortcut-grid">
-          <div class="shortcut-item">
-            <span class="sc-desc">Seçim / Gezinme Aracı</span>
-            <div class="sc-keys"><kbd>V</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">El / Tuvali Kaydır</span>
-            <div class="sc-keys"><kbd>Space</kbd> + <kbd>Sürükle</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Serbest Kalem Çizimi</span>
-            <div class="sc-keys"><kbd>P</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Düz Çizgi</span>
-            <div class="sc-keys"><kbd>L</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Fosforlu Kalem / Vurgulayıcı</span>
-            <div class="sc-keys"><kbd>H</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Ok Çizimi</span>
-            <div class="sc-keys"><kbd>A</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Dikdörtgen Çerçeve</span>
-            <div class="sc-keys"><kbd>R</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Daire / Elips Çizimi</span>
-            <div class="sc-keys"><kbd>C</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Numaralı Adım Rozeti</span>
-            <div class="sc-keys"><kbd>S</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Konuşma Balonu & Açıklama</span>
-            <div class="sc-keys"><kbd>Q</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Bulanıklaştırma / Sansür</span>
-            <div class="sc-keys"><kbd>B</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Metin Ekleme</span>
-            <div class="sc-keys"><kbd>T</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Geri Al</span>
-            <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>Z</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">İleri Al</span>
-            <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>Y</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Panoya Kopyala</span>
-            <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>C</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">PNG İndir</span>
-            <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">PDF İndir</span>
-            <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Yakınlaştır / Uzaklaştır</span>
-            <div class="sc-keys"><kbd>+</kbd> / <kbd>-</kbd> / <kbd>Ctrl + Tekerlek</kbd></div>
-          </div>
-          <div class="shortcut-item">
-            <span class="sc-desc">Ekrana Sığdır</span>
-            <div class="sc-keys"><kbd>0</kbd></div>
-          </div>
-          <div class="shortcut-item" style="grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 6px; padding-top: 10px;">
-            <span class="sc-desc" style="color: var(--primary); font-weight: 700;">🌐 Genel Chrome Kısayolları (Herhangi bir sayfada):</span>
-            <div class="sc-keys" style="font-size: 10px; color: var(--text-secondary);">
-              <kbd>Alt+Shift+F</kbd> Tam Sayfa &nbsp;|&nbsp; <kbd>Alt+Shift+V</kbd> Görünür &nbsp;|&nbsp; <kbd>Alt+Shift+E</kbd> DOM &nbsp;|&nbsp; <kbd>Alt+Shift+S</kbd> Kırp
+        <div class="shortcuts-columns">
+          <!-- Column 1: Çizim & Düzenleme Araçları -->
+          <div class="shortcuts-category">
+            <div class="category-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>
+              <span>Çizim & Düzenleme Araçları</span>
             </div>
+            <div class="shortcut-list">
+              <div class="shortcut-item">
+                <span class="sc-desc">Seçim / Gezinme Aracı</span>
+                <div class="sc-keys"><kbd>V</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">El / Tuvali Kaydır</span>
+                <div class="sc-keys"><kbd>Space</kbd> + <kbd>Sürükle</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Serbest Kalem Çizimi</span>
+                <div class="sc-keys"><kbd>P</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Düz Çizgi</span>
+                <div class="sc-keys"><kbd>L</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Fosforlu Vurgulayıcı</span>
+                <div class="sc-keys"><kbd>H</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Ok Çizimi</span>
+                <div class="sc-keys"><kbd>A</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Dikdörtgen Kutu</span>
+                <div class="sc-keys"><kbd>R</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Daire / Elips</span>
+                <div class="sc-keys"><kbd>C</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Numaralı Adım Rozeti</span>
+                <div class="sc-keys"><kbd>S</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Konuşma Balonu</span>
+                <div class="sc-keys"><kbd>Q</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Sansürleme / Mozaik</span>
+                <div class="sc-keys"><kbd>B</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Metin Ekleme</span>
+                <div class="sc-keys"><kbd>T</kbd></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Eylemler & Dışa Aktarma -->
+          <div class="shortcuts-category">
+            <div class="category-header">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Eylemler, Zoom & Dışa Aktar</span>
+            </div>
+            <div class="shortcut-list">
+              <div class="shortcut-item">
+                <span class="sc-desc">Geri Al</span>
+                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>Z</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">İleri Al</span>
+                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>Y</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Panoya Kopyala</span>
+                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>C</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">PNG Olarak İndir</span>
+                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">PDF Olarak İndir</span>
+                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Yakınlaştır / Uzaklaştır</span>
+                <div class="sc-keys"><kbd>+</kbd> / <kbd>-</kbd> / <kbd>Ctrl+Tekerlek</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Ekrana Sığdır</span>
+                <div class="sc-keys"><kbd>0</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Mockup Çerçeve Modu</span>
+                <div class="sc-keys"><kbd>M</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Kısayollar Kılavuzu</span>
+                <div class="sc-keys"><kbd>?</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">İptal / Modalı Kapat</span>
+                <div class="sc-keys"><kbd>ESC</kbd></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Full-Width Bottom Bar: Global Chrome Shortcuts -->
+        <div class="global-shortcuts-card">
+          <div class="global-card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span>Tarayıcı İçi Genel Yakalama Kısayolları (Herhangi bir web sayfasında aktif):</span>
+          </div>
+          <div class="global-keys-grid">
+            <div class="global-key-item"><kbd>Alt+Shift+F</kbd> <span>Tam Sayfa</span></div>
+            <div class="global-key-item"><kbd>Alt+Shift+V</kbd> <span>Görünür Alan</span></div>
+            <div class="global-key-item"><kbd>Alt+Shift+E</kbd> <span>Öğe / Bölüm</span></div>
+            <div class="global-key-item"><kbd>Alt+Shift+S</kbd> <span>Seçili Alan</span></div>
           </div>
         </div>
       </div>
@@ -558,7 +597,7 @@
   </div>
 
   <!-- macOS Mockup Frame Modal -->
-  <div class="modal-backdrop mockup-modal hidden" id="mockupModal">
+  <div class="modal-backdrop mockup-modal hidden" id="mockupModal" role="dialog" aria-modal="true" aria-labelledby="mockupModalTitle" aria-hidden="true">
     <div class="modal-card mockup-modal-card">
       <div class="modal-header">
         <div class="modal-title">
@@ -569,61 +608,61 @@
             <circle cx="12" cy="7" r="1" fill="currentColor"></circle>
             <line x1="2" y1="11" x2="22" y2="11"></line>
           </svg>
-          <span>macOS Pencere Mockup Çerçevesi</span>
+          <span id="mockupModalTitle">macOS Pencere Mockup Çerçevesi</span>
         </div>
-        <button class="modal-close-btn" id="closeMockupBtn">✕</button>
+        <button class="modal-close-btn" id="closeMockupBtn" title="Kapat (ESC)" aria-label="Kapat (ESC)">✕</button>
       </div>
       <div class="modal-body mockup-modal-body">
         <div class="mockup-preview-container">
-          <canvas id="mockupPreviewCanvas"></canvas>
+          <canvas id="mockupPreviewCanvas" aria-label="Mockup Önizleme Tuvali"></canvas>
         </div>
         
         <div class="mockup-controls-grid">
           <!-- Backdrop Theme -->
           <div class="mockup-control-item">
             <label class="mockup-label">Arka Plan Teması:</label>
-            <div class="mockup-theme-selector" id="mockupThemeSelector">
-              <button class="mockup-theme-btn active" data-theme="obsidian" style="background: linear-gradient(135deg, #111215, #1e2025, #0d0e11);" title="Obsidian Dark (Kömür & Siyah)"></button>
-              <button class="mockup-theme-btn" data-theme="sunset" style="background: linear-gradient(135deg, #4338ca, #a855f7, #f43f5e);" title="Sunset Glow (Mor & Pembe Gün Batımı)"></button>
-              <button class="mockup-theme-btn" data-theme="cyber" style="background: linear-gradient(135deg, #090a0f, #1e1b4b, #059669);" title="Neon Cyber (Siberpunk Neon & Zümrüt)"></button>
-              <button class="mockup-theme-btn" data-theme="slate" style="background: linear-gradient(135deg, #2b323c, #485461, #28313b);" title="Slate Minimalist (Slate Koyu Gri)"></button>
-              <button class="mockup-theme-btn" data-theme="arctic" style="background: linear-gradient(135deg, #f8fafc, #e2e8f0, #cbd5e1);" title="Arctic White (Kutup Beyazı)"></button>
-              <button class="mockup-theme-btn" data-theme="emerald" style="background: linear-gradient(135deg, #064e3b, #047857, #10b981);" title="Emerald Glass (Zümrüt Cam Gradyan)"></button>
+            <div class="mockup-theme-selector" id="mockupThemeSelector" role="radiogroup" aria-label="Arka Plan Teması">
+              <button class="mockup-theme-btn active" data-theme="obsidian" role="radio" aria-checked="true" style="background: linear-gradient(135deg, #111215, #1e2025, #0d0e11);" title="Obsidian Dark (Kömür & Siyah)" aria-label="Obsidian Dark Teması"></button>
+              <button class="mockup-theme-btn" data-theme="sunset" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #4338ca, #a855f7, #f43f5e);" title="Sunset Glow (Mor & Pembe Gün Batımı)" aria-label="Sunset Glow Teması"></button>
+              <button class="mockup-theme-btn" data-theme="cyber" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #090a0f, #1e1b4b, #059669);" title="Neon Cyber (Siberpunk Neon & Zümrüt)" aria-label="Neon Cyber Teması"></button>
+              <button class="mockup-theme-btn" data-theme="slate" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #2b323c, #485461, #28313b);" title="Slate Minimalist (Slate Koyu Gri)" aria-label="Slate Minimalist Teması"></button>
+              <button class="mockup-theme-btn" data-theme="arctic" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #f8fafc, #e2e8f0, #cbd5e1);" title="Arctic White (Kutup Beyazı)" aria-label="Arctic White Teması"></button>
+              <button class="mockup-theme-btn" data-theme="emerald" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #064e3b, #047857, #10b981);" title="Emerald Glass (Zümrüt Cam Gradyan)" aria-label="Emerald Glass Teması"></button>
             </div>
           </div>
 
           <!-- Padding -->
           <div class="mockup-control-item">
             <label class="mockup-label">Boşluk / Kenar Payı:</label>
-            <div class="mockup-btn-group" id="mockupPaddingGroup">
-              <button class="mockup-opt-btn" data-padding="24" title="Dar Kenar Payı (24px)">Dar (24px)</button>
-              <button class="mockup-opt-btn active" data-padding="44" title="Orta Kenar Payı (44px)">Orta (44px)</button>
-              <button class="mockup-opt-btn" data-padding="68" title="Geniş Kenar Payı (68px)">Geniş (68px)</button>
+            <div class="mockup-btn-group" id="mockupPaddingGroup" role="radiogroup" aria-label="Kenar Payı">
+              <button class="mockup-opt-btn" data-padding="24" role="radio" aria-checked="false" title="Dar Kenar Payı (24px)" aria-label="Dar Kenar Payı (24px)">Dar (24px)</button>
+              <button class="mockup-opt-btn active" data-padding="44" role="radio" aria-checked="true" title="Orta Kenar Payı (44px)" aria-label="Orta Kenar Payı (44px)">Orta (44px)</button>
+              <button class="mockup-opt-btn" data-padding="68" role="radio" aria-checked="false" title="Geniş Kenar Payı (68px)" aria-label="Geniş Kenar Payı (68px)">Geniş (68px)</button>
             </div>
           </div>
 
           <!-- Window Header / URL bar -->
           <div class="mockup-control-item">
             <label class="mockup-label">Pencere Başlığı:</label>
-            <div class="mockup-btn-group" id="mockupHeaderGroup">
-              <button class="mockup-opt-btn active" data-header="true" title="macOS Başlık Çubuğu ve Butonları">Göster (🔴🟡🟢 + URL)</button>
-              <button class="mockup-opt-btn" data-header="false" title="Sadece Yuvarlatılmış Çerçeve">Sadece Çerçeve</button>
+            <div class="mockup-btn-group" id="mockupHeaderGroup" role="radiogroup" aria-label="Pencere Başlığı Görünümü">
+              <button class="mockup-opt-btn active" data-header="true" role="radio" aria-checked="true" title="macOS Başlık Çubuğu ve Butonları" aria-label="macOS Başlık Çubuğu Göster">Göster (🔴🟡🟢 + URL)</button>
+              <button class="mockup-opt-btn" data-header="false" role="radio" aria-checked="false" title="Sadece Yuvarlatılmış Çerçeve" aria-label="Sadece Çerçeve Göster">Sadece Çerçeve</button>
             </div>
           </div>
 
           <!-- Shadow -->
           <div class="mockup-control-item">
             <label class="mockup-label">Gölge Yoğunluğu:</label>
-            <div class="mockup-btn-group" id="mockupShadowGroup">
-              <button class="mockup-opt-btn" data-shadow="none" title="Gölgesiz Düz">Yok</button>
-              <button class="mockup-opt-btn" data-shadow="subtle" title="Hafif Yumuşak Gölge">Hafif</button>
-              <button class="mockup-opt-btn active" data-shadow="deep" title="Derin Gerçekçi 3D Drop Shadow">Derin 3D</button>
+            <div class="mockup-btn-group" id="mockupShadowGroup" role="radiogroup" aria-label="Gölge Yoğunluğu">
+              <button class="mockup-opt-btn" data-shadow="none" role="radio" aria-checked="false" title="Gölgesiz Düz" aria-label="Gölgesiz Düz">Yok</button>
+              <button class="mockup-opt-btn" data-shadow="subtle" role="radio" aria-checked="false" title="Hafif Yumuşak Gölge" aria-label="Hafif Yumuşak Gölge">Hafif</button>
+              <button class="mockup-opt-btn active" data-shadow="deep" role="radio" aria-checked="true" title="Derin Gerçekçi 3D Drop Shadow" aria-label="Derin Gerçekçi 3D Gölge">Derin 3D</button>
             </div>
           </div>
         </div>
 
         <div class="mockup-actions-row">
-          <button class="action-btn primary" id="downloadMockupPngBtn" title="Mockup Görüntüsünü PNG Olarak İndir">
+          <button class="action-btn primary" id="downloadMockupPngBtn" title="Mockup Görüntüsünü PNG Olarak İndir" aria-label="Mockup PNG Olarak İndir">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
@@ -631,10 +670,10 @@
             </svg>
             <span>Mockup PNG İndir</span>
           </button>
-          <button class="action-btn secondary" id="downloadMockupWebpBtn" title="Mockup Görüntüsünü WebP Olarak İndir">
+          <button class="action-btn secondary" id="downloadMockupWebpBtn" title="Mockup Görüntüsünü WebP Olarak İndir" aria-label="Mockup WebP Olarak İndir">
             <span>Mockup WebP İndir</span>
           </button>
-          <button class="action-btn secondary" id="copyMockupClipboardBtn" title="Mockup Görüntüsünü Panoya Kopyala (Ctrl+C)">
+          <button class="action-btn secondary" id="copyMockupClipboardBtn" title="Mockup Görüntüsünü Panoya Kopyala (Ctrl+C)" aria-label="Mockup Panoya Kopyala">
             <span>Panoya Kopyala</span>
           </button>
         </div>
@@ -643,7 +682,7 @@
   </div>
 
   <!-- Watermark / Stamp Modal -->
-  <div class="modal-backdrop watermark-modal hidden" id="watermarkModal">
+  <div class="modal-backdrop watermark-modal hidden" id="watermarkModal" role="dialog" aria-modal="true" aria-labelledby="watermarkModalTitle" aria-hidden="true">
     <div class="modal-card" style="width: 520px;">
       <div class="modal-header">
         <div class="modal-title">
@@ -651,33 +690,33 @@
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             <path d="M9 12l2 2 4-4"></path>
           </svg>
-          <span>Filigran & Metin Damgası Ekle</span>
+          <span id="watermarkModalTitle">Filigran & Metin Damgası Ekle</span>
         </div>
-        <button class="modal-close-btn" id="closeWatermarkBtn">✕</button>
+        <button class="modal-close-btn" id="closeWatermarkBtn" title="Kapat (ESC)" aria-label="Kapat (ESC)">✕</button>
       </div>
       <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px; padding: 18px;">
         <!-- Quick Presets -->
         <div class="wm-form-group">
           <label class="wm-label">Hızlı Damga Şablonları:</label>
-          <div class="wm-preset-grid">
-            <button class="wm-preset-btn" id="wmPresetUrl" type="button">🌐 Web Sitesi URL</button>
-            <button class="wm-preset-btn" id="wmPresetDate" type="button">📅 Tarih & Saat</button>
-            <button class="wm-preset-btn" id="wmPresetBrand" type="button">⚡ FullShot Pro</button>
-            <button class="wm-preset-btn" id="wmPresetConfidential" type="button">🔒 GİZLİ / DRAFT</button>
+          <div class="wm-preset-grid" role="group" aria-label="Hızlı Damga Şablonları">
+            <button class="wm-preset-btn" id="wmPresetUrl" type="button" aria-label="Web Sitesi URL Damgası">🌐 Web Sitesi URL</button>
+            <button class="wm-preset-btn" id="wmPresetDate" type="button" aria-label="Tarih ve Saat Damgası">📅 Tarih & Saat</button>
+            <button class="wm-preset-btn" id="wmPresetBrand" type="button" aria-label="FullShot Pro Marka Damgası">⚡ FullShot Pro</button>
+            <button class="wm-preset-btn" id="wmPresetConfidential" type="button" aria-label="Gizli Draft Filigranı">🔒 GİZLİ / DRAFT</button>
           </div>
         </div>
 
         <!-- Custom Text Input -->
         <div class="wm-form-group">
           <label class="wm-label" for="wmCustomTextInput">Damga / Filigran Metni:</label>
-          <input type="text" id="wmCustomTextInput" class="wm-input" placeholder="Örn: https://example.com veya @yazar" value="">
+          <input type="text" id="wmCustomTextInput" class="wm-input" placeholder="Örn: https://example.com veya @yazar" value="" aria-label="Damga veya Filigran Metni">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
           <!-- Position Select -->
           <div class="wm-form-group">
             <label class="wm-label" for="wmPositionSelect">Konum:</label>
-            <select id="wmPositionSelect" class="wm-select">
+            <select id="wmPositionSelect" class="wm-select" aria-label="Damga Konumu">
               <option value="bottom-right" selected>Sağ Alt Köşe (Standart)</option>
               <option value="bottom-left">Sol Alt Köşe</option>
               <option value="top-right">Sağ Üst Köşe</option>
@@ -689,7 +728,7 @@
           <!-- Style Select -->
           <div class="wm-form-group">
             <label class="wm-label" for="wmStyleSelect">Stil & Görünüm:</label>
-            <select id="wmStyleSelect" class="wm-select">
+            <select id="wmStyleSelect" class="wm-select" aria-label="Damga Stili">
               <option value="pill" selected>Koyu Kapsül Rozet (Okunaklı)</option>
               <option value="subtle">Hafif Şeffaf Gölge</option>
               <option value="accent">Neon Slate Vurgu</option>
@@ -700,8 +739,8 @@
 
         <!-- Actions -->
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; border-top: 1px solid var(--border-subtle); padding-top: 12px;">
-          <button class="action-btn secondary" id="wmCancelBtn" type="button">İptal</button>
-          <button class="action-btn primary" id="wmApplyBtn" type="button">
+          <button class="action-btn secondary" id="wmCancelBtn" type="button" aria-label="İptal Et">İptal</button>
+          <button class="action-btn primary" id="wmApplyBtn" type="button" aria-label="Damgayı Uygula">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
             <span>Damgayı Uygula</span>
           </button>
@@ -711,7 +750,7 @@
   </div>
 
   <!-- Toast Notification -->
-  <div id="toast" class="toast hidden">
+  <div id="toast" class="toast hidden" role="status" aria-live="polite">
     <div class="toast-icon">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
         <polyline points="20 6 9 17 4 12"></polyline>

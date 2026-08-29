@@ -92,18 +92,33 @@
     shadow.innerHTML = `
       <style>
         :host {
-          all: initial;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          all: initial !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+          font-size: 13px !important;
+          line-height: normal !important;
+          letter-spacing: normal !important;
+          text-align: left !important;
+          color: #FFFFE3 !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          direction: ltr !important;
         }
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+        *, *::before, *::after {
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-family: inherit !important;
+          scrollbar-width: none !important;
+        }
+        ::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
         .highlight-box {
           position: fixed;
           border: 2px solid #6D8196;
-          background: rgba(109, 129, 150, 0.14);
+          background: rgba(109, 129, 150, 0.16);
           border-radius: 6px;
           pointer-events: none;
           transition: all 0.05s ease-out;
@@ -126,24 +141,43 @@
           white-space: nowrap;
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
           font-weight: 600;
+          max-width: calc(100vw - 32px);
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .banner {
           position: fixed;
           top: 20px;
           left: 50%;
           transform: translateX(-50%);
-          background: #2c2e33;
+          background: #4A4A4A;
           border: 1px solid #545862;
           color: #FFFFE3;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           font-size: 12px;
           font-weight: 500;
+          padding: 8px 18px;
+          border-radius: 10px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(109, 129, 150, 0.2);
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          z-index: 2147483647;
+          animation: bannerIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          max-width: calc(100vw - 32px);
+          white-space: nowrap;
+        }
+        @keyframes bannerIn {
+          from { transform: translate(-50%, -15px); opacity: 0; }
+          to { transform: translate(-50%, 0); opacity: 1; }
+        }
         .quick-bar {
           position: fixed;
           display: none;
           align-items: center;
           gap: 6px;
-          background: #2b2e33;
+          background: #4A4A4A;
           border: 1px solid #545862;
           border-radius: 12px;
           padding: 6px 8px;
@@ -152,6 +186,9 @@
           animation: qbPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: default;
           pointer-events: auto;
+          user-select: none;
+          -webkit-user-select: none;
+          max-width: calc(100vw - 24px);
         }
         @keyframes qbPop {
           from { transform: scale(0.92); opacity: 0; }
@@ -160,6 +197,7 @@
         .qb-btn {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
           background: #373a40;
           color: #FFFFE3;
@@ -173,6 +211,7 @@
           transition: all 0.15s ease;
           white-space: nowrap;
           outline: none;
+          line-height: 1;
         }
         .qb-btn:hover {
           background: #6D8196;
@@ -186,9 +225,11 @@
         .qb-btn.qb-studio {
           background: #6D8196;
           border-color: #6D8196;
+          color: #FFFFE3;
         }
         .qb-btn.qb-studio:hover {
           background: #8096ac;
+          border-color: #8096ac;
         }
         .qb-btn.qb-cancel {
           padding: 7px 9px;
@@ -201,6 +242,8 @@
         }
         .qb-btn svg {
           display: block;
+          flex-shrink: 0;
+          pointer-events: none;
         }
       </style>
       <div class="highlight-box" id="box">
@@ -353,8 +396,9 @@
           cropCanvas.height = sh;
           const cropCtx = cropCanvas.getContext('2d', { alpha: true });
 
-          // Disable interpolation filter for 1:1 crisp pixel-perfect slice copy
-          cropCtx.imageSmoothingEnabled = false;
+          // High-precision anti-aliased bicubic sampling for smooth curved edges and text
+          cropCtx.imageSmoothingEnabled = true;
+          cropCtx.imageSmoothingQuality = 'high';
 
           if (format === 'jpeg') {
             cropCtx.fillStyle = '#ffffff';
@@ -450,6 +494,42 @@
       });
     }
 
+    function positionQuickBar(rect) {
+      if (!quickBar || !rect) return;
+      const barWidth = 340;
+      const barHeight = 44;
+      const margin = 12;
+
+      let barLeft = rect.left + rect.width - barWidth;
+      if (rect.width < barWidth) {
+        barLeft = rect.left + (rect.width / 2) - (barWidth / 2);
+      }
+      const maxLeft = Math.max(margin, window.innerWidth - barWidth - margin);
+      barLeft = Math.max(margin, Math.min(barLeft, maxLeft));
+
+      let barTop = rect.top + rect.height + 10;
+      if (barTop + barHeight > window.innerHeight - margin) {
+        barTop = rect.top - barHeight - 10;
+      }
+      const maxTop = Math.max(margin, window.innerHeight - barHeight - margin);
+      barTop = Math.max(margin, Math.min(barTop, maxTop));
+
+      quickBar.style.left = `${Math.round(barLeft)}px`;
+      quickBar.style.top = `${Math.round(barTop)}px`;
+    }
+
+    const onResize = () => {
+      if (isFrozen && selectedElement && box && quickBar) {
+        selectedRect = selectedElement.getBoundingClientRect();
+        box.style.top = `${selectedRect.top}px`;
+        box.style.left = `${selectedRect.left}px`;
+        box.style.width = `${selectedRect.width}px`;
+        box.style.height = `${selectedRect.height}px`;
+        positionQuickBar(selectedRect);
+      }
+    };
+    window.addEventListener('resize', onResize);
+
     const onClick = (e) => {
       // Ignore clicks originating from inside the quickBar
       if (e.composedPath && e.composedPath().includes(quickBar)) return;
@@ -475,16 +555,7 @@
       if (quickBar) {
         quickBar.style.display = 'inline-flex';
         if (banner) banner.style.display = 'none';
-
-        const barWidth = 340;
-        const barHeight = 44;
-        let barLeft = Math.min(window.innerWidth - barWidth - 16, Math.max(16, selectedRect.left + selectedRect.width - barWidth));
-        let barTop = selectedRect.top + selectedRect.height + 10;
-        if (barTop + barHeight > window.innerHeight - 16) {
-          barTop = Math.max(16, selectedRect.top - barHeight - 10);
-        }
-        quickBar.style.left = `${barLeft}px`;
-        quickBar.style.top = `${barTop}px`;
+        positionQuickBar(selectedRect);
       }
     };
 
@@ -496,6 +567,7 @@
       if (window.FullShotHUD.toast) {
         window.FullShotHUD.toast.hide();
       }
+      window.removeEventListener('resize', onResize);
       window.removeEventListener('mousemove', onMouseMove, true);
       window.removeEventListener('click', onClick, true);
       window.removeEventListener('keydown', onKeyDown, true);
@@ -540,12 +612,38 @@
     return currentHost;
   }
 
+  /**
+   * Hides picker with complete ghosting protection before screenshot capture.
+   */
+  async function hideForCapture() {
+    if (currentHost) {
+      currentHost.style.setProperty('display', 'none', 'important');
+      void document.documentElement.offsetHeight;
+      if (document.body) {
+        void document.body.offsetHeight;
+      }
+      await waitForDoubleRAF();
+      await sleep(50);
+    }
+  }
+
+  /**
+   * Restores visibility after screenshot capture.
+   */
+  function restoreAfterCapture() {
+    if (currentHost) {
+      currentHost.style.removeProperty('display');
+    }
+  }
+
   // Export module to FullShotHUD namespace
   window.FullShotHUD.elementPicker = {
     start,
     cancel: cleanup,
     cleanup,
     isActive,
-    getHost
+    getHost,
+    hideForCapture,
+    restoreAfterCapture
   };
 })();

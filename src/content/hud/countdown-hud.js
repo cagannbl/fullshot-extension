@@ -115,13 +115,28 @@
       countdownShadow.innerHTML = `
         <style>
           :host {
-            all: initial;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            all: initial !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+            font-size: 13px !important;
+            line-height: normal !important;
+            letter-spacing: normal !important;
+            text-align: left !important;
+            color: #FFFFE3 !important;
+            -webkit-font-smoothing: antialiased !important;
+            -moz-osx-font-smoothing: grayscale !important;
+            direction: ltr !important;
           }
-          * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+          *, *::before, *::after {
+            box-sizing: border-box !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: inherit !important;
+            scrollbar-width: none !important;
+          }
+          ::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
           }
           .backdrop {
             position: fixed;
@@ -133,6 +148,8 @@
             align-items: center;
             justify-content: center;
             animation: fadeIn 0.2s ease-out;
+            padding: 16px;
+            box-sizing: border-box;
           }
           @keyframes fadeIn {
             from { opacity: 0; }
@@ -149,6 +166,8 @@
             align-items: center;
             gap: 16px;
             min-width: 260px;
+            max-width: calc(100vw - 32px);
+            box-sizing: border-box;
             animation: popIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             color: #FFFFE3;
             text-align: center;
@@ -360,12 +379,38 @@
     return countdownHost;
   }
 
+  /**
+   * Hides countdown overlay with complete ghosting protection before screenshot capture.
+   */
+  async function hideForCapture() {
+    if (countdownHost) {
+      countdownHost.style.setProperty('display', 'none', 'important');
+      void document.documentElement.offsetHeight;
+      if (document.body) {
+        void document.body.offsetHeight;
+      }
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
+
+  /**
+   * Restores visibility after screenshot capture.
+   */
+  function restoreAfterCapture() {
+    if (countdownHost) {
+      countdownHost.style.removeProperty('display');
+    }
+  }
+
   // Export module to FullShotHUD namespace
   window.FullShotHUD.countdown = {
     show,
     cancel,
     remove,
     isVisible,
-    getHost
+    getHost,
+    hideForCapture,
+    restoreAfterCapture
   };
 })();

@@ -35,18 +35,23 @@
       if (el.id && el.id.startsWith('__fullshot_')) return false;
       if (el.closest && el.closest('[id^="__fullshot_"]')) return false;
 
-      // 3. SPA framework root and main layout IDs
+      // 3. SPA framework root and main layout IDs & classes
       const id = (el.id || '').toLowerCase();
-      const spaRoots = ['root', '__next', 'app', '__nuxt', 'main-content', 'layout-root', '__layout', 'app-root', 'main'];
+      const spaRoots = [
+        'root', '__next', 'app', '__nuxt', 'main-content', 'layout-root',
+        '__layout', 'app-root', 'main', 'react-root', 'shreddit-app',
+        'shreddit-feed', 'primarycolumn', 'contents', 'page-container',
+        'content', 'page'
+      ];
       if (spaRoots.includes(id)) return false;
 
       // 4. ARIA landmark roles
       const role = (el.getAttribute('role') || '').toLowerCase();
-      if (role === 'main' || role === 'application') return false;
+      if (role === 'main' || role === 'application' || role === 'article' || role === 'feed') return false;
 
-      // 5. Layout elements covering >= 95% of viewport
+      // 5. Layout elements covering >= 90% of viewport
       const rect = el.getBoundingClientRect();
-      if (rect.width >= viewportW * 0.95 && rect.height >= viewportH * 0.95) return false;
+      if (rect.width >= viewportW * 0.90 && rect.height >= viewportH * 0.90) return false;
 
       // 6. Zero dimension elements
       if (rect.width === 0 || rect.height === 0) return false;
@@ -100,14 +105,21 @@
 
     /**
      * Smart step updater:
-     * - Step 0: Leave everything visible
+     * - Step 0: Leave everything visible (captures top navbar naturally)
      * - Step > 0: Hide fixed elements and sticky elements docked at top (rect.top <= 2)
+     *   Preserves in-page sticky headers below the fold (rect.top > 2).
      * @param {number} stepIndex
      */
     updateForStep(stepIndex) {
       if (stepIndex === 0) {
+        // Step 0: ensure all elements are visible in their original state
+        if (this.isHidden) {
+          this.restoreVisibility();
+        }
         return;
       }
+
+      const viewportH = window.innerHeight;
 
       for (let i = 0; i < this.detectedElements.length; i++) {
         const el = this.detectedElements[i];
@@ -118,14 +130,29 @@
           const rect = el.getBoundingClientRect();
           const position = meta?.positionType || window.getComputedStyle(el).position;
 
+          // Docked at top check: element top is pinned at or above the upper viewport boundary
+          const isDockedAtTop = rect.top <= 2 && rect.bottom > 0;
+
           if (position === 'fixed') {
-            el.style.setProperty('visibility', 'hidden', 'important');
-          } else if (position === 'sticky') {
-            // Only hide sticky headers docked at the top of the viewport
-            if (rect.top <= 2) {
+            if (isDockedAtTop) {
+              el.style.setProperty('visibility', 'hidden', 'important');
+            } else if (rect.bottom >= viewportH - 2 && rect.height < viewportH * 0.35) {
+              // Floating bottom footer / cookie banner: hide during intermediate scrolls to prevent repetition
               el.style.setProperty('visibility', 'hidden', 'important');
             } else {
-              // Below-the-fold content flowing into view: keep original visibility
+              // Non-docked fixed elements: preserve original visibility
+              if (meta && meta.visibility) {
+                el.style.setProperty('visibility', meta.visibility, meta.priority);
+              } else {
+                el.style.removeProperty('visibility');
+              }
+            }
+          } else if (position === 'sticky') {
+            // ONLY hide sticky elements if they are docked at the top of the viewport
+            if (isDockedAtTop) {
+              el.style.setProperty('visibility', 'hidden', 'important');
+            } else {
+              // In-page headers below the fold: keep visible so section titles are captured cleanly
               if (meta && meta.visibility) {
                 el.style.setProperty('visibility', meta.visibility, meta.priority);
               } else {
@@ -141,9 +168,9 @@
     }
 
     /**
-     * Restores all modified elements to their original inline styles.
+     * Helper: Restores visibility without clearing the detected element index.
      */
-    restore() {
+    restoreVisibility() {
       for (const [el, original] of this.originalStyles.entries()) {
         if (el && el.style) {
           try {
@@ -157,6 +184,14 @@
           }
         }
       }
+      this.isHidden = false;
+    }
+
+    /**
+     * Restores all modified elements to their original inline styles and cleans up.
+     */
+    restore() {
+      this.restoreVisibility();
       this.originalStyles.clear();
       this.detectedElements = [];
       this.isHidden = false;

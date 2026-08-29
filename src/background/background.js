@@ -350,6 +350,7 @@ function resetRecordingTimer() {
 async function persistRecordingState() {
   const statePayload = {
     state: recordingState,
+    status: recordingState.toLowerCase(),
     startTime: recordingStartTime,
     elapsedSeconds: recordingElapsedSeconds,
     recordingId: activeRecordingId,
@@ -367,11 +368,18 @@ async function persistRecordingState() {
     // Storage sync warning ignored
   }
 
-  // Broadcast state change across extension components
+  // Broadcast state change across extension components (both action keys for maximum compatibility)
   try {
     chrome.runtime.sendMessage({
       action: 'RECORDING_STATE_CHANGED',
-      statePayload
+      statePayload,
+      state: statePayload
+    }).catch(() => {});
+
+    chrome.runtime.sendMessage({
+      action: 'videoRecordingStateChanged',
+      statePayload,
+      state: statePayload
     }).catch(() => {});
   } catch (e) {}
 }
@@ -389,8 +397,8 @@ async function persistRecordingState() {
       saved = res?.fullshot_recording_state;
     }
 
-    if (saved && (saved.state === RECORDING_STATE.RECORDING || saved.state === RECORDING_STATE.PAUSED)) {
-      recordingState = saved.state;
+    if (saved && (saved.state === RECORDING_STATE.RECORDING || saved.state === RECORDING_STATE.PAUSED || saved.status === 'recording' || saved.status === 'paused')) {
+      recordingState = saved.state || (saved.status === 'recording' ? RECORDING_STATE.RECORDING : RECORDING_STATE.PAUSED);
       recordingStartTime = saved.startTime || Date.now();
       recordingElapsedSeconds = saved.elapsedSeconds || 0;
       activeRecordingId = saved.recordingId || null;
@@ -445,20 +453,29 @@ async function handleStartRecording(options = {}, senderTab = null) {
   const captureType = options.captureType || options.scope || 'tab';
   let streamId = options.streamId;
 
-  // 1. Resolve streamId for Tab Capture
+  // 1. Resolve target tab & streamId for Tab Capture
   if (!streamId && captureType === 'tab') {
+    let targetTab = senderTab;
     let targetTabId = options.tabId || senderTab?.id;
+
     if (!targetTabId) {
       const activeTabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
       if (activeTabs && activeTabs[0]) {
+        targetTab = activeTabs[0];
         targetTabId = activeTabs[0].id;
       }
     }
     if (!targetTabId) {
       const activeTabs = await chrome.tabs.query({ active: true });
       if (activeTabs && activeTabs[0]) {
+        targetTab = activeTabs[0];
         targetTabId = activeTabs[0].id;
       }
+    }
+
+    // Security check: Restricted pages cannot be recorded in tab capture mode
+    if (targetTab && isProtectedBrowserUrl(targetTab.url)) {
+      throw new Error('Chrome güvenlik politikası nedeniyle tarayıcı sistem sayfaları ve Chrome Web Mağazası sekme modunda kaydedilemez. Lütfen "Tüm Ekran" seçeneğini kullanın.');
     }
 
     if (targetTabId) {
@@ -727,6 +744,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (action === 'openPreview' || action === 'OPEN_IN_STUDIO' || action === 'ACTION_OPEN_STUDIO') {
     if (request.captureData) {
+      if (typeof FullShotDB !== 'undefined' && FullShotDB.saveCapture) {
+        FullShotDB.saveCapture('current_capture', request.captureData).catch((e) => console.warn('[Background] FullShotDB saveCapture uyarısı:', e));
+      }
       chrome.storage.local.set({ fullshot_current_capture: request.captureData }, () => {
         chrome.tabs.create({
           url: chrome.runtime.getURL(PREVIEW_IMAGE_PATH)
@@ -798,6 +818,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           type: 'visible'
         };
 
+        if (typeof FullShotDB !== 'undefined' && FullShotDB.saveCapture) {
+          await FullShotDB.saveCapture('current_capture', item).catch((e) => console.warn('[Background] FullShotDB capture kaydetme uyarısı:', e));
+        }
         await chrome.storage.local.set({ fullshot_current_capture: item });
         chrome.tabs.create({ url: chrome.runtime.getURL(PREVIEW_IMAGE_PATH) });
         sendResponse({ success: true });
@@ -905,7 +928,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  if (action === 'discardRecording' || action === 'DISCARD_RECORDING' || action === 'cancelRecording') {
+  if (
+    action === 'discardRecording' ||
+    action === 'DISCARD_RECORDING' ||
+    action === 'cancelRecording' ||
+    action === 'cancelVideoRecording'
+  ) {
     handleDiscardRecording()
       .then((res) => sendResponse(res))
       .catch((err) => sendResponse({ success: false, error: err.message }));
@@ -915,21 +943,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (
     action === 'getRecordingState' ||
     action === 'GET_RECORDING_STATE' ||
+    action === 'getVideoRecordingState' ||
     action === 'getRecordingStatus' ||
     action === 'GET_RECORDING_STATUS'
   ) {
-    sendResponse({
+    const isRec = recordingState === RECORDING_STATE.RECORDING;
+    const isPau = recordingState === RECORDING_STATE.PAUSED;
+    const payload = {
       success: true,
       active: recordingState !== RECORDING_STATE.IDLE,
       state: recordingState,
-      isRecording: recordingState === RECORDING_STATE.RECORDING,
-      isPaused: recordingState === RECORDING_STATE.PAUSED,
+      status: recordingState.toLowerCase(),
+      isRecording: isRec,
+      isPaused: isPau,
       duration: recordingElapsedSeconds * 1000,
       elapsedSeconds: recordingElapsedSeconds,
       startTime: recordingStartTime,
       recordingId: activeRecordingId,
       config: recordingConfig
-    });
+    };
+    sendResponse(payload);
     return true;
   }
 

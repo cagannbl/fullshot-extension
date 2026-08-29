@@ -221,14 +221,20 @@
     widgetElapsedTime = options.initialElapsedMs || 0;
     widgetIsPaused = !!options.isPaused;
 
+    const initialMargin = 24;
+    const estimatedWidth = 240;
+    const initLeft = Math.max(12, window.innerWidth - estimatedWidth - initialMargin);
+
     recordingWidgetHost = document.createElement('div');
     recordingWidgetHost.id = '__fullshot_recording_widget_host__';
     recordingWidgetHost.style.cssText = `
       all: initial !important;
       position: fixed !important;
       z-index: 2147483647 !important;
-      top: 24px !important;
-      right: 24px !important;
+      top: ${initialMargin}px !important;
+      left: ${initLeft}px !important;
+      right: auto !important;
+      bottom: auto !important;
       pointer-events: auto !important;
       user-select: none !important;
       -webkit-user-select: none !important;
@@ -239,19 +245,34 @@
     recordingWidgetShadow.innerHTML = `
       <style>
         :host {
-          all: initial;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+          all: initial !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+          font-size: 13px !important;
+          line-height: normal !important;
+          letter-spacing: normal !important;
+          text-align: left !important;
+          color: #FFFFE3 !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          direction: ltr !important;
         }
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+        *, *::before, *::after {
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-family: inherit !important;
+          scrollbar-width: none !important;
+        }
+        ::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
         .widget-card {
           display: inline-flex;
           align-items: center;
           gap: 10px;
-          background: rgba(44, 46, 51, 0.94);
+          background: rgba(74, 74, 74, 0.96);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border: 1px solid #545862;
@@ -265,6 +286,7 @@
           cursor: default;
           animation: widgetSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
+          max-width: calc(100vw - 24px);
         }
         .widget-card:hover {
           border-color: #6D8196;
@@ -579,9 +601,11 @@
    */
   async function hideForCapture() {
     if (recordingWidgetHost) {
-      recordingWidgetHost.style.display = 'none';
+      recordingWidgetHost.style.setProperty('display', 'none', 'important');
       void document.documentElement.offsetHeight;
-      if (document.body) void document.body.offsetHeight;
+      if (document.body) {
+        void document.body.offsetHeight;
+      }
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       await new Promise((r) => setTimeout(r, 50));
     }
@@ -592,7 +616,7 @@
    */
   function restoreAfterCapture() {
     if (recordingWidgetHost) {
-      recordingWidgetHost.style.display = 'block';
+      recordingWidgetHost.style.removeProperty('display');
     }
   }
 

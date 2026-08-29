@@ -23,6 +23,9 @@
   --text-primary: #FFFFE3;                /* Paletten Krem Fildişi Beyazı */
   --text-secondary: #CBCBCB;              /* Paletten Açık Gümüş Gri */
   --text-muted: #9da1aa;                  /* Pasif metinler */
+  --on-surface: #FFFFE3;                  /* Paletten Krem Metin */
+  --on-surface-variant: #CBCBCB;          /* Paletten Gümüş Gri Etiketler */
+  --on-primary: #FFFFE3;
   
   /* Vurgu Renkleri (#6D8196 Slate Blue) */
   --primary: #6D8196;                     /* Paletten Slate Blue */
@@ -878,6 +881,8 @@ html, body {
    ============================================================ */
 .studio-sidebar {
   width: 360px;
+  min-width: 360px;
+  max-width: 360px;
   background: var(--bg-app);
   border-left: 1px solid var(--border-subtle);
   display: flex;
@@ -885,8 +890,17 @@ html, body {
   gap: 16px;
   padding: 18px;
   overflow-y: auto;
+  overflow-x: hidden;
   flex-shrink: 0;
   z-index: 50;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.studio-sidebar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* Sidebar Cards */
@@ -1432,15 +1446,63 @@ html, body {
 
 .modal-body {
   padding: 20px;
-  max-height: 420px;
+  max-height: 80vh;
   overflow-y: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.modal-body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.shortcuts-modal-card {
+  width: 720px;
+  max-width: 95vw;
+  max-height: 90vh;
+}
+
+.shortcuts-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.shortcuts-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--primary);
+  padding: 2px 4px;
+}
+
+.category-header svg {
+  flex-shrink: 0;
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .shortcuts-grid,
 .shortcut-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .shortcut-item {
@@ -1451,6 +1513,12 @@ html, body {
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.shortcut-item:hover {
+  border-color: var(--border-medium);
+  background: var(--bg-surface-hover);
 }
 
 .sc-desc {
@@ -1463,6 +1531,12 @@ html, body {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+@media (max-width: 680px) {
+  .shortcuts-columns {
+    grid-template-columns: 1fr;
+  }
 }
 
 kbd {

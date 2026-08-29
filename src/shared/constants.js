@@ -20,6 +20,7 @@ const ACTIONS = {
   OPEN_IN_STUDIO: 'OPEN_IN_STUDIO',
   ACTION_OPEN_STUDIO: 'ACTION_OPEN_STUDIO',
   OPEN_VIDEO_STUDIO: 'openVideoPreview',
+  OPEN_VIDEO_PREVIEW: 'OPEN_VIDEO_PREVIEW',
   DOWNLOAD_IMAGE: 'downloadImage',
   DIRECT_DOWNLOAD: 'DIRECT_DOWNLOAD',
   ACTION_QUICK_DOWNLOAD: 'ACTION_QUICK_DOWNLOAD',
@@ -29,11 +30,42 @@ const ACTIONS = {
   
   // Video Recording Actions
   START_RECORDING: 'START_RECORDING',
+  START_VIDEO_RECORDING: 'startVideoRecording',
+  START_TAB_RECORDING: 'startTabRecording',
+  START_SCREEN_RECORDING: 'startScreenRecording',
   STOP_RECORDING: 'STOP_RECORDING',
+  STOP_VIDEO_RECORDING: 'stopVideoRecording',
   PAUSE_RECORDING: 'PAUSE_RECORDING',
+  PAUSE_VIDEO_RECORDING: 'pauseVideoRecording',
   RESUME_RECORDING: 'RESUME_RECORDING',
+  RESUME_VIDEO_RECORDING: 'resumeVideoRecording',
   DISCARD_RECORDING: 'DISCARD_RECORDING',
+  CANCEL_RECORDING: 'cancelRecording',
+  CANCEL_VIDEO_RECORDING: 'cancelVideoRecording',
   GET_RECORDING_STATE: 'GET_RECORDING_STATE',
+  GET_VIDEO_RECORDING_STATE: 'getVideoRecordingState',
+  RECORDING_STATE_CHANGED: 'RECORDING_STATE_CHANGED',
+  VIDEO_RECORDING_STATE_CHANGED: 'videoRecordingStateChanged',
+  RECORDING_COMPLETED: 'RECORDING_COMPLETED',
+  RECORDING_PAUSED: 'RECORDING_PAUSED',
+  RECORDING_RESUMED: 'RECORDING_RESUMED',
+  RECORDING_ERROR: 'RECORDING_ERROR',
+
+  // In-Page HUD & Widget Actions
+  SHOW_HUD_TOAST: 'showHUDToast',
+  HIDE_HUD_TOAST: 'hideHUDToast',
+  SHOW_RECORDING_WIDGET: 'showRecordingWidget',
+  HIDE_RECORDING_WIDGET: 'hideRecordingWidget',
+  PAUSE_RECORDING_WIDGET: 'pauseRecordingWidget',
+  RESUME_RECORDING_WIDGET: 'resumeRecordingWidget',
+  START_COUNTDOWN: 'startCountdown',
+  CANCEL_COUNTDOWN: 'cancelCountdown',
+  
+  // Service Worker Keep-Alive & Heartbeat
+  HEARTBEAT: 'heartbeat',
+  HEARTBEAT_ACK: 'heartbeat-ack',
+  PING: 'ping',
+  PONG: 'pong',
   
   // Offscreen Lifecycle
   OFFSCREEN_READY: 'OFFSCREEN_READY',
@@ -43,7 +75,30 @@ const ACTIONS = {
 };
 
 // ==========================================
-// 2. Storage Keys (chrome.storage & IndexedDB)
+// 2. Port Channel Identifiers (Keep-Alive)
+// ==========================================
+const PORTS = {
+  KEEPALIVE_RECORDING: 'keepAlive-recording',
+  KEEPALIVE: 'keepAlive',
+  OFFSCREEN: 'offscreen',
+  RECORDING: 'recording'
+};
+
+// ==========================================
+// 3. Security & Protected URLs
+// ==========================================
+const PROTECTED_URL_PREFIXES = [
+  'chrome://',
+  'chrome-extension://',
+  'edge://',
+  'about:',
+  'view-source:',
+  'chrome.google.com/webstore',
+  'chromewebstore.google.com'
+];
+
+// ==========================================
+// 4. Storage Keys (chrome.storage & IndexedDB)
 // ==========================================
 const STORAGE_KEYS = {
   SETTINGS: 'fullshot_settings',
@@ -56,7 +111,7 @@ const STORAGE_KEYS = {
 };
 
 // ==========================================
-// 3. Recording States
+// 5. Recording States
 // ==========================================
 const RECORDING_STATE = {
   IDLE: 'IDLE',
@@ -65,7 +120,7 @@ const RECORDING_STATE = {
 };
 
 // ==========================================
-// 4. Default Settings & Thresholds
+// 6. Default Settings & Thresholds
 // ==========================================
 const DEFAULTS = {
   FORMAT: 'png',           // 'png' | 'jpeg'
@@ -78,7 +133,7 @@ const DEFAULTS = {
 };
 
 // ==========================================
-// 5. Design System Tokens (4-Color Palette)
+// 7. Design System Tokens (4-Color Palette)
 // ==========================================
 const THEME_TOKENS = {
   BG_CARD: '#4A4A4A',       // Koyu Kömür / Antrasit Kart Zemini
@@ -91,6 +146,8 @@ const THEME_TOKENS = {
 
 const FullShotConstants = {
   ACTIONS,
+  PORTS,
+  PROTECTED_URL_PREFIXES,
   STORAGE_KEYS,
   RECORDING_STATE,
   DEFAULTS,
@@ -102,6 +159,8 @@ const FullShotConstants = {
 // ==========================================
 if (typeof window !== 'undefined') {
   window.ACTIONS = ACTIONS;
+  window.PORTS = PORTS;
+  window.PROTECTED_URL_PREFIXES = PROTECTED_URL_PREFIXES;
   window.STORAGE_KEYS = STORAGE_KEYS;
   window.RECORDING_STATE = RECORDING_STATE;
   window.DEFAULTS = DEFAULTS;
@@ -111,6 +170,8 @@ if (typeof window !== 'undefined') {
 
 if (typeof self !== 'undefined') {
   self.ACTIONS = ACTIONS;
+  self.PORTS = PORTS;
+  self.PROTECTED_URL_PREFIXES = PROTECTED_URL_PREFIXES;
   self.STORAGE_KEYS = STORAGE_KEYS;
   self.RECORDING_STATE = RECORDING_STATE;
   self.DEFAULTS = DEFAULTS;
@@ -120,6 +181,8 @@ if (typeof self !== 'undefined') {
 
 if (typeof globalThis !== 'undefined') {
   globalThis.ACTIONS = ACTIONS;
+  globalThis.PORTS = PORTS;
+  globalThis.PROTECTED_URL_PREFIXES = PROTECTED_URL_PREFIXES;
   globalThis.STORAGE_KEYS = STORAGE_KEYS;
   globalThis.RECORDING_STATE = RECORDING_STATE;
   globalThis.DEFAULTS = DEFAULTS;
@@ -130,6 +193,8 @@ if (typeof globalThis !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     ACTIONS,
+    PORTS,
+    PROTECTED_URL_PREFIXES,
     STORAGE_KEYS,
     RECORDING_STATE,
     DEFAULTS,

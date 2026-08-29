@@ -109,13 +109,28 @@
     shadow.innerHTML = `
       <style>
         :host {
-          all: initial;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          all: initial !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+          font-size: 13px !important;
+          line-height: normal !important;
+          letter-spacing: normal !important;
+          text-align: left !important;
+          color: #FFFFE3 !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+          direction: ltr !important;
         }
-        * {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+        *, *::before, *::after {
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          font-family: inherit !important;
+          scrollbar-width: none !important;
+        }
+        ::-webkit-scrollbar {
+          display: none !important;
+          width: 0 !important;
+          height: 0 !important;
         }
         .selection-overlay {
           position: fixed;
@@ -149,13 +164,14 @@
           box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
           z-index: 10;
           font-weight: 600;
+          white-space: nowrap;
         }
         .banner {
           position: absolute;
           top: 20px;
           left: 50%;
           transform: translateX(-50%);
-          background: #2c2e33;
+          background: #4A4A4A;
           border: 1px solid #545862;
           color: #FFFFE3;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -170,6 +186,8 @@
           gap: 8px;
           z-index: 10;
           animation: bannerIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          max-width: calc(100vw - 32px);
+          white-space: nowrap;
         }
         @keyframes bannerIn {
           from { transform: translate(-50%, -15px); opacity: 0; }
@@ -180,7 +198,7 @@
           display: none;
           align-items: center;
           gap: 6px;
-          background: #2b2e33;
+          background: #4A4A4A;
           border: 1px solid #545862;
           border-radius: 12px;
           padding: 6px 8px;
@@ -189,6 +207,9 @@
           animation: qbPop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
           cursor: default;
           pointer-events: auto;
+          user-select: none;
+          -webkit-user-select: none;
+          max-width: calc(100vw - 24px);
         }
         @keyframes qbPop {
           from { transform: scale(0.92); opacity: 0; }
@@ -197,6 +218,7 @@
         .qb-btn {
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 6px;
           background: #373a40;
           color: #FFFFE3;
@@ -210,6 +232,7 @@
           transition: all 0.15s ease;
           white-space: nowrap;
           outline: none;
+          line-height: 1;
         }
         .qb-btn:hover {
           background: #6D8196;
@@ -223,9 +246,11 @@
         .qb-btn.qb-studio {
           background: #6D8196;
           border-color: #6D8196;
+          color: #FFFFE3;
         }
         .qb-btn.qb-studio:hover {
           background: #8096ac;
+          border-color: #8096ac;
         }
         .qb-btn.qb-cancel {
           padding: 7px 9px;
@@ -238,6 +263,8 @@
         }
         .qb-btn svg {
           display: block;
+          flex-shrink: 0;
+          pointer-events: none;
         }
       </style>
       <div class="selection-overlay" id="overlay">
@@ -289,7 +316,12 @@
       if (!canvas || !ctx) return;
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
-      drawMask(0, 0, 0, 0);
+      if (hasSelectedArea) {
+        drawMask(selectedBounds.x, selectedBounds.y, selectedBounds.w, selectedBounds.h);
+        positionQuickBar(selectedBounds.x, selectedBounds.y, selectedBounds.w, selectedBounds.h);
+      } else {
+        drawMask(0, 0, 0, 0);
+      }
     };
 
     let isSelecting = false;
@@ -310,6 +342,30 @@
         ctx.lineWidth = 2 * dpr;
         ctx.strokeRect(x * dpr, y * dpr, w * dpr, h * dpr);
       }
+    }
+
+    function positionQuickBar(x, y, w, h) {
+      if (!quickBar) return;
+      const barWidth = 340;
+      const barHeight = 44;
+      const margin = 12;
+
+      let barLeft = x + w - barWidth;
+      if (w < barWidth) {
+        barLeft = x + (w / 2) - (barWidth / 2);
+      }
+      const maxLeft = Math.max(margin, window.innerWidth - barWidth - margin);
+      barLeft = Math.max(margin, Math.min(barLeft, maxLeft));
+
+      let barTop = y + h + 10;
+      if (barTop + barHeight > window.innerHeight - margin) {
+        barTop = y - barHeight - 10;
+      }
+      const maxTop = Math.max(margin, window.innerHeight - barHeight - margin);
+      barTop = Math.max(margin, Math.min(barTop, maxTop));
+
+      quickBar.style.left = `${Math.round(barLeft)}px`;
+      quickBar.style.top = `${Math.round(barTop)}px`;
     }
 
     updateCanvasSize();
@@ -371,8 +427,13 @@
 
       if (badge) {
         badge.textContent = `${Math.round(w * dpr)} × ${Math.round(h * dpr)} px`;
-        badge.style.left = `${Math.min(window.innerWidth - 110, x + w + 10)}px`;
-        badge.style.top = `${Math.min(window.innerHeight - 34, y + h + 10)}px`;
+        const badgeWidth = 110;
+        const badgeHeight = 28;
+        const margin = 12;
+        const bLeft = Math.max(margin, Math.min(x + w + 10, window.innerWidth - badgeWidth - margin));
+        const bTop = Math.max(margin, Math.min(y + h + 10, window.innerHeight - badgeHeight - margin));
+        badge.style.left = `${Math.round(bLeft)}px`;
+        badge.style.top = `${Math.round(bTop)}px`;
       }
     };
 
@@ -398,20 +459,7 @@
       if (quickBar) {
         quickBar.style.display = 'inline-flex';
         if (banner) banner.style.display = 'none';
-
-        // Calculate layout clamping
-        const barWidth = 340;
-        const barHeight = 44;
-
-        let barLeft = Math.min(window.innerWidth - barWidth - 16, Math.max(16, x + w - barWidth));
-        let barTop = y + h + 10;
-
-        if (barTop + barHeight > window.innerHeight - 16) {
-          barTop = Math.max(16, y - barHeight - 10);
-        }
-
-        quickBar.style.left = `${barLeft}px`;
-        quickBar.style.top = `${barTop}px`;
+        positionQuickBar(x, y, w, h);
       }
     };
 
@@ -467,8 +515,9 @@
           cropCanvas.height = sh;
           const cropCtx = cropCanvas.getContext('2d', { alpha: true });
 
-          // Disable interpolation filter for 1:1 crisp pixel-perfect slice copy
-          cropCtx.imageSmoothingEnabled = false;
+          // High-precision anti-aliased bicubic sampling for smooth curved edges and text
+          cropCtx.imageSmoothingEnabled = true;
+          cropCtx.imageSmoothingQuality = 'high';
 
           if (format === 'jpeg') {
             cropCtx.fillStyle = '#ffffff';
@@ -633,12 +682,38 @@
     return currentHost;
   }
 
+  /**
+   * Hides the selector overlay with complete ghosting protection before screenshot capture.
+   */
+  async function hideForCapture() {
+    if (currentHost) {
+      currentHost.style.setProperty('display', 'none', 'important');
+      void document.documentElement.offsetHeight;
+      if (document.body) {
+        void document.body.offsetHeight;
+      }
+      await waitForDoubleRAF();
+      await sleep(50);
+    }
+  }
+
+  /**
+   * Restores visibility after screenshot capture.
+   */
+  function restoreAfterCapture() {
+    if (currentHost) {
+      currentHost.style.removeProperty('display');
+    }
+  }
+
   // Export module to FullShotHUD namespace
   window.FullShotHUD.areaSelector = {
     start,
     cancel: cleanup,
     cleanup,
     isActive,
-    getHost
+    getHost,
+    hideForCapture,
+    restoreAfterCapture
   };
 })();

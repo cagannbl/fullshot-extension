@@ -423,6 +423,8 @@ html, body {
   font-weight: 600;
   border: 1px solid var(--border-variant);
   letter-spacing: 0.1px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .chevron-icon {
@@ -996,7 +998,7 @@ html, body {
 .settings-panel {
   background-color: var(--bg-container-high);
   border: 1px solid var(--border-variant);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -1059,3 +1061,167 @@ html, body {
   height: 13px;
   cursor: pointer;
 }
+
+/* ============================================================
+   7. ACCESSIBILITY (A11Y), FOCUS RINGS & KEYBOARD BADGES
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(109, 129, 150, 0.35) !important;
+}
+
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible) {
+  outline: none;
+}
+
+kbd, .shortcut-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface);
+  color: var(--on-surface);
+  border: 1px solid var(--border-outline);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  line-height: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* ============================================================
+   8. POPUP KEYBOARD SHORTCUTS MODAL & BACKDROP
+   ============================================================ */
+.modal-backdrop.shortcuts-modal {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(18, 20, 24, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  animation: modalFadeIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.popup-shortcuts-card {
+  width: 100%;
+  max-width: 340px;
+  background-color: var(--bg-container);
+  border: 1px solid var(--border-outline);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), inset 0 0 12px rgba(109, 129, 150, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.popup-shortcuts-card .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-variant);
+}
+
+.modal-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--on-surface);
+}
+
+.modal-title-wrap svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.popup-shortcuts-card .modal-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--on-surface);
+  letter-spacing: 0.02em;
+}
+
+.popup-shortcuts-card .modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--on-surface-variant);
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  transition: all 0.12s ease;
+}
+
+.popup-shortcuts-card .modal-close-btn:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.popup-shortcuts-body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.shortcuts-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sc-group-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+  margin-bottom: 2px;
+}
+
+.sc-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-variant);
+}
+
+.sc-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-surface);
+}
+

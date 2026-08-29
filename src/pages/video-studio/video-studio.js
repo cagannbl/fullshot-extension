@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ============================================================
-  // WEBM DURATION METADATA PATCHER
+  // WEBM DURATION METADATA PATCHER (Fixes Chrome "Infinity" Duration Bug)
   // ============================================================
   async function fixWebmDuration(webmBlob, durationMs) {
     if (!webmBlob || durationMs <= 0) return webmBlob;
@@ -209,6 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dataView = new DataView(buffer);
       const uint8 = new Uint8Array(buffer);
 
+      // Helper to read variable-size integer (EBML VINT) with full 64-bit safety
       function readVint(offset) {
         if (offset >= uint8.length) return null;
         const firstByte = uint8[offset];
@@ -222,13 +223,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (length === 0 || offset + length > uint8.length) return null;
         let val = firstByte & (0xff >> length);
         for (let i = 1; i < length; i++) {
-          val = (val << 8) | uint8[offset + i];
+          val = (val * 256) + uint8[offset + i];
         }
         return { length, value: val };
       }
 
+      // Helper to encode variable-size integer with minimum byte length
+      function encodeVint(val, length) {
+        const bytes = new Uint8Array(length);
+        const mask = (1 << (8 - length)) - 1;
+        const firstBytePrefix = 1 << (8 - length);
+        bytes[0] = firstBytePrefix | (Math.floor(val / Math.pow(256, length - 1)) & mask);
+        for (let i = 1; i < length; i++) {
+          bytes[i] = Math.floor(val / Math.pow(256, length - 1 - i)) & 0xff;
+        }
+        return bytes;
+      }
+
+      // Search for Info Element: 0x15, 0x49, 0xA9, 0x66
       let infoPos = -1;
-      for (let i = 0; i < Math.min(uint8.length - 4, 4096); i++) {
+      for (let i = 0; i < Math.min(uint8.length - 4, 8192); i++) {
         if (uint8[i] === 0x15 && uint8[i + 1] === 0x49 && uint8[i + 2] === 0xA9 && uint8[i + 3] === 0x66) {
           infoPos = i;
           break;
@@ -241,11 +255,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!infoVint) return webmBlob;
 
       const infoContentStart = infoPos + 4 + infoVint.length;
-      const infoContentEnd = infoVint.value <= 0 || infoVint.value > 1000000
+      const infoContentEnd = (infoVint.value <= 0 || infoVint.value > 1000000)
         ? infoContentStart + 1024
         : Math.min(uint8.length, infoContentStart + infoVint.value);
 
-      let timecodeScale = 1000000;
+      let timecodeScale = 1000000; // default 1,000,000 ns = 1ms
       let durationPos = -1;
       let durationLen = 0;
 
@@ -256,7 +270,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (v && cur + 3 + v.length + v.value <= uint8.length) {
             let tc = 0;
             for (let j = 0; j < v.value; j++) {
-              tc = (tc << 8) | uint8[cur + 3 + v.length + j];
+              tc = (tc * 256) + uint8[cur + 3 + v.length + j];
             }
             if (tc > 0) timecodeScale = tc;
             cur += 3 + v.length + v.value;
@@ -294,14 +308,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       new DataView(durationHeader.buffer).setFloat64(3, durationInScale, false);
 
       const insertPos = infoContentStart;
+      const newInfoSize = infoVint.value + 11;
+      const newVintBytes = encodeVint(newInfoSize, infoVint.length);
+
       const newBuf = new Uint8Array(buffer.byteLength + 11);
-      newBuf.set(uint8.subarray(0, insertPos), 0);
+      newBuf.set(uint8.subarray(0, infoPos + 4), 0);
+      newBuf.set(newVintBytes, infoPos + 4);
       newBuf.set(durationHeader, insertPos);
       newBuf.set(uint8.subarray(insertPos), insertPos + 11);
-
-      if (infoVint.value > 0 && infoVint.length === 1 && (infoVint.value + 11) < 128) {
-        newBuf[infoPos + 4] = 0x80 | (infoVint.value + 11);
-      }
 
       return new Blob([newBuf.buffer], { type: webmBlob.type });
     } catch (err) {
@@ -1251,23 +1265,39 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (exportWebmBtn) exportWebmBtn.addEventListener('click', downloadWebM);
   if (topDownloadWebmBtn) topDownloadWebmBtn.addEventListener('click', downloadWebM);
 
-  // 2. Download MP4 (Universal container export)
+  // 2. Download MP4 (Universal container export & transcoding)
   async function downloadMP4() {
-    const finalFilename = getComputedFilename('mp4');
     const totalDur = isFinite(mainVideo.duration) && mainVideo.duration > 0 ? mainVideo.duration : trimOut;
     const hasTrim = isTrimModeActive && (trimIn > 0.05 || (totalDur > 0 && trimOut < (totalDur - 0.05)));
+    const isMp4EncoderSupported = (typeof MediaRecorder !== 'undefined') &&
+      (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2') || MediaRecorder.isTypeSupported('video/mp4'));
 
     try {
-      if (hasTrim) {
-        const trimmedBlob = await transcodeTrimmedVideo('mp4');
-        triggerFileDownload(trimmedBlob, finalFilename);
-      } else if (videoBlob) {
-        const mp4Blob = new Blob([videoBlob], { type: 'video/mp4' });
+      if (videoBlob && videoBlob.type && videoBlob.type.includes('mp4') && !hasTrim) {
+        const finalFilename = getComputedFilename('mp4');
+        triggerFileDownload(videoBlob, finalFilename);
+        return;
+      }
+
+      if (isMp4EncoderSupported) {
+        const finalFilename = getComputedFilename('mp4');
+        const mp4Blob = await transcodeTrimmedVideo('mp4');
         triggerFileDownload(mp4Blob, finalFilename);
-      } else if (activeVideoUrl) {
-        triggerFileDownload(activeVideoUrl, finalFilename);
       } else {
-        showToast('Hata', 'İndirilecek video verisi bulunamadı.', 'error');
+        // Fallback for browsers lacking native MP4 MediaRecorder encoder
+        const finalFilename = getComputedFilename(hasTrim ? 'webm' : (videoBlob?.type?.includes('webm') ? 'webm' : 'mp4'));
+        if (hasTrim) {
+          showToast('MP4 Uyarısı', 'Tarayıcınız MP4 kodlamayı desteklemediğinden kayıpsız WebM olarak dışa aktarılıyor.', 'info');
+          const webmBlob = await transcodeTrimmedVideo('webm');
+          triggerFileDownload(webmBlob, finalFilename);
+        } else if (videoBlob) {
+          showToast('Kayıpsız İndirme', 'Orijinal yüksek kaliteli video dosyası indiriliyor.', 'info');
+          triggerFileDownload(videoBlob, finalFilename);
+        } else if (activeVideoUrl) {
+          triggerFileDownload(activeVideoUrl, finalFilename);
+        } else {
+          showToast('Hata', 'İndirilecek video verisi bulunamadı.', 'error');
+        }
       }
     } catch (err) {
       console.error('MP4 export error:', err);
@@ -1315,8 +1345,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const canvas = captureCurrentFrameCanvas();
       const currentSec = Math.floor(mainVideo.currentTime || 0);
       const dataUrl = canvas.toDataURL('image/png', 1.0);
+      const captureId = `snap_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
       const captureItem = {
+        id: captureId,
         dataUrl,
         title: `${videoData?.title || 'Video'}_kare_${currentSec}s`,
         url: videoData?.url || window.location.href,
@@ -1327,15 +1359,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         type: 'snapshot'
       };
 
-      await chrome.storage.local.set({ fullshot_current_capture: captureItem });
+      // 1. Write to chrome.storage.local for fast retrieval
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        await chrome.storage.local.set({ fullshot_current_capture: captureItem });
+      }
 
+      // 2. Persist to FullShotDB with unique ID and fallback key
       if (typeof FullShotDB !== 'undefined' && FullShotDB.saveCapture) {
         await FullShotDB.saveCapture(captureItem);
+        await FullShotDB.saveCapture({ ...captureItem, id: 'current_capture' });
       }
 
       showToast('Görsel Stüdyosu Açılıyor', 'Kare çizim ve işaretleme stüdyosuna aktarıldı.', 'success');
 
-      const studioUrl = chrome.runtime.getURL('src/pages/image-studio/image-studio.html');
+      const studioUrl = chrome.runtime.getURL(`src/pages/image-studio/image-studio.html?id=${encodeURIComponent(captureId)}`);
       window.open(studioUrl, '_blank');
     } catch (err) {
       console.error('Snapshot stüdyo açma hatası:', err);
