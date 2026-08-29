@@ -78,6 +78,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const magZoomButtons = document.querySelectorAll('.mag-zoom-btn');
   const stampTabs = document.querySelectorAll('.stamp-tab');
   const stampSelectorGrid = document.getElementById('stampSelectorGrid');
+  const stampScaleRange = document.getElementById('stampScaleRange');
+  const stampScaleBadge = document.getElementById('stampScaleBadge');
+  const stampScalePills = document.querySelectorAll('.stamp-scale-pill');
   const calloutStyleButtons = document.querySelectorAll('.callout-style-btn');
   const stepBadgePreview = document.getElementById('stepBadgePreview');
   const stepResetBtn = document.getElementById('stepResetBtn');
@@ -176,6 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeMagnifierZoom = 2.0;
   let activeStampId = 'approved';
   let activeStampCategory = 'qa';
+  let activeStampScale = 1.0;
   let stepCounter = 1;
 
   // Interactive Drawing State
@@ -667,6 +671,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   });
 
+  // Stamp Size / Scale Slider & Presets
+  function updateStampScale(scale, updateSlider = true) {
+    activeStampScale = Math.max(0.4, Math.min(3.0, parseFloat(scale)));
+    if (stampScaleBadge) {
+      stampScaleBadge.textContent = `${activeStampScale.toFixed(1)}x (${Math.round(activeStampScale * 100)}%)`;
+    }
+    if (updateSlider && stampScaleRange) {
+      stampScaleRange.value = activeStampScale.toString();
+    }
+    if (stampScalePills) {
+      stampScalePills.forEach(pill => {
+        const isMatch = Math.abs(parseFloat(pill.dataset.scale) - activeStampScale) < 0.05;
+        pill.classList.toggle('active', isMatch);
+        pill.setAttribute('aria-checked', isMatch ? 'true' : 'false');
+      });
+    }
+    if (activeTool === 'stamp') {
+      renderer.clearOverlay();
+    }
+  }
+
+  if (stampScaleRange) {
+    stampScaleRange.addEventListener('input', () => {
+      updateStampScale(stampScaleRange.value, false);
+    });
+  }
+
+  if (stampScalePills) {
+    stampScalePills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        updateStampScale(pill.dataset.scale, true);
+      });
+    });
+  }
+
   // Pen Type Selection
   penTypeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -806,13 +845,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         x: coords.x,
         y: coords.y,
         stampId: activeStampId,
-        scale: 1.0
+        scale: activeStampScale
       });
 
-      // Immediately refresh live hover preview at current position
+      // Immediately refresh live hover preview at current position with dynamic scale
       if (Stamp && Stamp.drawStampPreview) {
         renderer.clearOverlay();
-        Stamp.drawStampPreview(renderer.overlayCtx, coords.x, coords.y, activeStampId, 1.0);
+        Stamp.drawStampPreview(renderer.overlayCtx, coords.x, coords.y, activeStampId, activeStampScale);
       }
       return;
     }
@@ -843,7 +882,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (activeTool === 'stamp' && Stamp && Stamp.drawStampPreview) {
       renderer.clearOverlay();
-      Stamp.drawStampPreview(renderer.overlayCtx, coords.x, coords.y, activeStampId, 1.0);
+      Stamp.drawStampPreview(renderer.overlayCtx, coords.x, coords.y, activeStampId, activeStampScale);
     } else if (activeTool === 'step') {
       renderer.clearOverlay();
       const badgeRadius = Math.max(14, Math.min(26, Math.round(activeStrokeWidth * 3.5)));

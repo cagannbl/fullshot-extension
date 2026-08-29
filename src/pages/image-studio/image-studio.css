@@ -1120,6 +1120,118 @@ html, body {
   transform: translateY(0);
 }
 
+/* YouTube-Style Scrubber Slider for Stamp Scale */
+.stamp-size-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.stamp-size-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stamp-scale-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #FFFFE3;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.yt-scrubber-container {
+  position: relative;
+  width: 100%;
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+}
+
+.yt-scrubber-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+  cursor: pointer;
+  transition: height 0.15s ease, background 0.15s ease;
+}
+
+.yt-scrubber-range:hover {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.yt-scrubber-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #FFFFE3;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.12s ease;
+}
+
+.yt-scrubber-range:hover::-webkit-slider-thumb,
+.yt-scrubber-range:active::-webkit-slider-thumb {
+  transform: scale(1.25);
+  background: #ff3366;
+  border-color: #ffffff;
+  cursor: grabbing;
+}
+
+.yt-scrubber-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #FFFFE3;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  cursor: grab;
+}
+
+.stamp-scale-pills {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.stamp-scale-pill {
+  flex: 1;
+  padding: 4px 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: center;
+}
+
+.stamp-scale-pill:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.stamp-scale-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFE3;
+}
+
 .stroke-dot {
   border-radius: 50%;
   background-color: var(--text-secondary);

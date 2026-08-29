@@ -533,6 +533,23 @@
             <button class="stamp-item-btn" data-stamp="critical" title="ÖNEMLİ (Critical)">! ÖNEMLİ</button>
             <button class="stamp-item-btn" data-stamp="rejected" title="REDDEDİLDİ (Rejected)">✕ RET</button>
           </div>
+
+          <!-- YouTube-Style Interactive Scrubber Bar for Stamp Size -->
+          <div class="stamp-size-slider-wrap" style="margin-top: 10px;">
+            <div class="stamp-size-header">
+              <span class="option-card-label" style="font-size: 11px; margin-bottom: 0;">Boyut / Ölçek:</span>
+              <span class="stamp-scale-badge" id="stampScaleBadge">1.0x (100%)</span>
+            </div>
+            <div class="yt-scrubber-container">
+              <input type="range" class="yt-scrubber-range" id="stampScaleRange" min="0.4" max="2.5" step="0.05" value="1.0" aria-label="Damga Boyutu Kaydırıcısı">
+            </div>
+            <div class="stamp-scale-pills" role="radiogroup" aria-label="Hızlı Boyut Seçenekleri">
+              <button type="button" class="stamp-scale-pill" data-scale="0.6">0.6x</button>
+              <button type="button" class="stamp-scale-pill active" data-scale="1.0">1.0x</button>
+              <button type="button" class="stamp-scale-pill" data-scale="1.5">1.5x</button>
+              <button type="button" class="stamp-scale-pill" data-scale="2.0">2.0x</button>
+            </div>
+          </div>
         </div>
 
         <!-- Step Counter -->
