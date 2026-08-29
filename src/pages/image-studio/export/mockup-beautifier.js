@@ -605,7 +605,8 @@ function renderDeviceFrame(sourceCanvas, config = {}) {
 
 /**
  * 3D Isometric & Perspective Projection Renderer.
- * Slices the 2D framed graphic into sub-pixel strips and projects with dual-layer shadows.
+ * Uses true affine transformation matrix for ultra-sharp, seamless rasterization
+ * with dynamic perspective lighting and accurate projected drop shadows.
  * 
  * @param {CanvasRenderingContext2D} targetCtx - Destination 2D context
  * @param {HTMLCanvasElement} frameCanvas - Pre-rendered framed graphic
@@ -631,94 +632,65 @@ function draw3DTiltedFrame(targetCtx, frameCanvas, options = {}) {
   targetCtx.save();
   targetCtx.translate(centerX, centerY);
 
-  // ----------------------------------------------------
-  // 1. Dual-Layer 3D Dynamic Shadow System
-  // ----------------------------------------------------
+  // 1. Calculate 3D Matrix Transform factors (Pitch & Yaw)
+  const cosY = Math.cos(radY);
+  const sinY = Math.sin(radY);
+  const cosX = Math.cos(radX);
+  const sinX = Math.sin(radX);
+
+  const scaleX = cosY * (1 - Math.abs(sinX) * 0.12);
+  const scaleY = cosX * (1 - Math.abs(sinY) * 0.12);
+  const skewX = -sinY * 0.42;
+  const skewY = sinX * 0.42;
+
+  // 2. Render Matching 3D Projected Drop Shadow
   if (shadow !== 'none') {
     targetCtx.save();
+    targetCtx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
 
-    // Shadow offset vectors based on 3D rotation angles
-    const shadowOffX = -Math.sin(radY) * 60;
-    const shadowOffY = 28 + Math.sin(radX) * 45 + Math.abs(Math.sin(radY)) * 20;
+    const shadowAlpha = shadow === 'deep' ? 0.44 : 0.25;
+    const shadowBlur = shadow === 'deep' ? 44 : 22;
+    const shadowOffX = -sinY * 32;
+    const shadowOffY = 26 + Math.abs(sinX) * 28;
 
-    // A. Ambient Soft Environment Shadow
-    const ambientBlur = shadow === 'deep' ? 75 : 35;
-    const ambientAlpha = shadow === 'deep' ? 0.38 : 0.22;
-    targetCtx.shadowColor = `rgba(0, 0, 0, ${ambientAlpha})`;
-    targetCtx.shadowBlur = ambientBlur;
-    targetCtx.shadowOffsetX = shadowOffX * 0.8;
-    targetCtx.shadowOffsetY = shadowOffY * 1.1;
+    targetCtx.shadowColor = `rgba(0, 0, 0, ${shadowAlpha})`;
+    targetCtx.shadowBlur = shadowBlur;
+    targetCtx.shadowOffsetX = shadowOffX;
+    targetCtx.shadowOffsetY = shadowOffY;
 
-    targetCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-    drawRoundedRectPath(targetCtx, -fw / 2, -fh / 2, fw, fh, 16);
-    targetCtx.fill();
-
-    // B. Sharp Contact Shadow (Grounding)
-    const contactBlur = shadow === 'deep' ? 22 : 12;
-    const contactAlpha = shadow === 'deep' ? 0.48 : 0.28;
-    targetCtx.shadowColor = `rgba(0, 0, 0, ${contactAlpha})`;
-    targetCtx.shadowBlur = contactBlur;
-    targetCtx.shadowOffsetX = shadowOffX * 0.3;
-    targetCtx.shadowOffsetY = shadowOffY * 0.45;
-
-    drawRoundedRectPath(targetCtx, -fw / 2, -fh / 2, fw, fh, 16);
-    targetCtx.fill();
-
-    targetCtx.restore();
-  }
-
-  // ----------------------------------------------------
-  // 2. High-Fidelity 3D Perspective Slice Projection
-  // ----------------------------------------------------
-  if (Math.abs(tiltX) < 0.1 && Math.abs(tiltY) < 0.1) {
-    // Zero Tilt: Direct 1:1 Clean Render
+    // Single pass shadow projection matching exact device frame shape
     targetCtx.drawImage(frameCanvas, -fw / 2, -fh / 2, fw, fh);
-  } else {
-    // 3D Slicing: Divides canvas into vertical slices to simulate horizontal perspective (Yaw)
-    // and adjusts vertical compression (Pitch).
-    const slices = 120;
-    const sliceWidth = fw / slices;
-    const perspective = 900;
-
-    targetCtx.save();
-    targetCtx.imageSmoothingEnabled = true;
-    targetCtx.imageSmoothingQuality = 'high';
-
-    for (let i = 0; i < slices; i++) {
-      const srcX = i * sliceWidth;
-      const normalizedX = (i / slices) - 0.5; // -0.5 to +0.5
-
-      // 3D Depth calculation for this slice
-      const z = -Math.sin(radY) * (normalizedX * fw);
-      const scaleZ = perspective / (perspective - z);
-
-      // Pitch compression
-      const sliceH = fh * Math.cos(radX) * scaleZ;
-      const destX = (normalizedX * fw * Math.cos(radY)) * scaleZ;
-      const destY = (-sliceH / 2) + (Math.sin(radX) * (normalizedX * fw * 0.15));
-
-      const destW = (sliceWidth * Math.cos(radY) * scaleZ) + 0.6; // 0.6px overdraw to prevent gap artifacts
-
-      targetCtx.drawImage(
-        frameCanvas,
-        srcX, 0, sliceWidth, fh,
-        destX, destY, destW, sliceH
-      );
-    }
-
-    // Specular Highlight Overlay (Simulates 3D Studio Light Reflection)
-    const lightGrad = targetCtx.createLinearGradient(-fw / 2, -fh / 2, fw / 2, fh / 2);
-    lightGrad.addColorStop(0, `rgba(255, 255, 255, ${Math.max(0, tiltY * 0.005 + 0.06)})`);
-    lightGrad.addColorStop(0.5, 'transparent');
-    lightGrad.addColorStop(1, `rgba(0, 0, 0, ${Math.max(0, -tiltY * 0.005 + 0.08)})`);
-    
-    targetCtx.fillStyle = lightGrad;
-    targetCtx.globalCompositeOperation = 'source-atop';
-    targetCtx.fillRect(-fw / 2, -fh / 2, fw, fh);
-
     targetCtx.restore();
   }
 
+  // 3. Render Main Device Frame with 3D Matrix Transform
+  targetCtx.save();
+  targetCtx.transform(scaleX, skewY, skewX, scaleY, 0, 0);
+  targetCtx.imageSmoothingEnabled = true;
+  targetCtx.imageSmoothingQuality = 'high';
+
+  // Crisp single-pass rendering: Zero slice gaps, Zero lines on face
+  targetCtx.drawImage(frameCanvas, -fw / 2, -fh / 2, fw, fh);
+
+  // 4. Realistic 3D Studio Light & Shadow Glare Reflection
+  if (Math.abs(tiltX) > 0.5 || Math.abs(tiltY) > 0.5) {
+    targetCtx.save();
+    targetCtx.globalCompositeOperation = 'source-atop';
+
+    const lightGrad = targetCtx.createLinearGradient(-fw / 2, -fh / 2, fw / 2, fh / 2);
+    const highlightAlpha = Math.max(0, Math.min(0.20, (tiltY * 0.005 + tiltX * 0.004) + 0.07));
+    const shadeAlpha = Math.max(0, Math.min(0.24, (-tiltY * 0.005 - tiltX * 0.004) + 0.07));
+
+    lightGrad.addColorStop(0, `rgba(255, 255, 255, ${highlightAlpha})`);
+    lightGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0)');
+    lightGrad.addColorStop(1, `rgba(0, 0, 0, ${shadeAlpha})`);
+
+    targetCtx.fillStyle = lightGrad;
+    targetCtx.fillRect(-fw / 2, -fh / 2, fw, fh);
+    targetCtx.restore();
+  }
+
+  targetCtx.restore();
   targetCtx.restore();
 }
 
@@ -756,9 +728,14 @@ function generateMockupCanvas(sourceCanvas, config = {}) {
   const fw = frameCanvas.width;
   const fh = frameCanvas.height;
 
-  // 2. Calculate Output Dimensions based on Aspect Ratio Preset
-  let totalW = fw + padding * 2;
-  let totalH = fh + padding * 2;
+  // 2. Calculate Output Dimensions taking 3D Tilt Bounding Box into account
+  const radX = Math.abs((tiltX * Math.PI) / 180);
+  const radY = Math.abs((tiltY * Math.PI) / 180);
+  const expandedFw = fw * (Math.cos(radY) + Math.sin(radX) * 0.42);
+  const expandedFh = fh * (Math.cos(radX) + Math.sin(radY) * 0.42);
+
+  let totalW = Math.round(Math.max(fw + padding * 2, expandedFw + padding * 2));
+  let totalH = Math.round(Math.max(fh + padding * 2, expandedFh + padding * 2));
 
   const targetRatio = ASPECT_RATIO_PRESETS[aspectRatioKey]?.ratio;
   if (targetRatio && targetRatio > 0) {
