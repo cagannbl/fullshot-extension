@@ -472,6 +472,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         updateStepBadgePreview();
+        renderLiveTextPreview();
       },
       onColorPicked: (hex) => {
         showToast('Renk Seçildi 🎨', `${hex} palete ve araca uygulandı.`);
@@ -500,6 +501,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (customColorDisc) customColorDisc.style.backgroundColor = activeColor;
       if (colorPicker) colorPicker.setColor(activeColor, false);
       updateStepBadgePreview();
+      renderLiveTextPreview();
     });
   });
 
@@ -739,6 +741,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.classList.add('active');
       btn.setAttribute('aria-checked', 'true');
       activeCalloutStyle = btn.dataset.textstyle;
+      renderLiveTextPreview();
     });
   });
 
@@ -784,12 +787,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       btn.classList.add('active');
       btn.setAttribute('aria-checked', 'true');
       activeFontSize = parseInt(btn.dataset.fontsize, 10);
+      renderLiveTextPreview();
     });
   });
 
   if (textBgCheckbox) {
     textBgCheckbox.addEventListener('change', () => {
       activeTextBg = textBgCheckbox.checked;
+      renderLiveTextPreview();
     });
   }
 
@@ -1115,35 +1120,113 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // --- 5. TEXT OVERLAY INPUT ---
+  // --- 5. REAL-TIME LIVE CANVAS TYPING & TEXT OVERLAY ENGINE ---
+  function renderLiveTextPreview() {
+    if (!textInputContainer || textInputContainer.classList.contains('hidden')) return;
+    if (!renderer || !renderer.overlayCtx) return;
+
+    renderer.clearOverlay();
+    const rawText = textInputField ? textInputField.value : '';
+    const text = rawText || '';
+
+    const canvasW = mainCanvas ? mainCanvas.width : 4096;
+    const canvasH = mainCanvas ? mainCanvas.height : 4096;
+
+    if (pendingCallout && Text && Text.drawCallout) {
+      const displayText = text.trim() || 'Balon metni yazın...';
+      renderer.overlayCtx.save();
+      if (!text.trim()) {
+        renderer.overlayCtx.globalAlpha = 0.55;
+      }
+      Text.drawCallout(
+        renderer.overlayCtx,
+        pendingCallout.tailX,
+        pendingCallout.tailY,
+        pendingCallout.bubbleX,
+        pendingCallout.bubbleY,
+        displayText,
+        activeColor,
+        activeStrokeWidth,
+        activeFontSize,
+        activeCalloutStyle || 'bubble',
+        activeTextBg
+      );
+      renderer.overlayCtx.restore();
+    } else if (pendingTextPos && Text && Text.renderTextOnCanvas) {
+      const displayText = text || 'Metin yazın...';
+      renderer.overlayCtx.save();
+      if (!text) {
+        renderer.overlayCtx.globalAlpha = 0.55;
+      }
+      const bgMode = activeTextBg ? (activeCalloutStyle === 'frosted' ? 'frosted' : 'dark') : false;
+      Text.renderTextOnCanvas(
+        renderer.overlayCtx,
+        displayText,
+        pendingTextPos.x,
+        pendingTextPos.y,
+        activeFontSize,
+        activeColor,
+        bgMode,
+        canvasW,
+        canvasH
+      );
+      renderer.overlayCtx.restore();
+    }
+  }
+
   function openTextInput(canvasCoords, screenX, screenY) {
+    // If there was already typed text in an open input, commit it first
+    if (textInputField && textInputField.value.trim()) {
+      applyText();
+    }
+
     pendingTextPos = canvasCoords;
 
     const stageRect = canvasStage.getBoundingClientRect();
-    const relLeft = (canvasCoords.x / mainCanvas.width) * stageRect.width;
-    const relTop = (canvasCoords.y / mainCanvas.height) * stageRect.height;
+    const relLeft = (canvasCoords.x / (mainCanvas.width || 1)) * stageRect.width;
+    const relTop = (canvasCoords.y / (mainCanvas.height || 1)) * stageRect.height;
 
-    textInputContainer.style.left = `${Math.max(10, Math.min(stageRect.width - 240, relLeft))}px`;
-    textInputContainer.style.top = `${Math.max(10, Math.min(stageRect.height - 100, relTop))}px`;
+    const boxWidth = 260;
+    const boxHeight = 115;
+    let left = relLeft;
+    let top = relTop + 14;
+
+    if (left + boxWidth > stageRect.width) {
+      left = Math.max(10, stageRect.width - boxWidth - 10);
+    }
+    if (top + boxHeight > stageRect.height) {
+      top = Math.max(10, relTop - boxHeight - 14);
+    }
+
+    textInputContainer.style.left = `${Math.max(10, left)}px`;
+    textInputContainer.style.top = `${Math.max(10, top)}px`;
     textInputContainer.classList.remove('hidden');
 
     textInputField.value = '';
+    textInputField.style.height = 'auto';
     textInputField.focus();
+
+    // Render immediate live ghost placeholder on the canvas
+    renderLiveTextPreview();
   }
 
   function closeTextInput() {
+    if (renderer) {
+      renderer.clearOverlay();
+    }
     if (textInputContainer) {
       textInputContainer.classList.add('hidden');
     }
     if (textInputField) {
       textInputField.value = '';
+      textInputField.style.height = 'auto';
     }
     pendingTextPos = null;
     pendingCallout = null;
   }
 
   function applyText() {
-    const text = textInputField.value.trim();
+    const text = textInputField ? textInputField.value.trim() : '';
     if (text) {
       if (pendingCallout) {
         pushAction({
@@ -1167,7 +1250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           y: pendingTextPos.y,
           fontSize: activeFontSize,
           color: activeColor,
-          bgStyle: activeCalloutStyle === 'plain' ? false : activeCalloutStyle,
+          bgStyle: activeTextBg ? (activeCalloutStyle === 'frosted' ? 'frosted' : 'dark') : false,
           hasBg: activeTextBg
         });
       }
@@ -1179,15 +1262,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (textCancelBtn) textCancelBtn.addEventListener('click', closeTextInput);
 
   if (textInputField) {
+    // Instant live typing on every keystroke
+    textInputField.addEventListener('input', () => {
+      textInputField.style.height = 'auto';
+      textInputField.style.height = Math.min(220, textInputField.scrollHeight) + 'px';
+      renderLiveTextPreview();
+    });
+
     textInputField.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey || !e.shiftKey)) {
-        e.preventDefault();
-        applyText();
+      if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          // Shift + Enter: new line, let input event re-render live preview
+          setTimeout(renderLiveTextPreview, 0);
+        } else {
+          // Enter: apply & commit immediately
+          e.preventDefault();
+          applyText();
+        }
       } else if (e.key === 'Escape') {
+        e.preventDefault();
         closeTextInput();
       }
     });
   }
+
+  // Commit typed text when clicking outside on the canvas/workspace
+  document.addEventListener('mousedown', (e) => {
+    if (textInputContainer && !textInputContainer.classList.contains('hidden')) {
+      if (!textInputContainer.contains(e.target) && !e.target.closest('.studio-sidebar') && !e.target.closest('.color-studio-popover')) {
+        if (textInputField && textInputField.value.trim()) {
+          applyText();
+        } else {
+          closeTextInput();
+        }
+      }
+    }
+  });
 
   // --- 6. ZOOM BUTTON LISTENERS ---
   if (zoomInBtn && zoomPan) {

@@ -650,10 +650,14 @@
         <canvas id="overlayCanvas" aria-label="Çizim Katmanı"></canvas>
         <!-- Floating Text Input Overlay -->
         <div id="textInputContainer" class="text-input-container hidden" role="region" aria-label="Metin Giriş Kutusu">
-          <textarea id="textInputField" placeholder="Metninizi yazın... (Bitirmek için dışarı tıklayın veya Shift+Enter)" aria-label="Metin Girişi"></textarea>
+          <div class="text-input-header">
+            <span class="text-input-badge">⚡ Canlı Metin</span>
+            <span class="text-input-hint">↵ Ekle | Shift+↵ Yeni Satır</span>
+          </div>
+          <textarea id="textInputField" placeholder="Metninizi yazın... (Anlık tuvalde görünür)" rows="2" aria-label="Metin Girişi"></textarea>
           <div class="text-input-actions">
-            <button id="textApplyBtn" class="text-act-btn primary" aria-label="Metni Uygula">Tamamla</button>
-            <button id="textCancelBtn" class="text-act-btn secondary" aria-label="Metin Girişini İptal Et">İptal</button>
+            <button id="textApplyBtn" class="text-act-btn primary" aria-label="Metni Uygula">Tamamla (↵)</button>
+            <button id="textCancelBtn" class="text-act-btn secondary" aria-label="Metin Girişini İptal Et">İptal (Esc)</button>
           </div>
         </div>
       </div>
