@@ -13,7 +13,13 @@
   <header class="top-bar">
     <div class="bar-left">
       <div class="brand">
-        <img src="../../../assets/branding/fullshot-header-logo.png" alt="FullShot" class="brand-logo-img">
+        <div class="brand-logo-container">
+          <img src="../../../assets/branding/fullshot-logo.svg" alt="FullShot Pro Logo" class="brand-logo-svg">
+          <div class="brand-text">
+            <span class="brand-name">FullShot</span>
+            <span class="brand-badge">PRO</span>
+          </div>
+        </div>
       </div>
 
       <div class="page-meta" id="pageMeta">
@@ -151,36 +157,48 @@
               <span class="item-title">PNG İndir (HD)</span>
               <span class="item-desc">Kayıpsız, net orijinal kalite</span>
             </div>
-            <span class="format-pill">PNG <kbd>Ctrl+S</kbd></span>
+            <div class="item-meta">
+              <span class="format-pill">PNG</span>
+              <kbd>Ctrl+S</kbd>
+            </div>
           </button>
           <button class="dropdown-item" id="downloadJpgBtn" role="menuitem" title="JPG İndir">
             <div class="item-text">
               <span class="item-title">JPG İndir</span>
               <span class="item-desc">Küçük dosya boyutu, hızlı paylaşım</span>
             </div>
-            <span class="format-pill">JPG</span>
+            <div class="item-meta">
+              <span class="format-pill">JPG</span>
+            </div>
           </button>
           <button class="dropdown-item" id="downloadWebpBtn" role="menuitem" title="WebP İndir">
             <div class="item-text">
               <span class="item-title">WebP İndir</span>
               <span class="item-desc">Modern sıkıştırma, ultra hafif</span>
             </div>
-            <span class="format-pill webp-pill">WEBP</span>
+            <div class="item-meta">
+              <span class="format-pill">WEBP</span>
+            </div>
           </button>
           <div class="dropdown-divider"></div>
           <button class="dropdown-item" id="downloadSinglePdfBtn" role="menuitem" title="Tek Sayfa PDF İndir (Ctrl+P)">
             <div class="item-text">
-              <span class="item-title">📄 Tek Sayfa PDF</span>
+              <span class="item-title">Tek Sayfa PDF</span>
               <span class="item-desc">Orijinal en/boy oranında tek parça</span>
             </div>
-            <span class="format-pill pdf-pill">PDF <kbd>Ctrl+P</kbd></span>
+            <div class="item-meta">
+              <span class="format-pill">PDF</span>
+              <kbd>Ctrl+P</kbd>
+            </div>
           </button>
           <button class="dropdown-item" id="downloadMultiPdfBtn" role="menuitem" title="Çok Sayfalı A4 PDF İndir">
             <div class="item-text">
-              <span class="item-title">📑 Çok Sayfalı A4 PDF</span>
+              <span class="item-title">Çok Sayfalı A4 PDF</span>
               <span class="item-desc">Yazdırılabilir A4 sayfalarına bölünmüş</span>
             </div>
-            <span class="format-pill pdf-pill">A4 PDF</span>
+            <div class="item-meta">
+              <span class="format-pill">A4 PDF</span>
+            </div>
           </button>
         </div>
       </div>
@@ -679,51 +697,57 @@
       </div>
       <div class="modal-body">
         <div class="shortcuts-columns">
-          <!-- Column 1: Çizim & Düzenleme Araçları -->
+          <!-- Column 1: Çizim Araçları -->
           <div class="shortcuts-category">
             <div class="category-header">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>
-              <span>Çizim & Düzenleme Araçları</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>
+              <span>Çizim Araçları</span>
             </div>
             <div class="shortcut-list">
               <div class="shortcut-item">
-                <span class="sc-desc">Seçim / Gezinme Aracı</span>
+                <span class="sc-desc">Seçim / Gezinme</span>
                 <div class="sc-keys"><kbd>V</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">El / Tuvali Kaydır</span>
-                <div class="sc-keys"><kbd>Space</kbd> + <kbd>Sürükle</kbd></div>
+                <span class="sc-desc">El / Tuval Kaydır</span>
+                <div class="sc-keys"><kbd>Space</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">Serbest Kalem Çizimi</span>
+                <span class="sc-desc">Serbest Kalem</span>
                 <div class="sc-keys"><kbd>P</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Fosforlu Vurgu</span>
+                <div class="sc-keys"><kbd>H</kbd></div>
               </div>
               <div class="shortcut-item">
                 <span class="sc-desc">Düz Çizgi</span>
                 <div class="sc-keys"><kbd>L</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">Fosforlu Vurgulayıcı</span>
-                <div class="sc-keys"><kbd>H</kbd></div>
-              </div>
-              <div class="shortcut-item">
-                <span class="sc-desc">Ok Çizimi</span>
+                <span class="sc-desc">Yön Oku</span>
                 <div class="sc-keys"><kbd>A</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">Dikdörtgen Kutu</span>
+                <span class="sc-desc">Dikdörtgen</span>
                 <div class="sc-keys"><kbd>R</kbd></div>
               </div>
               <div class="shortcut-item">
                 <span class="sc-desc">Daire / Elips</span>
                 <div class="sc-keys"><kbd>C</kbd></div>
               </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Pro & Akıllı Araçlar -->
+          <div class="shortcuts-category">
+            <div class="category-header">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>
+              <span>Pro & Akıllı Araçlar</span>
+            </div>
+            <div class="shortcut-list">
               <div class="shortcut-item">
-                <span class="sc-desc">Numaralı Adım Rozeti</span>
-                <div class="sc-keys"><kbd>S</kbd></div>
-              </div>
-              <div class="shortcut-item">
-                <span class="sc-desc">Spotlight / Odak Vurgusu</span>
+                <span class="sc-desc">Spotlight / Odak</span>
                 <div class="sc-keys"><kbd>F</kbd></div>
               </div>
               <div class="shortcut-item">
@@ -731,12 +755,12 @@
                 <div class="sc-keys"><kbd>Z</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">Akıllı Nesne Silgisi</span>
-                <div class="sc-keys"><kbd>E</kbd></div>
+                <span class="sc-desc">Damga & Emojiler</span>
+                <div class="sc-keys"><kbd>K</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">QA Damga & Emoji</span>
-                <div class="sc-keys"><kbd>K</kbd></div>
+                <span class="sc-desc">Adım Sayacı (#1, #2)</span>
+                <div class="sc-keys"><kbd>S</kbd></div>
               </div>
               <div class="shortcut-item">
                 <span class="sc-desc">Konuşma Balonu</span>
@@ -747,62 +771,54 @@
                 <div class="sc-keys"><kbd>B</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">Metin Ekleme</span>
-                <div class="sc-keys"><kbd>T</kbd></div>
+                <span class="sc-desc">Akıllı Otomatik Sansür</span>
+                <div class="sc-keys"><kbd>Shift+B</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">Damlalık / Renk Seçici</span>
+                <span class="sc-desc">Damlalık / Renk</span>
                 <div class="sc-keys"><kbd>I</kbd></div>
               </div>
             </div>
           </div>
 
-          <!-- Column 2: Eylemler & Dışa Aktarma -->
+          <!-- Column 3: Eylemler & Dışa Aktarma -->
           <div class="shortcuts-category">
             <div class="category-header">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>Eylemler, Zoom & Dışa Aktar</span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Eylemler & Dışa Aktar</span>
             </div>
             <div class="shortcut-list">
               <div class="shortcut-item">
-                <span class="sc-desc">Geri Al</span>
-                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>Z</kbd></div>
-              </div>
-              <div class="shortcut-item">
-                <span class="sc-desc">İleri Al</span>
-                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>Y</kbd></div>
+                <span class="sc-desc">Geri / İleri Al</span>
+                <div class="sc-keys"><kbd>Ctrl+Z</kbd> / <kbd>Y</kbd></div>
               </div>
               <div class="shortcut-item">
                 <span class="sc-desc">Panoya Kopyala</span>
-                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>C</kbd></div>
+                <div class="sc-keys"><kbd>Ctrl+C</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">PNG Olarak İndir</span>
-                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>S</kbd></div>
+                <span class="sc-desc">HD PNG İndir</span>
+                <div class="sc-keys"><kbd>Ctrl+S</kbd></div>
               </div>
               <div class="shortcut-item">
                 <span class="sc-desc">PDF Olarak İndir</span>
-                <div class="sc-keys"><kbd>Ctrl</kbd> + <kbd>P</kbd></div>
+                <div class="sc-keys"><kbd>Ctrl+P</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">3D Mockup Modu</span>
+                <div class="sc-keys"><kbd>M</kbd></div>
               </div>
               <div class="shortcut-item">
                 <span class="sc-desc">Yakınlaştır / Uzaklaştır</span>
-                <div class="sc-keys"><kbd>+</kbd> / <kbd>-</kbd> / <kbd>Ctrl+Tekerlek</kbd></div>
+                <div class="sc-keys"><kbd>+</kbd> / <kbd>-</kbd></div>
               </div>
               <div class="shortcut-item">
                 <span class="sc-desc">Ekrana Sığdır</span>
                 <div class="sc-keys"><kbd>0</kbd></div>
               </div>
               <div class="shortcut-item">
-                <span class="sc-desc">Mockup Çerçeve Modu</span>
-                <div class="sc-keys"><kbd>M</kbd></div>
-              </div>
-              <div class="shortcut-item">
-                <span class="sc-desc">Kısayollar Kılavuzu</span>
-                <div class="sc-keys"><kbd>?</kbd></div>
-              </div>
-              <div class="shortcut-item">
-                <span class="sc-desc">İptal / Modalı Kapat</span>
-                <div class="sc-keys"><kbd>ESC</kbd></div>
+                <span class="sc-desc">Kılavuz / Çıkış</span>
+                <div class="sc-keys"><kbd>?</kbd> / <kbd>ESC</kbd></div>
               </div>
             </div>
           </div>
@@ -811,14 +827,14 @@
         <!-- Full-Width Bottom Bar: Global Chrome Shortcuts -->
         <div class="global-shortcuts-card">
           <div class="global-card-title">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-            <span>Tarayıcı İçi Genel Yakalama Kısayolları (Herhangi bir web sayfasında aktif):</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span>Tarayıcı İçi Genel Yakalama Kısayolları (Tüm web sayfalarında aktif):</span>
           </div>
           <div class="global-keys-grid">
             <div class="global-key-item"><kbd>Alt+Shift+F</kbd> <span>Tam Sayfa</span></div>
             <div class="global-key-item"><kbd>Alt+Shift+V</kbd> <span>Görünür Alan</span></div>
-            <div class="global-key-item"><kbd>Alt+Shift+E</kbd> <span>Öğe / Bölüm</span></div>
-            <div class="global-key-item"><kbd>Alt+Shift+S</kbd> <span>Seçili Alan</span></div>
+            <div class="global-key-item"><kbd>Alt+Shift+E</kbd> <span>Öğe Seçici</span></div>
+            <div class="global-key-item"><kbd>Alt+Shift+S</kbd> <span>Alan Kırpma</span></div>
             <div class="global-key-item"><kbd>Alt+Shift+R</kbd> <span>Video Kaydı</span></div>
           </div>
         </div>
