@@ -159,6 +159,119 @@
   }
 
   /**
+   * Helper to draw a unified continuous path for Speech Bubble (no inner borders).
+   */
+  function drawUnifiedCalloutPath(ctx, bx, by, boxW, boxH, radius, tailX, tailY) {
+    const cx = bx + boxW / 2;
+    const cy = by + boxH / 2;
+    const dx = tailX - cx;
+    const dy = tailY - cy;
+    const r = Math.min(radius, boxW / 2, boxH / 2);
+
+    ctx.beginPath();
+
+    // Determine which side the tail comes from
+    const absNormX = Math.abs(dx) / (boxW / 2);
+    const absNormY = Math.abs(dy) / (boxH / 2);
+
+    if (absNormY >= absNormX) {
+      // Tail is on Top or Bottom
+      if (dy >= 0) {
+        // --- BOTTOM TAIL ---
+        const tailBaseW = Math.min(28, Math.max(16, boxW * 0.22));
+        const tx = Math.max(bx + r + tailBaseW / 2 + 2, Math.min(bx + boxW - r - tailBaseW / 2 - 2, cx + dx * 0.7));
+        const t1x = tx - tailBaseW / 2;
+        const t2x = tx + tailBaseW / 2;
+        const ty = by + boxH;
+
+        ctx.moveTo(bx + r, by);
+        ctx.lineTo(bx + boxW - r, by);
+        ctx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + r);
+        ctx.lineTo(bx + boxW, by + boxH - r);
+        ctx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - r, by + boxH);
+        
+        ctx.lineTo(t2x, ty);
+        // Curve smoothly to tail tip and back
+        const midY = (ty + tailY) / 2;
+        ctx.quadraticCurveTo(t2x + (tailX - t2x) * 0.4, midY, tailX, tailY);
+        ctx.quadraticCurveTo(t1x + (tailX - t1x) * 0.4, midY, t1x, ty);
+        
+        ctx.lineTo(bx + r, by + boxH);
+        ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
+        ctx.lineTo(bx, by + r);
+        ctx.quadraticCurveTo(bx, by, bx + r, by);
+      } else {
+        // --- TOP TAIL ---
+        const tailBaseW = Math.min(28, Math.max(16, boxW * 0.22));
+        const tx = Math.max(bx + r + tailBaseW / 2 + 2, Math.min(bx + boxW - r - tailBaseW / 2 - 2, cx + dx * 0.7));
+        const t1x = tx - tailBaseW / 2;
+        const t2x = tx + tailBaseW / 2;
+        const ty = by;
+
+        ctx.moveTo(bx + r, by);
+        ctx.lineTo(t1x, ty);
+        const midY = (ty + tailY) / 2;
+        ctx.quadraticCurveTo(t1x + (tailX - t1x) * 0.4, midY, tailX, tailY);
+        ctx.quadraticCurveTo(t2x + (tailX - t2x) * 0.4, midY, t2x, ty);
+        ctx.lineTo(bx + boxW - r, by);
+        ctx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + r);
+        ctx.lineTo(bx + boxW, by + boxH - r);
+        ctx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - r, by + boxH);
+        ctx.lineTo(bx + r, by + boxH);
+        ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
+        ctx.lineTo(bx, by + r);
+        ctx.quadraticCurveTo(bx, by, bx + r, by);
+      }
+    } else {
+      // Tail is on Left or Right
+      if (dx >= 0) {
+        // --- RIGHT TAIL ---
+        const tailBaseH = Math.min(28, Math.max(16, boxH * 0.3));
+        const ty = Math.max(by + r + tailBaseH / 2 + 2, Math.min(by + boxH - r - tailBaseH / 2 - 2, cy + dy * 0.7));
+        const t1y = ty - tailBaseH / 2;
+        const t2y = ty + tailBaseH / 2;
+        const tx = bx + boxW;
+
+        ctx.moveTo(bx + r, by);
+        ctx.lineTo(bx + boxW - r, by);
+        ctx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + r);
+        ctx.lineTo(tx, t1y);
+        const midX = (tx + tailX) / 2;
+        ctx.quadraticCurveTo(midX, t1y + (tailY - t1y) * 0.4, tailX, tailY);
+        ctx.quadraticCurveTo(midX, t2y + (tailY - t2y) * 0.4, tx, t2y);
+        ctx.lineTo(bx + boxW, by + boxH - r);
+        ctx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - r, by + boxH);
+        ctx.lineTo(bx + r, by + boxH);
+        ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
+        ctx.lineTo(bx, by + r);
+        ctx.quadraticCurveTo(bx, by, bx + r, by);
+      } else {
+        // --- LEFT TAIL ---
+        const tailBaseH = Math.min(28, Math.max(16, boxH * 0.3));
+        const ty = Math.max(by + r + tailBaseH / 2 + 2, Math.min(by + boxH - r - tailBaseH / 2 - 2, cy + dy * 0.7));
+        const t1y = ty - tailBaseH / 2;
+        const t2y = ty + tailBaseH / 2;
+        const tx = bx;
+
+        ctx.moveTo(bx + r, by);
+        ctx.lineTo(bx + boxW - r, by);
+        ctx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + r);
+        ctx.lineTo(bx + boxW, by + boxH - r);
+        ctx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - r, by + boxH);
+        ctx.lineTo(bx + r, by + boxH);
+        ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
+        ctx.lineTo(tx, t2y);
+        const midX = (tx + tailX) / 2;
+        ctx.quadraticCurveTo(midX, t2y + (tailY - t2y) * 0.4, tailX, tailY);
+        ctx.quadraticCurveTo(midX, t1y + (tailY - t1y) * 0.4, tx, t1y);
+        ctx.lineTo(bx, by + r);
+        ctx.quadraticCurveTo(bx, by, bx + r, by);
+      }
+    }
+    ctx.closePath();
+  }
+
+  /**
    * Preview speech / thought bubble while dragging.
    */
   function drawCalloutPreview(
@@ -168,18 +281,18 @@
     bubbleX,
     bubbleY,
     color = '#6D8196',
-    strokeWidth = 4,
+    strokeWidth = 3,
     style = 'bubble'
   ) {
     if (!ctx) return;
     ctx.save();
     ctx.strokeStyle = color;
-    ctx.fillStyle = 'rgba(109, 129, 150, 0.22)';
-    ctx.lineWidth = strokeWidth;
+    ctx.fillStyle = 'rgba(109, 129, 150, 0.25)';
+    ctx.lineWidth = Math.max(2, strokeWidth);
     ctx.setLineDash([5, 4]);
 
     const boxW = 140;
-    const boxH = 50;
+    const boxH = 46;
     const bx = bubbleX - boxW / 2;
     const by = bubbleY - boxH / 2;
 
@@ -188,13 +301,13 @@
       ctx.fill();
       ctx.stroke();
 
-      // Small thought dots leading to tail
+      // Thought dots leading to tail
       ctx.setLineDash([]);
       ctx.fillStyle = color;
-      const d1x = bubbleX + (tailX - bubbleX) * 0.45;
-      const d1y = bubbleY + (tailY - bubbleY) * 0.45;
-      const d2x = bubbleX + (tailX - bubbleX) * 0.75;
-      const d2y = bubbleY + (tailY - bubbleY) * 0.75;
+      const d1x = bubbleX + (tailX - bubbleX) * 0.38;
+      const d1y = bubbleY + (tailY - bubbleY) * 0.38;
+      const d2x = bubbleX + (tailX - bubbleX) * 0.70;
+      const d2y = bubbleY + (tailY - bubbleY) * 0.70;
 
       ctx.beginPath();
       ctx.arc(d1x, d1y, 5, 0, Math.PI * 2);
@@ -202,43 +315,41 @@
       ctx.beginPath();
       ctx.arc(d2x, d2y, 3, 0, Math.PI * 2);
       ctx.fill();
-    } else {
+    } else if (style === 'frosted') {
+      // Frosted Glass card preview
       drawRoundedRectPath(ctx, bx, by, boxW, boxH, 10);
       ctx.fill();
       ctx.stroke();
 
+      // Leader line with target dot
+      ctx.setLineDash([4, 3]);
       ctx.beginPath();
       ctx.moveTo(bubbleX, bubbleY);
       ctx.lineTo(tailX, tailY);
       ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.arc(tailX, tailY, 4, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+    } else {
+      // Seamless Unified Speech Bubble preview
+      drawUnifiedCalloutPath(ctx, bx, by, boxW, boxH, 12, tailX, tailY);
+      ctx.fill();
+      ctx.stroke();
     }
 
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.arc(tailX, tailY, 4, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-
-    ctx.fillStyle = '#CBCBCB';
-    ctx.font = '500 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.fillStyle = '#FFFFE3';
+    ctx.font = '600 11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(style === 'thought' ? '💭 Düşünce Bulutu' : '💬 Konuşma Balonu', bubbleX, bubbleY);
+    ctx.fillText(style === 'thought' ? '💭 Düşünce Bulutu' : (style === 'frosted' ? '✨ Cam Kart' : '💬 Konuşma Balonu'), bubbleX, bubbleY);
     ctx.restore();
   }
 
   /**
    * Render complete callout speech bubble / thought cloud / frosted card.
-   * @param {CanvasRenderingContext2D} ctx 
-   * @param {number} tailX 
-   * @param {number} tailY 
-   * @param {number} bubbleX 
-   * @param {number} bubbleY 
-   * @param {string} text 
-   * @param {string} color 
-   * @param {number} strokeWidth 
-   * @param {number} fontSize 
-   * @param {'bubble'|'thought'|'frosted'|boolean} [style='bubble'] 
    */
   function drawCallout(
     ctx,
@@ -247,8 +358,8 @@
     bubbleX,
     bubbleY,
     text,
-    color = '#ff3366',
-    strokeWidth = 4,
+    color = '#6D8196',
+    strokeWidth = 3,
     fontSize = 20,
     style = 'bubble'
   ) {
@@ -256,7 +367,7 @@
     ctx.save();
     const lines = text.split('\n');
     const lineHeight = fontSize * 1.35;
-    ctx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
     ctx.textBaseline = 'top';
 
     let maxW = 0;
@@ -268,110 +379,122 @@
     const isThought = style === 'thought';
     const isFrosted = style === 'frosted';
 
-    const padX = Math.round(fontSize * (isThought ? 0.9 : 0.75));
-    const padY = Math.round(fontSize * (isThought ? 0.7 : 0.55));
-    const boxW = Math.max(80, maxW + padX * 2);
-    const boxH = Math.max(42, lines.length * lineHeight + padY * 2);
-    const radius = Math.min(14, boxH / 2);
+    const padX = Math.round(fontSize * (isThought ? 0.9 : 0.8));
+    const padY = Math.round(fontSize * (isThought ? 0.65 : 0.55));
+    const boxW = Math.max(90, Math.round(maxW + padX * 2));
+    const boxH = Math.max(44, Math.round(lines.length * lineHeight + padY * 2));
+    const radius = Math.min(14, Math.round(boxH / 3));
 
     const bx = bubbleX - boxW / 2;
     const by = bubbleY - boxH / 2;
-    const cx = bubbleX;
-    const cy = bubbleY;
 
     // Drop shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
-    ctx.shadowBlur = 14;
-    ctx.shadowOffsetY = 5;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
 
-    // 1. Render Background & Pointer
     if (isThought) {
-      // Düşünce Bulutu
-      ctx.fillStyle = isFrosted ? 'rgba(30, 38, 50, 0.92)' : 'rgba(18, 22, 30, 0.96)';
+      // 1. Düşünce Bulutu
+      ctx.fillStyle = isFrosted ? 'rgba(28, 36, 48, 0.94)' : 'rgba(18, 22, 30, 0.96)';
       drawCloudPath(ctx, bx, by, boxW, boxH);
       ctx.fill();
 
-      // Thought circles connecting to tail
-      const d1x = bubbleX + (tailX - bubbleX) * 0.45;
-      const d1y = bubbleY + (tailY - bubbleY) * 0.45;
-      const d2x = bubbleX + (tailX - bubbleX) * 0.75;
-      const d2y = bubbleY + (tailY - bubbleY) * 0.75;
+      // Thought circles connecting to target
+      const d1x = bubbleX + (tailX - bubbleX) * 0.4;
+      const d1y = bubbleY + (tailY - bubbleY) * 0.4;
+      const d2x = bubbleX + (tailX - bubbleX) * 0.72;
+      const d2y = bubbleY + (tailY - bubbleY) * 0.72;
 
       ctx.beginPath();
-      ctx.arc(d1x, d1y, Math.max(4, strokeWidth * 1.5), 0, Math.PI * 2);
-      ctx.arc(d2x, d2y, Math.max(3, strokeWidth * 0.9), 0, Math.PI * 2);
+      ctx.arc(d1x, d1y, Math.max(5, strokeWidth * 1.6), 0, Math.PI * 2);
+      ctx.arc(d2x, d2y, Math.max(3.5, strokeWidth * 1.1), 0, Math.PI * 2);
       ctx.fill();
 
       // Stroke
       ctx.shadowColor = 'transparent';
       ctx.strokeStyle = color;
-      ctx.lineWidth = strokeWidth;
+      ctx.lineWidth = Math.max(2, strokeWidth);
       drawCloudPath(ctx, bx, by, boxW, boxH);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.arc(d1x, d1y, Math.max(4, strokeWidth * 1.5), 0, Math.PI * 2);
+      ctx.arc(d1x, d1y, Math.max(5, strokeWidth * 1.6), 0, Math.PI * 2);
       ctx.stroke();
       ctx.beginPath();
-      ctx.arc(d2x, d2y, Math.max(3, strokeWidth * 0.9), 0, Math.PI * 2);
+      ctx.arc(d2x, d2y, Math.max(3.5, strokeWidth * 1.1), 0, Math.PI * 2);
       ctx.stroke();
-    } else {
-      // Çizgi Roman Konuşma Balonu & Cam Kart Balonu
-      const angle = Math.atan2(tailY - cy, tailX - cx);
-      const baseSpread = Math.min(26, Math.max(14, fontSize * 0.9));
 
-      const edgeOffsetX = Math.cos(angle) * (boxW / 2);
-      const edgeOffsetY = Math.sin(angle) * (boxH / 2);
-      const anchorX = cx + Math.max(-boxW / 2 + radius, Math.min(boxW / 2 - radius, edgeOffsetX));
-      const anchorY = cy + Math.max(-boxH / 2 + radius, Math.min(boxH / 2 - radius, edgeOffsetY));
+      // Text
+      ctx.fillStyle = '#FFFFE3';
+      ctx.textAlign = 'center';
+      lines.forEach((line, idx) => {
+        ctx.fillText(line, bubbleX, by + padY + idx * lineHeight);
+      });
 
-      const perpAngle = angle + Math.PI / 2;
-      const p1x = anchorX + Math.cos(perpAngle) * (baseSpread / 2);
-      const p1y = anchorY + Math.sin(perpAngle) * (baseSpread / 2);
-      const p2x = anchorX - Math.cos(perpAngle) * (baseSpread / 2);
-      const p2y = anchorY - Math.sin(perpAngle) * (baseSpread / 2);
-
-      ctx.fillStyle = isFrosted ? 'rgba(32, 40, 54, 0.9)' : 'rgba(18, 22, 30, 0.96)';
-
-      // Fill bubble & pointer
+    } else if (isFrosted) {
+      // 2. Modern Cam Kart & Lider Çizgili Anotasyon (CleanShot X Standardı)
+      ctx.fillStyle = 'rgba(24, 30, 40, 0.92)';
       drawRoundedRectPath(ctx, bx, by, boxW, boxH, radius);
       ctx.fill();
 
-      ctx.beginPath();
-      ctx.moveTo(p1x, p1y);
-      ctx.lineTo(tailX, tailY);
-      ctx.lineTo(p2x, p2y);
-      ctx.closePath();
-      ctx.fill();
-
-      // Stroke
+      // Frosted card border
       ctx.shadowColor = 'transparent';
-      ctx.strokeStyle = color;
-      ctx.lineWidth = strokeWidth;
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.lineWidth = 1.5;
       drawRoundedRectPath(ctx, bx, by, boxW, boxH, radius);
       ctx.stroke();
 
+      // Accent pill on left side
+      ctx.fillStyle = color;
+      drawRoundedRectPath(ctx, bx + 2, by + 6, 4, boxH - 12, 2);
+      ctx.fill();
+
+      // Sleek connecting leader line with glowing target dot
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(p1x, p1y);
+      ctx.moveTo(bubbleX, bubbleY > tailY ? by : by + boxH);
       ctx.lineTo(tailX, tailY);
-      ctx.lineTo(p2x, p2y);
       ctx.stroke();
 
-      // Tip pointer dot
+      // Target pin dot
       ctx.beginPath();
-      ctx.arc(tailX, tailY, Math.max(3, strokeWidth * 0.75), 0, Math.PI * 2);
+      ctx.arc(tailX, tailY, 4.5, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
-    }
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
 
-    // 2. Render Text
-    ctx.fillStyle = '#FFFFE3';
-    lines.forEach((line, idx) => {
-      ctx.fillText(line, bx + padX, by + padY + idx * lineHeight);
-    });
+      // Text
+      ctx.fillStyle = '#FFFFE3';
+      ctx.textAlign = 'left';
+      lines.forEach((line, idx) => {
+        ctx.fillText(line, bx + padX + 6, by + padY + idx * lineHeight);
+      });
+
+    } else {
+      // 3. Ultra-Clean Seamless Speech Bubble (Tek Parça Kusursuz Gövde)
+      ctx.fillStyle = 'rgba(22, 26, 34, 0.96)';
+      drawUnifiedCalloutPath(ctx, bx, by, boxW, boxH, radius, tailX, tailY);
+      ctx.fill();
+
+      // Single continuous stroke outline (zero internal seam lines!)
+      ctx.shadowColor = 'transparent';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(2, strokeWidth);
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      drawUnifiedCalloutPath(ctx, bx, by, boxW, boxH, radius, tailX, tailY);
+      ctx.stroke();
+
+      // Text
+      ctx.fillStyle = '#FFFFE3';
+      ctx.textAlign = 'center';
+      lines.forEach((line, idx) => {
+        ctx.fillText(line, bubbleX, by + padY + idx * lineHeight);
+      });
+    }
 
     ctx.restore();
   }

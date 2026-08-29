@@ -196,61 +196,80 @@
       });
     }
 
-    // 3. Fallback Heuristic Computer-Vision Scan for Password Input dots (••••••) or sensitive label boxes
-    if (regions.length === 0) {
-      try {
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const imgData = ctx.getImageData(0, 0, Math.min(canvasW, 1920), Math.min(canvasH, 1080));
-        const data = imgData.data;
-        const width = imgData.width;
-        const height = imgData.height;
+    // 3. Computer-Vision Optical Text & Subtitle Block Scanner
+    try {
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      const sampleW = Math.min(canvasW, 1920);
+      const sampleH = Math.min(canvasH, 1080);
+      const scaleX = canvasW / sampleW;
+      const scaleY = canvasH / sampleH;
 
-        // Scan for consecutive password bullet patterns (dark dots on light bg or vice versa)
-        let bulletStreak = 0;
-        let lastBulletX = 0;
+      const imgData = ctx.getImageData(0, 0, sampleW, sampleH);
+      const data = imgData.data;
 
-        for (let y = 30; y < height - 30; y += 14) {
-          for (let x = 30; x < width - 60; x += 10) {
-            const idx = (y * width + x) * 4;
-            const r = data[idx];
-            const g = data[idx + 1];
-            const b = data[idx + 2];
-            const isDark = (r + g + b) / 3 < 50;
-
-            if (isDark) {
-              if (x - lastBulletX < 24 && x - lastBulletX > 6) {
-                bulletStreak++;
-              } else {
-                bulletStreak = 1;
-              }
-              lastBulletX = x;
-
-              if (bulletStreak >= 6) {
-                const boxX1 = Math.max(0, x - bulletStreak * 14 - 10);
-                const boxY1 = Math.max(0, y - 12);
-                const boxX2 = Math.min(canvasW, x + 20);
-                const boxY2 = Math.min(canvasH, y + 16);
-
-                // Ensure non-duplicate
-                const alreadyHas = regions.some(r => Math.hypot(r.x1 - boxX1, r.y1 - boxY1) < 40);
-                if (!alreadyHas) {
-                  regions.push({
-                    x1: boxX1,
-                    y1: boxY1,
-                    x2: boxX2,
-                    y2: boxY2,
-                    reason: 'Şifre / Parola Maskeli Alan',
-                    category: 'secret'
-                  });
-                }
-                bulletStreak = 0;
-              }
-            }
+      // Scan for high-contrast horizontal text lines (edge transitions)
+      const rowEdgeDensity = new Float32Array(sampleH);
+      for (let y = 10; y < sampleH - 10; y += 2) {
+        let edgeCount = 0;
+        const rowOffset = y * sampleW * 4;
+        for (let x = 10; x < sampleW - 10; x += 4) {
+          const idx = rowOffset + x * 4;
+          const lum = data[idx] * 0.299 + data[idx + 1] * 0.587 + data[idx + 2] * 0.114;
+          const nextLum = data[idx + 8] * 0.299 + data[idx + 9] * 0.587 + data[idx + 10] * 0.114;
+          if (Math.abs(lum - nextLum) > 38) {
+            edgeCount++;
           }
         }
-      } catch (e) {
-        // Image data read safety
+        rowEdgeDensity[y] = edgeCount / (sampleW / 4);
       }
+
+      // Group consecutive high-edge rows into text block bounding boxes
+      let blockStartY = -1;
+      for (let y = 10; y < sampleH - 10; y += 2) {
+        if (rowEdgeDensity[y] > 0.14) {
+          if (blockStartY === -1) blockStartY = y;
+        } else {
+          if (blockStartY !== -1) {
+            const blockHeight = y - blockStartY;
+            if (blockHeight >= 10 && blockHeight <= 90) {
+              // Find horizontal bounding extent of text
+              let minX = sampleW, maxX = 0;
+              for (let by = blockStartY; by < y; by += 4) {
+                const rowOffset = by * sampleW * 4;
+                for (let bx = 10; bx < sampleW - 10; bx += 8) {
+                  const idx = rowOffset + bx * 4;
+                  const lum = data[idx] * 0.299 + data[idx + 1] * 0.587 + data[idx + 2] * 0.114;
+                  const nextLum = data[idx + 8] * 0.299 + data[idx + 9] * 0.587 + data[idx + 10] * 0.114;
+                  if (Math.abs(lum - nextLum) > 38) {
+                    if (bx < minX) minX = bx;
+                    if (bx > maxX) maxX = bx;
+                  }
+                }
+              }
+
+              if (maxX - minX > 40) {
+                const boxX1 = Math.max(0, Math.round((minX - 12) * scaleX));
+                const boxY1 = Math.max(0, Math.round((blockStartY - 6) * scaleY));
+                const boxX2 = Math.min(canvasW, Math.round((maxX + 16) * scaleX));
+                const boxY2 = Math.min(canvasH, Math.round((y + 8) * scaleY));
+
+                const isSubtitle = (boxY1 > canvasH * 0.65);
+                regions.push({
+                  x1: boxX1,
+                  y1: boxY1,
+                  x2: boxX2,
+                  y2: boxY2,
+                  reason: isSubtitle ? 'Altyazı / Metin Şeridi' : 'Metin / Veri Alanı',
+                  category: isSubtitle ? 'subtitle' : 'text'
+                });
+              }
+            }
+            blockStartY = -1;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('[AutoCensor] Optik tarama hatası:', e);
     }
 
     return regions;
@@ -274,10 +293,9 @@
     const regions = detectSensitiveRegions(canvas, captureData);
 
     if (regions.length === 0) {
-      // If nothing found automatically, create a smart sample privacy bounding box or notify
       return {
         count: 0,
-        summary: 'Sayfada otomatik sansürlenecek açık kredi kartı, şifre veya e-posta tespit edilmedi.',
+        summary: 'Otomatik sansürlenecek metin alanı tespit edilmedi. Manuel sansür aracı aktif edildi.',
         regions: []
       };
     }
@@ -298,7 +316,7 @@
     const categorySummary = [...new Set(regions.map(r => r.reason))].join(', ');
     return {
       count: appliedCount,
-      summary: `${appliedCount} adet hassas alan (${categorySummary}) otomatik sansürlendi.`,
+      summary: `${appliedCount} adet metin/hassas alan (${categorySummary}) otomatik mozaiklendi.`,
       regions
     };
   }

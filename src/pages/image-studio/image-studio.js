@@ -1708,7 +1708,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (res && res.count > 0) {
           showToast('Sansürleme Tamamlandı', res.summary);
         } else {
-          showToast('Güvenlik Taraması', 'Otomatik sansürlenecek açık veri tespit edilmedi.');
+          setActiveTool('blur');
+          showToast('Sansür Aracı Aktif', 'Mozaiklemek istediğiniz alanın üzerine fareyle kutu çizin.');
         }
       }
     });
