@@ -612,23 +612,25 @@
         }
       }
 
-      // 5. Intelligent DLP Classification: ONLY True Enclosed Form Input Containers & Credential Boxes
-      // Plain text labels, section titles, headers, buttons, and left-side column labels are NOT blurred.
+      // 5. Intelligent DLP Classification: Universal Enclosed Input & Credential Box Detector
+      // Works across Light Mode, Dark Mode, full-page dashboards, compact payment modals, and cropped screenshots.
+      // Plain text labels, section titles, headers, and action buttons are NEVER blurred.
       candidateBoxes.forEach(box => {
         const { x1, y1, x2, y2, w, h } = box;
 
-        // Skip navigation wrappers, top bar, or very wide page containers
-        if (w > canvasW * 0.75 || y1 < 55 || x1 < 80) return;
+        // Skip entire canvas wrapper or tiny noise
+        if (w > canvasW * 0.94 || h > 70 || w < 70 || h < 18) return;
 
-        // Filter out left-side field labels & section titles (e.g. 'Master API Key', 'API Access Tokens')
-        if (x1 < 280 && w < 240) return;
+        // Aspect ratio: Form inputs are rectangular horizontal boxes (w/h >= 1.8)
+        const aspect = w / h;
+        if (aspect < 1.7) return;
 
-        // Sample middle pixel color to detect saturated primary action buttons (e.g. Blue 'Update Email' button)
+        // Sample middle pixel color to detect saturated primary action buttons (e.g. Blue 'Save Changes' button)
         const midIdx = (Math.round(y1 + h * 0.5) * canvasW + Math.round(x1 + w * 0.5)) * 4;
         const r = data[midIdx];
         const g = data[midIdx + 1];
         const b = data[midIdx + 2];
-        const isSaturatedButton = (b > 110 && b - r > 35) || (r > 160 && r - b > 40);
+        const isSaturatedButton = (b > 110 && b - r > 35) || (r > 175 && r - b > 45 && g < 100);
         if (isSaturatedButton) return;
 
         // Check border enclosure (continuous top or bottom border line across the input box)
@@ -641,10 +643,12 @@
         const topRatio = topBorder / w;
         const botRatio = botBorder / w;
 
-        // An actual form input / token container has substantial width and clear container borders
-        const isEnclosedInput = (w >= 180 && w <= 750 && h >= 22 && h <= 65 && (topRatio >= 0.40 || botRatio >= 0.40));
+        // An enclosed form input has clear horizontal top and bottom border boundaries (or high contrast box fill)
+        // Plain text titles and labels have topRatio < 0.20 because text glyphs are discontinuous.
+        const isEnclosedInput = (topRatio >= 0.32 || botRatio >= 0.32);
 
         if (isEnclosedInput) {
+          // Deduplicate overlapping or fully contained regions (e.g. inner text inside an already added input box)
           const overlaps = regions.some(r =>
             (Math.abs(r.x1 - x1) < 25 && Math.abs(r.y1 - y1) < 18) ||
             (x1 >= r.x1 - 5 && x2 <= r.x2 + 5 && y1 >= r.y1 - 5 && y2 <= r.y2 + 5)
@@ -656,9 +660,9 @@
               y1: Math.max(0, y1 - 2),
               x2: Math.min(canvasW, x2 + 3),
               y2: Math.min(canvasH, y2 + 2),
-              reason: 'API Anahtarı / Şifre / Form Giriş Alanı',
-              category: 'secret',
-              confidence: 0.90
+              reason: w >= 220 ? 'Kredi Kartı / API Anahtarı / Form Giriş Alanı' : 'Güvenlik Kodu / Son Kullanma / Değer Alanı',
+              category: 'financial',
+              confidence: 0.95
             });
           }
         }
