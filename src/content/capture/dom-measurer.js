@@ -17,6 +17,7 @@
    * @returns {number} Scrollbar width in pixels
    */
   function getScrollbarWidth() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return 0;
     const docEl = document.documentElement;
     const body = document.body;
     if (!docEl) return 0;
@@ -35,6 +36,7 @@
    * @returns {number} Real document scrollHeight
    */
   function getRealDocumentHeight() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return 800;
     const docEl = document.documentElement;
     const body = document.body;
     const winHeight = window.innerHeight || 0;
@@ -101,6 +103,7 @@
    * @returns {number} Real document scrollWidth
    */
   function getRealDocumentWidth() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return 1280;
     const docEl = document.documentElement;
     const body = document.body;
     const winWidth = window.innerWidth || 0;
@@ -196,7 +199,7 @@
    */
   function calculateScrollSteps(fullHeight, viewportHeight) {
     const safeFullH = Math.max(1, fullHeight || 1);
-    const safeViewH = Math.max(1, viewportHeight || window.innerHeight || 800);
+    const safeViewH = Math.max(1, viewportHeight || (typeof window !== 'undefined' ? window.innerHeight : 800));
     const maxScrollY = Math.max(0, safeFullH - safeViewH);
     const steps = [];
     let currentY = 0;
@@ -229,4 +232,3 @@
     module.exports = DOMMeasurer;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
-

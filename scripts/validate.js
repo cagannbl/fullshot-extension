@@ -152,6 +152,26 @@ if (fs.existsSync(manifestPath)) {
       }
     }
 
+    // Manifest Commands Check
+    if (manifest.commands) {
+      const requiredCommands = [
+        'capture-fullpage',
+        'capture-visible',
+        'capture-selected',
+        'capture-element',
+        'toggle-record'
+      ];
+      requiredCommands.forEach((cmd) => {
+        if (manifest.commands[cmd]) {
+          logPass(`Manifest Command configured: ${cmd} (${manifest.commands[cmd].suggested_key?.default || 'custom'})`);
+        } else {
+          logFail(`Missing Manifest Command: ${cmd}`);
+        }
+      });
+    } else {
+      logFail('Manifest missing commands section');
+    }
+
     // Web Accessible Resources check
     if (Array.isArray(manifest.web_accessible_resources)) {
       manifest.web_accessible_resources.forEach((war) => {
@@ -297,6 +317,40 @@ if (fs.existsSync(bgJsPath)) {
     logPass('showProtectedUrlBadgeWarning temporary badge indicator implemented');
   } else {
     logFail('Missing showProtectedUrlBadgeWarning in background.js');
+  }
+
+  // Check Chrome Commands Listener Implementation
+  if (bgContent.includes('chrome.commands.onCommand.addListener')) {
+    logPass('chrome.commands.onCommand listener registered in background.js');
+    const expectedCommands = ['capture-fullpage', 'capture-visible', 'capture-selected', 'capture-element', 'toggle-record'];
+    expectedCommands.forEach((cmd) => {
+      if (bgContent.includes(cmd)) {
+        logPass(`Command action handler verified in background.js: ${cmd}`);
+      } else {
+        logFail(`Missing command action handler in background.js: ${cmd}`);
+      }
+    });
+  } else {
+    logFail('Missing chrome.commands.onCommand.addListener in background.js');
+  }
+
+  // Check EyeDropper & Canvas Loupe in color-picker.js
+  const cpPath = path.join(ROOT_DIR, 'src/pages/image-studio/tools/color-picker.js');
+  if (fs.existsSync(cpPath)) {
+    const cpContent = fs.readFileSync(cpPath, 'utf8');
+    if (cpContent.includes('activateEyeDropper') && cpContent.includes('EyeDropper')) {
+      logPass('Native EyeDropper API integration confirmed in color-picker.js');
+    } else {
+      logFail('Missing activateEyeDropper or EyeDropper check in color-picker.js');
+    }
+
+    if (cpContent.includes('startCanvasLoupe')) {
+      logPass('Graceful Canvas 8x Loupe fallback engine implemented in color-picker.js');
+    } else {
+      logFail('Missing startCanvasLoupe fallback in color-picker.js');
+    }
+  } else {
+    logFail('src/pages/image-studio/tools/color-picker.js missing');
   }
 
   const protectedSchemes = ['chrome://', 'chrome-extension://', 'edge://', 'about:', 'chrome.google.com/webstore'];

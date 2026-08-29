@@ -95,6 +95,7 @@
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
           direction: ltr !important;
+          box-sizing: border-box !important;
         }
         *, *::before, *::after {
           box-sizing: border-box !important;
@@ -178,6 +179,15 @@
     const targetContainer = document.fullscreenElement || document.body || document.documentElement;
     if (targetContainer) {
       targetContainer.appendChild(toastHost);
+    }
+
+    const toastCard = toastShadow.getElementById('toastCard');
+    if (toastCard) {
+      ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu'].forEach((evt) => {
+        toastCard.addEventListener(evt, (e) => {
+          e.stopPropagation();
+        });
+      });
     }
 
     if (duration > 0) {
@@ -264,6 +274,7 @@
     show,
     hide,
     remove,
+    destroy: remove,
     hideForCapture,
     restoreAfterCapture,
     isVisible,

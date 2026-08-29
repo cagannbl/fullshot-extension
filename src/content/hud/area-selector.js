@@ -668,11 +668,15 @@
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
         cleanup();
         if (typeof options.onCancel === 'function') {
           options.onCancel();
         }
       } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
         // [C] Copy Color to Clipboard
         navigator.clipboard.writeText(currentHoverHex);
         if (window.FullShotHUD.toast) {
@@ -683,12 +687,15 @@
         }
       } else if (hasSelectedArea && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
         e.preventDefault();
+        e.stopPropagation();
         if (qbCopyBtn) qbCopyBtn.click();
       } else if (hasSelectedArea && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
+        e.stopPropagation();
         if (qbDownloadBtn) qbDownloadBtn.click();
       } else if (hasSelectedArea && e.key === 'Enter') {
         e.preventDefault();
+        e.stopPropagation();
         if (qbStudioBtn) qbStudioBtn.click();
       }
     };
@@ -697,6 +704,7 @@
     const onMouseDown = (e) => {
       // Ignore clicks originating from inside the quickBar
       if (e.composedPath && e.composedPath().includes(quickBar)) return;
+      e.stopPropagation();
       if (e.button !== 0) return;
 
       if (window.FullShotHUD.toast) {
@@ -718,6 +726,7 @@
     };
 
     const onMouseMove = (e) => {
+      e.stopPropagation();
       currentX = e.clientX;
       currentY = e.clientY;
 
@@ -745,6 +754,7 @@
     };
 
     const onMouseUp = (e) => {
+      e.stopPropagation();
       if (!isSelecting) return;
       isSelecting = false;
 
@@ -981,10 +991,25 @@
       });
     }
 
+    if (quickBar) {
+      ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu', 'wheel'].forEach((evt) => {
+        quickBar.addEventListener(evt, (e) => {
+          e.stopPropagation();
+        });
+      });
+    }
+
     if (overlay) {
       overlay.addEventListener('mousedown', onMouseDown);
       overlay.addEventListener('mousemove', onMouseMove);
       overlay.addEventListener('mouseup', onMouseUp);
+      overlay.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      overlay.addEventListener('wheel', (e) => {
+        e.stopPropagation();
+      }, { passive: true });
     }
 
     activeCleanup = () => {
@@ -1079,6 +1104,7 @@
     start,
     cancel: cleanup,
     cleanup,
+    destroy: cleanup,
     isActive,
     getHost,
     hideForCapture,

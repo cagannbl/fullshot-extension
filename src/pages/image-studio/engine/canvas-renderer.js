@@ -247,6 +247,70 @@
     }
 
     /**
+     * Batch-apply redactions for auto-censored regions directly or via actions.
+     * @param {Array<Object>} regions 
+     * @param {'pixelate'|'blackout'|'gaussian'} [blurType='pixelate']
+     * @param {Function} [pushAction]
+     */
+    applyAutoCensorBatch(regions, blurType = 'pixelate', pushAction = null) {
+      if (!regions || !Array.isArray(regions)) return;
+      const canvasW = this.mainCanvas?.width || 4096;
+      const canvasH = this.mainCanvas?.height || 4096;
+      const blurTool = window.FullShotCanvas?.Blur;
+
+      regions.forEach(r => {
+        if (pushAction && typeof pushAction === 'function') {
+          pushAction({
+            type: 'blur',
+            x1: r.x1,
+            y1: r.y1,
+            x2: r.x2,
+            y2: r.y2,
+            blurType,
+            reason: r.reason,
+            category: r.category,
+            confidence: r.confidence
+          });
+        } else if (this.mainCtx && blurTool) {
+          blurTool.applyRedaction(this.mainCtx, r.x1, r.y1, r.x2, r.y2, blurType, canvasW, canvasH);
+        }
+      });
+    }
+
+    /**
+     * Render temporary neon highlight boxes on overlay layer for detected sensitive areas.
+     * @param {Array<Object>} regions 
+     */
+    renderSensitiveRegionsOverlay(regions) {
+      if (!this.overlayCtx || !this.overlayCanvas || !regions || !Array.isArray(regions)) return;
+      this.clearOverlay();
+      this.overlayCtx.save();
+
+      regions.forEach(r => {
+        const x = Math.min(r.x1, r.x2);
+        const y = Math.min(r.y1, r.y2);
+        const w = Math.abs(r.x2 - r.x1);
+        const h = Math.abs(r.y2 - r.y1);
+
+        this.overlayCtx.strokeStyle = '#ff3366';
+        this.overlayCtx.lineWidth = 1.5;
+        this.overlayCtx.setLineDash([4, 3]);
+        this.overlayCtx.strokeRect(x, y, w, h);
+
+        this.overlayCtx.fillStyle = 'rgba(255, 51, 102, 0.12)';
+        this.overlayCtx.fillRect(x, y, w, h);
+
+        if (r.reason) {
+          this.overlayCtx.fillStyle = '#ff3366';
+          this.overlayCtx.font = '600 10px -apple-system, BlinkMacSystemFont, sans-serif';
+          this.overlayCtx.fillText(r.reason, x, Math.max(12, y - 4));
+        }
+      });
+
+      this.overlayCtx.restore();
+    }
+
+    /**
      * Render crisp watermark or timestamp badge onto canvas.
      * @param {CanvasRenderingContext2D} ctx 
      * @param {string} text 

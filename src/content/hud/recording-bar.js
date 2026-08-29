@@ -253,8 +253,8 @@
           text-align: left !important;
           color: #FFFFE3 !important;
           -webkit-font-smoothing: antialiased !important;
-          -moz-osx-font-smoothing: grayscale !important;
           direction: ltr !important;
+          box-sizing: border-box !important;
         }
         *, *::before, *::after {
           box-sizing: border-box !important;
@@ -526,6 +526,7 @@
     const onPointerDown = (e) => {
       if (e.button !== 0) return;
       if (e.target.closest('button')) return;
+      e.stopPropagation();
 
       const rect = recordingWidgetHost.getBoundingClientRect();
       isDragging = true;
@@ -542,6 +543,7 @@
 
     const onPointerMove = (e) => {
       if (!isDragging) return;
+      e.stopPropagation();
 
       const deltaX = e.clientX - dragStartX;
       const deltaY = e.clientY - dragStartY;
@@ -567,6 +569,7 @@
 
     const onPointerUp = (e) => {
       if (!isDragging) return;
+      if (e) e.stopPropagation();
       isDragging = false;
       if (dragHandle) dragHandle.classList.remove('dragging');
 
@@ -583,6 +586,13 @@
       widgetCard.addEventListener('pointermove', onPointerMove);
       widgetCard.addEventListener('pointerup', onPointerUp);
       widgetCard.addEventListener('pointercancel', onPointerUp);
+      ['click', 'dblclick', 'contextmenu', 'wheel'].forEach((evt) => {
+        widgetCard.addEventListener(evt, (e) => {
+          if (!e.target.closest('button')) {
+            e.stopPropagation();
+          }
+        });
+      });
     }
 
     widgetResizeHandler = () => {
@@ -688,6 +698,7 @@
     show,
     hide: remove,
     remove,
+    destroy: remove,
     pause,
     resume,
     togglePause,

@@ -75,10 +75,6 @@
     ctx.save();
     ctx.fillStyle = '#080b12';
     ctx.fillRect(rx, ry, rw, rh);
-
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(rx + 0.5, ry + 0.5, rw - 1, rh - 1);
     ctx.restore();
   }
 
@@ -130,15 +126,8 @@
       }
     }
 
-    // Direct single-pass blit
+    // Direct single-pass blit with seamless, natural blending (no artificial outline borders)
     ctx.putImageData(imgData, rx, ry);
-
-    // Subtle crisp border
-    ctx.save();
-    ctx.strokeStyle = 'rgba(0, 210, 255, 0.35)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(rx + 0.5, ry + 0.5, rw - 1, rh - 1);
-    ctx.restore();
   }
 
   /**
@@ -159,9 +148,6 @@
 
         ctx.save();
         ctx.drawImage(offCanvas, rx, ry);
-        ctx.strokeStyle = 'rgba(0, 210, 255, 0.30)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(rx + 0.5, ry + 0.5, rw - 1, rh - 1);
         ctx.restore();
         return;
       }
@@ -174,12 +160,6 @@
     const radius = Math.max(6, Math.min(24, Math.round(Math.min(rw, rh) / 14)));
     boxBlurImageData(imgData, rw, rh, radius);
     ctx.putImageData(imgData, rx, ry);
-
-    ctx.save();
-    ctx.strokeStyle = 'rgba(0, 210, 255, 0.30)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(rx + 0.5, ry + 0.5, rw - 1, rh - 1);
-    ctx.restore();
   }
 
   /**
