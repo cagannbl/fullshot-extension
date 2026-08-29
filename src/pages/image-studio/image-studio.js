@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     updateCursor();
 
-    // Adjust Options Dock visibility
+    // Adjust Options Dock visibility - hide all initially
     if (colorOptionGroup) colorOptionGroup.classList.add('hidden');
     if (strokeOptionGroup) strokeOptionGroup.classList.add('hidden');
     if (penTypeOptionGroup) penTypeOptionGroup.classList.add('hidden');
@@ -378,37 +378,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (magnifierOptionGroup) magnifierOptionGroup.classList.add('hidden');
     if (stampOptionGroup) stampOptionGroup.classList.add('hidden');
 
-    if (toolName === 'pen') {
+    // Tools that require Color Palette:
+    const toolsWithColor = ['pen', 'highlighter', 'line', 'arrow', 'rect', 'circle', 'text', 'callout', 'step'];
+    if (toolsWithColor.includes(toolName)) {
       if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
+    } else {
+      // Close custom color picker popover if open
+      if (colorPicker && typeof colorPicker.close === 'function') {
+        colorPicker.close();
+      }
+    }
+
+    // Tool-specific Option Groups
+    if (toolName === 'pen') {
       if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
       if (penTypeOptionGroup) penTypeOptionGroup.classList.remove('hidden');
+    } else if (toolName === 'highlighter') {
+      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
     } else if (toolName === 'blur') {
       if (blurOptionGroup) blurOptionGroup.classList.remove('hidden');
     } else if (toolName === 'spotlight') {
-      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
-      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
       if (spotlightOptionGroup) spotlightOptionGroup.classList.remove('hidden');
     } else if (toolName === 'magnifier') {
-      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
-      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
       if (magnifierOptionGroup) magnifierOptionGroup.classList.remove('hidden');
     } else if (toolName === 'stamp') {
       if (stampOptionGroup) stampOptionGroup.classList.remove('hidden');
       renderStampCatalog(activeStampCategory);
     } else if (toolName === 'text') {
-      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
       if (textSizeOptionGroup) textSizeOptionGroup.classList.remove('hidden');
     } else if (toolName === 'callout') {
-      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
       if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
       if (textSizeOptionGroup) textSizeOptionGroup.classList.remove('hidden');
     } else if (toolName === 'step') {
-      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
-      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
       if (stepOptionGroup) stepOptionGroup.classList.remove('hidden');
       updateStepBadgePreview();
     } else if (toolName === 'line' || toolName === 'arrow' || toolName === 'rect' || toolName === 'circle') {
-      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
       if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
       if (lineStyleOptionGroup) {
         lineStyleOptionGroup.classList.remove('hidden');
@@ -422,12 +426,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           }
         }
       }
-    } else if (toolName === 'select' || toolName === 'pan') {
-      // No extra tool options needed
-    } else {
-      // Highlighter etc.
-      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
-      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
+    } else if (toolName === 'select' || toolName === 'pan' || toolName === 'eraser') {
+      // Clean workspace: No extra options needed
     }
 
     if (toolName !== 'text' && toolName !== 'callout') {
@@ -792,6 +792,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       activeTextBg = textBgCheckbox.checked;
     });
   }
+
+  // Set initial tool options & palette visibility
+  setActiveTool(activeTool);
 
   // --- 4. INTERACTIVE DRAWING & ANNOTATION ENGINE ---
   overlayCanvas.addEventListener('mousedown', (e) => {
