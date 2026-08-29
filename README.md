@@ -59,10 +59,10 @@ Most screenshot and screen-recording extensions share the same recurring headach
   - Automatically scans and redacts sensitive data using regular expressions and the **Luhn Mod-10 algorithm** (Credit Cards, E-mail addresses, API keys, IP addresses, and National IDs).
 - **🔦 Spotlight Focus Frame (<kbd>F</kbd>)**: Highlights a focal region with a glowing neon frame while dimming the background stage by 65%.
 - **🔍 3D Glass Magnifier Lens (<kbd>Z</kbd>)**: Realistic 1.5x - 4.0x optical zoom loupe with authentic specular glare reflection.
-- **🏷️ QA Stamps & 3D Keycaps (<kbd>E</kbd>)**: Vector quality stamps (`[APPROVED]`, `[REJECTED]`, `[BUG]`, `[WIP]`) and isometric 3D keyboard keys (`[Ctrl]`, `[Cmd]`, `[Shift]`).
-- **🧽 Smart Object Eraser**: Click or drag across any vector arrow, text, shape, or stamp to selectively erase items without losing history.
+- **🏷️ QA Stamps & 3D Keycaps (<kbd>K</kbd>)**: Vector quality stamps (`[APPROVED]`, `[REJECTED]`, `[BUG]`, `[WIP]`) and isometric 3D keyboard keys (`[Ctrl]`, `[Cmd]`, `[Shift]`).
+- **🧽 Smart Object Eraser (<kbd>E</kbd>)**: Click or drag across any vector arrow, text, shape, or stamp to selectively erase items without losing history.
 - **🎨 2D HSV Professional Color Studio**: Interactive 2D HSV saturation/value box, hue slider, built-in EyeDropper API, and a 2-row color palette.
-- **✏️ Vector Drawing Suite**: Solid continuous ribbon pen, translucent highlighter, Bézier curved single/double arrows, auto-incrementing step counters (#1, #2, #3...), and frosted glass callouts.
+- **✏️ 4-Mode Vector Drawing Suite**: Ballpoint pen, smooth calligraphy ribbon, neon glow brush, textured sketch pencil, translucent highlighter, Bézier curved arrows, and auto-incrementing step counters (#1, #2, #3...).
 - **🖨️ Multi-Format Exporters**: Lossless Retina 1:1 PNG, compressed JPEG, WebP, instant ClipboardItem copy, and zero-dependency UTF-8 PDF 1.4 generation.
 
 ---
@@ -103,7 +103,8 @@ Most screenshot and screen-recording extensions share the same recurring headach
 | <kbd>Shift</kbd> + <kbd>B</kbd> | Image Studio | 🛡️ Trigger DLP Auto-Censor |
 | <kbd>F</kbd> | Image Studio | 🔦 Activate Spotlight Focus Tool |
 | <kbd>Z</kbd> | Image Studio | 🔍 Activate Optical Glass Magnifier |
-| <kbd>E</kbd> | Image Studio | 🏷️ Open QA Stamps & Keycaps Drawer |
+| <kbd>E</kbd> | Image Studio | 🧽 Activate Smart Object Eraser |
+| <kbd>K</kbd> | Image Studio | 🏷️ Open QA Stamps & Keycaps Drawer |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | Image Studio | ↩️ Undo / Redo |
 | <kbd>Space</kbd> + <kbd>Drag</kbd> | Image Studio | ✋ Pan across Canvas Stage |
 
@@ -217,10 +218,10 @@ Mevcut ekran görüntüsü ve video kayıt araçlarının büyük çoğunluğu b
   - Regex ve **Luhn Mod-10 algoritmasıyla** Kredi Kartı numaralarını, E-postaları, API Key'leri, IP adreslerini ve TC Kimlik Numaralarını otomatik tespit edip sansürler.
 - **🔦 Spotlight Odak Aracı (<kbd>F</kbd>)**: Seçilen bölgeyi neon çerçeveyle net bırakırken arka planı %65 oranında karartır.
 - **🔍 3D Cam Büyüteç Merceği (<kbd>Z</kbd>)**: 1.5x - 4.0x optik yakınlaştırma sunan yansıma efektli cam büyüteç merceği.
-- **🏷️ QA Damgaları & 3D Klavye Tuşları (<kbd>E</kbd>)**: Vektörel kalite mühürleri (`[APPROVED]`, `[REJECTED]`, `[BUG]`) ve 3D klavye tuşları (`[Ctrl]`, `[Cmd]`, `[Shift]`).
-- **🧽 Akıllı Nesne Silgisi**: Tuval üzerindeki ok, metin, şekil veya damgaları geçmişi bozmadan tek tıkla siler.
-- **🎨 2D HSV Profesyonel Renk Stüdyosu**: 2D doygunluk/parlaklık alanı, renk tonu kaydırıcısı, dahili tarayıcı pipeti (EyeDropper) ve 2 satırlı renk paleti.
-- **✏️ Vektörel Çizim Paketi**: Kaligrafi şerit fırçası, fosforlu vurgulayıcı, Bézier kavisli oklar, otomatik artan adım sayaçları (#1, #2, #3...) ve buzlu cam konuşma balonları.
+- **🏷️ QA Damgaları & 3D Klavye Tuşları (<kbd>K</kbd>)**: Vektörel kalite mühürleri (`[APPROVED]`, `[REJECTED]`, `[BUG]`) ve 3D klavye tuşları (`[Ctrl]`, `[Cmd]`, `[Shift]`).
+- **🧽 Akıllı Nesne Silgisi (<kbd>E</kbd>)**: Tuval üzerindeki ok, metin, şekil veya damgaları geçmişi bozmadan tek tıkla siler.
+- **🎨 2D HSV Profesyonel Renk Stüdyosu**: 2D doygunluk/parlaklık alanı, renk tonu kaydırıcısı, dahili tarayıcı pipeti (EyeDropper) ve 2 satırlı pro renk paleti.
+- **✏️ 4 Modlu Vektörel Çizim Paketi**: Tükenmez kalem, dolma kalem (kaligrafi şeridi), neon ışıltılı kalem, kurşun eskiz kalemi, fosforlu vurgulayıcı, Bézier kavisli oklar ve otomatik artan adım sayaçları (#1, #2, #3...).
 - **🖨️ Çoklu Format İhracı**: Retina 1:1 PNG, JPEG, WebP, doğrudan panoya kopyalama ve Türkçe UTF-8 destekli sıfır bağımlılıklı PDF 1.4 üretimi.
 
 ---
@@ -261,7 +262,8 @@ Mevcut ekran görüntüsü ve video kayıt araçlarının büyük çoğunluğu b
 | <kbd>Shift</kbd> + <kbd>B</kbd> | Görsel Stüdyosu | 🛡️ Otomatik DLP Hassas Veri Sansürleme |
 | <kbd>F</kbd> | Görsel Stüdyosu | 🔦 Spotlight Odak Vurgusu |
 | <kbd>Z</kbd> | Görsel Stüdyosu | 🔍 Cam Büyüteç Merceği |
-| <kbd>E</kbd> | Görsel Stüdyosu | 🏷️ QA Damgaları & Tuş Başlıkları Menüsü |
+| <kbd>E</kbd> | Görsel Stüdyosu | 🧽 Akıllı Nesne Silgisi |
+| <kbd>K</kbd> | Görsel Stüdyosu | 🏷️ QA Damgaları & Tuş Başlıkları Menüsü |
 | <kbd>Ctrl</kbd> + <kbd>Z</kbd> / <kbd>Ctrl</kbd> + <kbd>Y</kbd> | Görsel Stüdyosu | ↩️ Geri Al / İleri Al |
 | <kbd>Space</kbd> + <kbd>Sürükle</kbd> | Görsel Stüdyosu | ✋ Tuvalde Serbest Gezinme (Pan) |
 
