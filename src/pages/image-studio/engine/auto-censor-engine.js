@@ -318,9 +318,10 @@
               category = 'network';
             }
 
-            // Deduplicate overlapping regions
+            // Deduplicate overlapping or fully contained regions
             const overlaps = regions.some(r => 
-              Math.abs(r.x1 - x1) < 25 && Math.abs(r.y1 - y1) < 18
+              (Math.abs(r.x1 - x1) < 25 && Math.abs(r.y1 - y1) < 18) ||
+              (x1 >= r.x1 - 5 && x2 <= r.x2 + 5 && y1 >= r.y1 - 5 && y2 <= r.y2 + 5)
             );
 
             if (!overlaps) {
