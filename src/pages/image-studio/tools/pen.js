@@ -34,38 +34,92 @@
   }
 
   /**
-   * Draw calligraphy / chisel-nib stroke with dynamic angle thickness.
+   * Draw calligraphy / chisel-nib stroke as a single continuous closed ribbon contour.
+   * Eliminates polygon quadrilateral sub-pixel seams, raster gaps, and interior transparency.
    */
   function drawCalligraphyStroke(ctx, points, color, width, alpha = 1.0) {
-    if (points.length < 2) {
-      ctx.beginPath();
-      ctx.arc(points[0].x, points[0].y, width / 2, 0, Math.PI * 2);
+    if (!points || points.length === 0) return;
+    if (points.length === 1) {
+      ctx.save();
       ctx.fillStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.arc(points[0].x, points[0].y, Math.max(1.5, width / 2), 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
       return;
     }
 
-    const angle = Math.PI / 4; // 45° chisel angle
-    const hw = width / 2;
+    const angle = Math.PI / 4; // 45° fixed chisel-tip angle
+    const hw = Math.max(1.5, width / 2);
     const nx = Math.cos(angle) * hw;
     const ny = Math.sin(angle) * hw;
 
+    const leftPoints = [];
+    const rightPoints = [];
+
+    for (let i = 0; i < points.length; i++) {
+      leftPoints.push({ x: points[i].x - nx, y: points[i].y - ny });
+      rightPoints.push({ x: points[i].x + nx, y: points[i].y + ny });
+    }
+
     ctx.save();
     ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 0.8;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     ctx.globalAlpha = alpha;
 
-    for (let i = 0; i < points.length - 1; i++) {
-      const p1 = points[i];
-      const p2 = points[i + 1];
+    ctx.beginPath();
+    // 1. Forward pass along Left ribbon edge with Bézier smoothing
+    ctx.moveTo(leftPoints[0].x, leftPoints[0].y);
+    if (leftPoints.length === 2) {
+      ctx.lineTo(leftPoints[1].x, leftPoints[1].y);
+    } else {
+      const firstMidX = (leftPoints[0].x + leftPoints[1].x) / 2;
+      const firstMidY = (leftPoints[0].y + leftPoints[1].y) / 2;
+      ctx.lineTo(firstMidX, firstMidY);
 
-      ctx.beginPath();
-      ctx.moveTo(p1.x - nx, p1.y - ny);
-      ctx.lineTo(p1.x + nx, p1.y + ny);
-      ctx.lineTo(p2.x + nx, p2.y + ny);
-      ctx.lineTo(p2.x - nx, p2.y - ny);
-      ctx.closePath();
-      ctx.fill();
+      for (let i = 1; i < leftPoints.length - 1; i++) {
+        const midX = (leftPoints[i].x + leftPoints[i + 1].x) / 2;
+        const midY = (leftPoints[i].y + leftPoints[i + 1].y) / 2;
+        ctx.quadraticCurveTo(leftPoints[i].x, leftPoints[i].y, midX, midY);
+      }
+      ctx.lineTo(leftPoints[leftPoints.length - 1].x, leftPoints[leftPoints.length - 1].y);
     }
+
+    // 2. Chisel nib tip at end
+    const lastR = rightPoints[rightPoints.length - 1];
+    ctx.lineTo(lastR.x, lastR.y);
+
+    // 3. Backward pass along Right ribbon edge with Bézier smoothing
+    if (rightPoints.length === 2) {
+      ctx.lineTo(rightPoints[0].x, rightPoints[0].y);
+    } else {
+      const lastMidX = (rightPoints[rightPoints.length - 1].x + rightPoints[rightPoints.length - 2].x) / 2;
+      const lastMidY = (rightPoints[rightPoints.length - 1].y + rightPoints[rightPoints.length - 2].y) / 2;
+      ctx.lineTo(lastMidX, lastMidY);
+
+      for (let i = rightPoints.length - 2; i > 0; i--) {
+        const midX = (rightPoints[i].x + rightPoints[i - 1].x) / 2;
+        const midY = (rightPoints[i].y + rightPoints[i - 1].y) / 2;
+        ctx.quadraticCurveTo(rightPoints[i].x, rightPoints[i].y, midX, midY);
+      }
+      ctx.lineTo(rightPoints[0].x, rightPoints[0].y);
+    }
+
+    // 4. Close path back to start
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 5. Fill start and end chisel nibs to ensure 100% solid caps
+    ctx.beginPath();
+    ctx.arc(points[0].x, points[0].y, Math.max(0.5, hw * 0.4), 0, Math.PI * 2);
+    ctx.arc(points[points.length - 1].x, points[points.length - 1].y, Math.max(0.5, hw * 0.4), 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
   }
 
