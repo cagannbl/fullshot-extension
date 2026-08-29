@@ -263,6 +263,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           'src/content/hud/quick-bar-hud.js',
           'src/content/hud/area-selector.js',
           'src/content/hud/element-picker.js',
+          'src/content/hud/pin-window.js',
+          'src/content/hud/pixel-ruler.js',
           'src/content/hud/recording-bar.js',
           'src/content/hud/countdown-hud.js',
           'src/content/capture/dom-measurer.js',
@@ -293,6 +295,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (formatSelect) formatSelect.addEventListener('change', saveScreenshotSettings);
   if (delaySelect) delaySelect.addEventListener('change', saveScreenshotSettings);
   if (hideFixedCheckbox) hideFixedCheckbox.addEventListener('change', saveScreenshotSettings);
+  
+  if (startPixelRulerBtn) {
+    startPixelRulerBtn.addEventListener('click', async () => {
+      const tab = await getActiveTabAndInject();
+      chrome.tabs.sendMessage(tab.id, { action: 'startPixelRuler' });
+      window.close();
+    });
+  }
 
   // Helper: Status message bar
   function showError(msg) {
@@ -310,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function setScreenshotButtonsBusy(isBusy) {
-    [captureFullPageBtn, captureVisibleBtn, captureElementBtn, captureSelectedBtn].forEach(btn => {
+    [captureFullPageBtn, captureVisibleBtn, captureElementBtn, captureSelectedBtn, startPixelRulerBtn].forEach(btn => {
       if (btn) {
         btn.disabled = isBusy;
         btn.style.opacity = isBusy ? '0.6' : '1';
