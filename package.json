@@ -5,7 +5,8 @@
   "main": "src/background/background.js",
   "type": "module",
   "scripts": {
-    "test": "node scripts/validate.js",
+    "test": "node scripts/validate.js && node scripts/test-unit.js && node scripts/browser-test.js",
+    "test:unit": "node scripts/test-unit.js",
     "test:browser": "node scripts/browser-test.js",
     "validate": "node scripts/validate.js",
     "build:zip": "node scripts/package-zip.js"

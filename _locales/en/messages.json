@@ -1,0 +1,274 @@
+{
+  "appName": {
+    "message": "FullShot Pro - Full Page Screenshot & Screen Recorder",
+    "description": "The name of the extension."
+  },
+  "appDesc": {
+    "message": "Capture full page screenshots, visible areas, or custom crops. Record screen and audio into WebM/MP4, edit in 2D/3D studio, and export to PDF/PNG.",
+    "description": "The description of the extension."
+  },
+  "cmdCaptureFullpage": {
+    "message": "Capture Full Page Screenshot",
+    "description": "Command to capture full page screenshot"
+  },
+  "cmdCaptureVisible": {
+    "message": "Capture Visible Viewport Area",
+    "description": "Command to capture visible area"
+  },
+  "cmdCaptureSelected": {
+    "message": "Capture Selected Crop Area",
+    "description": "Command to capture crop area"
+  },
+  "cmdCaptureElement": {
+    "message": "Capture DOM Element or Section",
+    "description": "Command to capture element"
+  },
+  "cmdToggleRecord": {
+    "message": "Start or Stop Screen Video Recording",
+    "description": "Command to toggle screen video recording"
+  },
+  "popupCaptureScreen": {
+    "message": "Screenshot",
+    "description": "Popup screenshot tab label"
+  },
+  "popupRecordVideo": {
+    "message": "Video Record",
+    "description": "Popup video record tab label"
+  },
+  "popupFullPage": {
+    "message": "Full Page",
+    "description": "Full page capture button"
+  },
+  "popupFullPageDesc": {
+    "message": "Auto-scroll & stitch whole page",
+    "description": "Full page capture description"
+  },
+  "popupVisibleArea": {
+    "message": "Visible Area",
+    "description": "Visible viewport capture button"
+  },
+  "popupVisibleAreaDesc": {
+    "message": "Instant capture of current screen",
+    "description": "Visible viewport capture description"
+  },
+  "popupSelectedArea": {
+    "message": "Selected Area",
+    "description": "Crop area capture button"
+  },
+  "popupSelectedAreaDesc": {
+    "message": "Precision crop with 8x magnifier",
+    "description": "Crop area capture description"
+  },
+  "popupElementPicker": {
+    "message": "Element Picker",
+    "description": "Element picker capture button"
+  },
+  "popupElementPickerDesc": {
+    "message": "1-click DOM element capture",
+    "description": "Element picker capture description"
+  },
+  "popupPixelRuler": {
+    "message": "Pixel Ruler",
+    "description": "Pixel ruler tool button"
+  },
+  "popupPixelRulerDesc": {
+    "message": "Figma-style CSS element distance measurement",
+    "description": "Pixel ruler description"
+  },
+  "popupStartRecording": {
+    "message": "Start Recording",
+    "description": "Start recording button"
+  },
+  "popupStopRecording": {
+    "message": "Stop Recording",
+    "description": "Stop recording button"
+  },
+  "popupWebcamOverlay": {
+    "message": "Facecam Bubble",
+    "description": "Camera bubble toggle label"
+  },
+  "popupMicAudio": {
+    "message": "Microphone Audio",
+    "description": "Microphone audio toggle label"
+  },
+  "popupTabAudio": {
+    "message": "Tab / System Audio",
+    "description": "Tab audio toggle label"
+  },
+  "popupCursorEffects": {
+    "message": "Click Shockwaves & Spotlight",
+    "description": "Cursor effects toggle label"
+  },
+  "popupCountdown": {
+    "message": "3s Countdown Timer",
+    "description": "Countdown toggle label"
+  },
+  "popupSettings": {
+    "message": "Settings",
+    "description": "Settings button tooltip"
+  },
+  "popupShortcuts": {
+    "message": "Keyboard Shortcuts",
+    "description": "Keyboard shortcuts button tooltip"
+  },
+  "studioTitle": {
+    "message": "FullShot Pro - Markup & Preview Studio",
+    "description": "Studio page document title"
+  },
+  "studioLoading": {
+    "message": "Loading...",
+    "description": "Loading state label"
+  },
+  "studioZoomIn": {
+    "message": "Zoom In",
+    "description": "Zoom in button tooltip"
+  },
+  "studioZoomOut": {
+    "message": "Zoom Out",
+    "description": "Zoom out button tooltip"
+  },
+  "studioFitScreen": {
+    "message": "Fit to Screen",
+    "description": "Fit to screen button tooltip"
+  },
+  "studioActualSize": {
+    "message": "Actual Size (100%)",
+    "description": "Actual size button tooltip"
+  },
+  "studioUndo": {
+    "message": "Undo",
+    "description": "Undo button tooltip"
+  },
+  "studioRedo": {
+    "message": "Redo",
+    "description": "Redo button tooltip"
+  },
+  "studioClearAll": {
+    "message": "Clear Canvas",
+    "description": "Clear all annotations button"
+  },
+  "studioCopy": {
+    "message": "Copy",
+    "description": "Copy to clipboard button label"
+  },
+  "studioCopied": {
+    "message": "Copied!",
+    "description": "Copied toast text"
+  },
+  "studioExport": {
+    "message": "Export",
+    "description": "Export dropdown button label"
+  },
+  "studioPngHd": {
+    "message": "Download PNG (HD)",
+    "description": "Download PNG button label"
+  },
+  "studioPngHdDesc": {
+    "message": "Lossless, original crisp quality",
+    "description": "Download PNG description"
+  },
+  "studioJpg": {
+    "message": "Download JPG",
+    "description": "Download JPG button label"
+  },
+  "studioJpgDesc": {
+    "message": "Small file size, fast sharing",
+    "description": "Download JPG description"
+  },
+  "studioWebp": {
+    "message": "Download WebP",
+    "description": "Download WebP button label"
+  },
+  "studioWebpDesc": {
+    "message": "Modern compression, ultra light",
+    "description": "Download WebP description"
+  },
+  "studioSinglePdf": {
+    "message": "Single Page PDF",
+    "description": "Download single page PDF button label"
+  },
+  "studioSinglePdfDesc": {
+    "message": "Original aspect ratio in one page",
+    "description": "Download single page PDF description"
+  },
+  "studioMultiPdf": {
+    "message": "Multi-Page A4 PDF",
+    "description": "Download multi-page PDF button label"
+  },
+  "studioMultiPdfDesc": {
+    "message": "Divided into printable A4 pages",
+    "description": "Download multi-page PDF description"
+  },
+  "studioAutoCensor": {
+    "message": "Auto-Censor (DLP)",
+    "description": "Auto-censor button label"
+  },
+  "studioWatermark": {
+    "message": "Watermark",
+    "description": "Watermark modal button label"
+  },
+  "studioMockup": {
+    "message": "3D Mockup",
+    "description": "3D mockup modal button label"
+  },
+  "studioLiveText": {
+    "message": "Live Text",
+    "description": "Live text badge label"
+  },
+  "studioTypePlaceholder": {
+    "message": "Type your text here... (Appears live on canvas)",
+    "description": "Text input placeholder"
+  },
+  "studioApply": {
+    "message": "Done",
+    "description": "Apply text button label"
+  },
+  "studioCancel": {
+    "message": "Cancel",
+    "description": "Cancel text button label"
+  },
+  "videoStudioTitle": {
+    "message": "FullShot Pro - Video Player & Trimming Studio",
+    "description": "Video studio document title"
+  },
+  "videoDownloadWebm": {
+    "message": "Download WebM",
+    "description": "Download WebM button label"
+  },
+  "videoDownloadMp4": {
+    "message": "Download MP4",
+    "description": "Download MP4 button label"
+  },
+  "videoDownloadGif": {
+    "message": "Export Animated GIF",
+    "description": "Download GIF button label"
+  },
+  "videoSnapshot": {
+    "message": "Take Snapshot",
+    "description": "Take video frame snapshot button label"
+  },
+  "videoSpecs": {
+    "message": "Technical Specs",
+    "description": "Video technical specs title"
+  },
+  "hudQuickBarCopy": {
+    "message": "Copy to Clipboard",
+    "description": "Quick bar copy button"
+  },
+  "hudQuickBarDownload": {
+    "message": "Direct Download",
+    "description": "Quick bar download button"
+  },
+  "hudQuickBarOcr": {
+    "message": "Copy Text (OCR)",
+    "description": "Quick bar OCR button"
+  },
+  "hudQuickBarStudio": {
+    "message": "Open in Studio",
+    "description": "Quick bar studio button"
+  },
+  "hudQuickBarPin": {
+    "message": "Pin to Screen",
+    "description": "Quick bar pin button"
+  }
+}

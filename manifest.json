@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "FullShot Pro - Tam Sayfa Ekran Görüntüsü & Video Kaydedici",
+  "default_locale": "en",
+  "name": "__MSG_appName__",
   "version": "1.2.0",
-  "description": "Web sayfalarının tamamını veya seçili bölgesini yakalayın; sekme, ekran ve ses kaydı alarak WebM/MP4 veya PDF/PNG olarak kaydedin.",
+  "description": "__MSG_appDesc__",
   "permissions": [
     "activeTab",
     "scripting",
@@ -23,35 +24,35 @@
         "default": "Alt+Shift+F",
         "mac": "Alt+Shift+F"
       },
-      "description": "Tam Sayfa Ekran Görüntüsü Yakala"
+      "description": "__MSG_cmdCaptureFullpage__"
     },
     "capture-visible": {
       "suggested_key": {
         "default": "Alt+Shift+V",
         "mac": "Alt+Shift+V"
       },
-      "description": "Görünür Alanı Yakala"
+      "description": "__MSG_cmdCaptureVisible__"
     },
     "capture-selected": {
       "suggested_key": {
         "default": "Alt+Shift+S",
         "mac": "Alt+Shift+S"
       },
-      "description": "Seçili Alanı Yakala"
+      "description": "__MSG_cmdCaptureSelected__"
     },
     "capture-element": {
       "suggested_key": {
         "default": "Alt+Shift+E",
         "mac": "Alt+Shift+E"
       },
-      "description": "Öğe / Bölüm Yakala"
+      "description": "__MSG_cmdCaptureElement__"
     },
     "toggle-record": {
       "suggested_key": {
         "default": "Alt+Shift+R",
         "mac": "Alt+Shift+R"
       },
-      "description": "Ekran / Sekme Video Kaydını Başlat veya Durdur"
+      "description": "__MSG_cmdToggleRecord__"
     }
   },
   "action": {

@@ -8,6 +8,10 @@ This document is the **single source of truth** for AI assistants (Antigravity, 
 
 ```
 c:\Users\cagan\Desktop\chrome ss\
+├── _locales/                                # Chrome i18n localization dictionaries
+│   ├── en/messages.json                     # English default store & UI messages
+│   └── tr/messages.json                     # Turkish localized store & UI messages
+│
 ├── manifest.json                            # Manifest V3 entry point, permissions, commands & web resources
 ├── package.json                             # Tooling scripts (npm test / npm run validate / npm run build:zip)
 ├── README.md                                # Human-facing introduction & features overview
@@ -24,9 +28,10 @@ c:\Users\cagan\Desktop\chrome ss\
 │   └── FullShot-Pro-Extension.zip           # Compiled release package for Chrome Web Store
 │
 ├── scripts/                                 # Developer & CI/CD automation scripts
-│   ├── validate.js                          # 126+ check zero-dependency syntax & link integrity runner
-│   ├── package-zip.js                       # Production zip bundle packager
-│   └── browser-test.js                      # Headless Chromium browser automation test runner
+│   ├── validate.js                          # 154+ check zero-dependency syntax, link integrity & WAR runner
+│   ├── test-unit.js                         # DLP, ActionStack, EBML, PDF, DB & i18n behavioral unit test runner
+│   ├── browser-test.js                      # Headless Chromium browser automation test runner
+│   └── package-zip.js                       # Production zip bundle packager
 │
 └── src/                                     # Modulated application source code
     ├── background/
@@ -67,6 +72,9 @@ c:\Users\cagan\Desktop\chrome ss\
     │   │   ├── image-studio.html            # Main markup studio markup & modals (3D Mockup, Watermark, Shortcuts)
     │   │   ├── image-studio.css             # Fixed 250px sidebar, centered stage, zero-scrollbar
     │   │   ├── image-studio.js              # Coordinator: tools dispatcher, layer rendering, zoom/pan events
+    │   │   ├── studio-state.js              # Single source of truth for active tool & parameters
+    │   │   ├── studio-events.js             # Canvas pointer events & real-time live text typing engine
+    │   │   ├── studio-modals.js             # 3D Mockup, Watermark, Shortcuts modals & Toast notifications
     │   │   │
     │   │   ├── engine/                      # Core Canvas Micro-Engines
     │   │   │   ├── auto-censor-engine.js    # Regex & Luhn Mod-10 DLP auto-censor (credit cards, emails, API keys)
@@ -103,7 +111,8 @@ c:\Users\cagan\Desktop\chrome ss\
     │
     └── shared/                              # Reusable cross-boundary utilities
         ├── constants.js                     # Message actions, storage keys, ports, default options
-        └── db.js                            # FullShotMediaDB v2: IndexedDB for captures & recordings
+        ├── db.js                            # FullShotMediaDB v2: IndexedDB for captures & recordings
+        └── i18n.js                          # window.FullShotI18N: Universal translation & DOM localizer
 ```
 
 ---

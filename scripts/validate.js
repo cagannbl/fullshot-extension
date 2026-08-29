@@ -172,10 +172,14 @@ if (fs.existsSync(manifestPath)) {
       logFail('Manifest missing commands section');
     }
 
-    // Web Accessible Resources check
+    // Web Accessible Resources check (Strict Attack Surface Hardening)
     if (Array.isArray(manifest.web_accessible_resources)) {
+      let srcLeaked = false;
       manifest.web_accessible_resources.forEach((war) => {
         war.resources?.forEach((res) => {
+          if (res.startsWith('src/')) {
+            srcLeaked = true;
+          }
           if (!res.includes('*')) {
             const resPath = path.join(ROOT_DIR, res);
             if (fs.existsSync(resPath)) {
@@ -186,6 +190,11 @@ if (fs.existsSync(manifestPath)) {
           }
         });
       });
+      if (!srcLeaked) {
+        logPass('Web Accessible Resources strictly hardened (zero internal src/* leaks)');
+      } else {
+        logFail('Web Accessible Resources contains internal src/* paths');
+      }
       logPass('Web accessible resources configured');
     }
   } catch (err) {

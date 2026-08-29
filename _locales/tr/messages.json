@@ -1,0 +1,274 @@
+{
+  "appName": {
+    "message": "FullShot Pro - Tam Sayfa Ekran Görüntüsü & Video Kaydedici",
+    "description": "The name of the extension in Turkish."
+  },
+  "appDesc": {
+    "message": "Web sayfalarının tamamını veya seçili bölgesini yakalayın; sekme, ekran ve ses kaydı alarak WebM/MP4 veya PDF/PNG olarak kaydedin.",
+    "description": "The description of the extension in Turkish."
+  },
+  "cmdCaptureFullpage": {
+    "message": "Tam Sayfa Ekran Görüntüsü Yakala",
+    "description": "Command to capture full page in Turkish"
+  },
+  "cmdCaptureVisible": {
+    "message": "Görünür Alanı Yakala",
+    "description": "Command to capture visible area in Turkish"
+  },
+  "cmdCaptureSelected": {
+    "message": "Seçili Alanı Yakala",
+    "description": "Command to capture crop area in Turkish"
+  },
+  "cmdCaptureElement": {
+    "message": "Öğe / Bölüm Yakala",
+    "description": "Command to capture element in Turkish"
+  },
+  "cmdToggleRecord": {
+    "message": "Ekran / Sekme Video Kaydını Başlat veya Durdur",
+    "description": "Command to toggle video recording in Turkish"
+  },
+  "popupCaptureScreen": {
+    "message": "Ekran Resmi",
+    "description": "Popup screenshot tab label in Turkish"
+  },
+  "popupRecordVideo": {
+    "message": "Video Kaydı",
+    "description": "Popup video record tab label in Turkish"
+  },
+  "popupFullPage": {
+    "message": "Tam Sayfa",
+    "description": "Full page capture button in Turkish"
+  },
+  "popupFullPageDesc": {
+    "message": "Otomatik kaydır ve tüm sayfayı birleştir",
+    "description": "Full page capture description in Turkish"
+  },
+  "popupVisibleArea": {
+    "message": "Görünür Alan",
+    "description": "Visible viewport capture button in Turkish"
+  },
+  "popupVisibleAreaDesc": {
+    "message": "Mevcut ekranın anlık görüntüsü",
+    "description": "Visible viewport capture description in Turkish"
+  },
+  "popupSelectedArea": {
+    "message": "Seçili Alan",
+    "description": "Crop area capture button in Turkish"
+  },
+  "popupSelectedAreaDesc": {
+    "message": "8x büyüteç ile hassas kırpma",
+    "description": "Crop area capture description in Turkish"
+  },
+  "popupElementPicker": {
+    "message": "Öğe Seçici",
+    "description": "Element picker capture button in Turkish"
+  },
+  "popupElementPickerDesc": {
+    "message": "Tek tıkla DOM öğesi yakalama",
+    "description": "Element picker capture description in Turkish"
+  },
+  "popupPixelRuler": {
+    "message": "Piksel Cetveli",
+    "description": "Pixel ruler tool button in Turkish"
+  },
+  "popupPixelRulerDesc": {
+    "message": "Figma tarzı CSS öğe mesafe ölçümü",
+    "description": "Pixel ruler description in Turkish"
+  },
+  "popupStartRecording": {
+    "message": "Kaydı Başlat",
+    "description": "Start recording button in Turkish"
+  },
+  "popupStopRecording": {
+    "message": "Kaydı Durdur",
+    "description": "Stop recording button in Turkish"
+  },
+  "popupWebcamOverlay": {
+    "message": "Webcam Baloncuğu",
+    "description": "Camera bubble toggle label in Turkish"
+  },
+  "popupMicAudio": {
+    "message": "Mikrofon Sesi",
+    "description": "Microphone audio toggle label in Turkish"
+  },
+  "popupTabAudio": {
+    "message": "Sekme / Sistem Sesi",
+    "description": "Tab audio toggle label in Turkish"
+  },
+  "popupCursorEffects": {
+    "message": "Tıklama Dalgaları & Spot",
+    "description": "Cursor effects toggle label in Turkish"
+  },
+  "popupCountdown": {
+    "message": "3sn Geri Sayım",
+    "description": "Countdown toggle label in Turkish"
+  },
+  "popupSettings": {
+    "message": "Ayarlar",
+    "description": "Settings button tooltip in Turkish"
+  },
+  "popupShortcuts": {
+    "message": "Klavye Kısayolları",
+    "description": "Keyboard shortcuts button tooltip in Turkish"
+  },
+  "studioTitle": {
+    "message": "FullShot Pro - Düzenleme & Önizleme Stüdyosu",
+    "description": "Studio page document title in Turkish"
+  },
+  "studioLoading": {
+    "message": "Yükleniyor...",
+    "description": "Loading state label in Turkish"
+  },
+  "studioZoomIn": {
+    "message": "Yakınlaştır",
+    "description": "Zoom in button tooltip in Turkish"
+  },
+  "studioZoomOut": {
+    "message": "Uzaklaştır",
+    "description": "Zoom out button tooltip in Turkish"
+  },
+  "studioFitScreen": {
+    "message": "Ekrana Sığdır",
+    "description": "Fit to screen button tooltip in Turkish"
+  },
+  "studioActualSize": {
+    "message": "Gerçek Boyut (%100)",
+    "description": "Actual size button tooltip in Turkish"
+  },
+  "studioUndo": {
+    "message": "Geri Al",
+    "description": "Undo button tooltip in Turkish"
+  },
+  "studioRedo": {
+    "message": "İleri Al",
+    "description": "Redo button tooltip in Turkish"
+  },
+  "studioClearAll": {
+    "message": "Tuvali Temizle",
+    "description": "Clear all annotations button in Turkish"
+  },
+  "studioCopy": {
+    "message": "Kopyala",
+    "description": "Copy to clipboard button label in Turkish"
+  },
+  "studioCopied": {
+    "message": "Kopyalandı!",
+    "description": "Copied toast text in Turkish"
+  },
+  "studioExport": {
+    "message": "Dışa Aktar",
+    "description": "Export dropdown button label in Turkish"
+  },
+  "studioPngHd": {
+    "message": "PNG İndir (HD)",
+    "description": "Download PNG button label in Turkish"
+  },
+  "studioPngHdDesc": {
+    "message": "Kayıpsız, net orijinal kalite",
+    "description": "Download PNG description in Turkish"
+  },
+  "studioJpg": {
+    "message": "JPG İndir",
+    "description": "Download JPG button label in Turkish"
+  },
+  "studioJpgDesc": {
+    "message": "Küçük dosya boyutu, hızlı paylaşım",
+    "description": "Download JPG description in Turkish"
+  },
+  "studioWebp": {
+    "message": "WebP İndir",
+    "description": "Download WebP button label in Turkish"
+  },
+  "studioWebpDesc": {
+    "message": "Modern sıkıştırma, ultra hafif",
+    "description": "Download WebP description in Turkish"
+  },
+  "studioSinglePdf": {
+    "message": "Tek Sayfa PDF",
+    "description": "Download single page PDF button label in Turkish"
+  },
+  "studioSinglePdfDesc": {
+    "message": "Orijinal en/boy oranında tek parça",
+    "description": "Download single page PDF description in Turkish"
+  },
+  "studioMultiPdf": {
+    "message": "Çok Sayfalı A4 PDF",
+    "description": "Download multi-page PDF button label in Turkish"
+  },
+  "studioMultiPdfDesc": {
+    "message": "Yazdırılabilir A4 sayfalarına bölünmüş",
+    "description": "Download multi-page PDF description in Turkish"
+  },
+  "studioAutoCensor": {
+    "message": "Akıllı Sansür (DLP)",
+    "description": "Auto-censor button label in Turkish"
+  },
+  "studioWatermark": {
+    "message": "Damga / Filigran",
+    "description": "Watermark modal button label in Turkish"
+  },
+  "studioMockup": {
+    "message": "3D Mockup",
+    "description": "3D mockup modal button label in Turkish"
+  },
+  "studioLiveText": {
+    "message": "Canlı Metin",
+    "description": "Live text badge label in Turkish"
+  },
+  "studioTypePlaceholder": {
+    "message": "Metninizi yazın... (Anlık tuvalde görünür)",
+    "description": "Text input placeholder in Turkish"
+  },
+  "studioApply": {
+    "message": "Tamamla",
+    "description": "Apply text button label in Turkish"
+  },
+  "studioCancel": {
+    "message": "İptal",
+    "description": "Cancel text button label in Turkish"
+  },
+  "videoStudioTitle": {
+    "message": "FullShot Pro - Video Önizleme & Oynatıcı Stüdyosu",
+    "description": "Video studio document title in Turkish"
+  },
+  "videoDownloadWebm": {
+    "message": "WebM İndir",
+    "description": "Download WebM button label in Turkish"
+  },
+  "videoDownloadMp4": {
+    "message": "MP4 İndir",
+    "description": "Download MP4 button label in Turkish"
+  },
+  "videoDownloadGif": {
+    "message": "Animasyonlu GIF İndir",
+    "description": "Download GIF button label in Turkish"
+  },
+  "videoSnapshot": {
+    "message": "Kare Yakala",
+    "description": "Take video frame snapshot button label in Turkish"
+  },
+  "videoSpecs": {
+    "message": "Teknik Özellikler",
+    "description": "Video technical specs title in Turkish"
+  },
+  "hudQuickBarCopy": {
+    "message": "Panoya Kopyala",
+    "description": "Quick bar copy button in Turkish"
+  },
+  "hudQuickBarDownload": {
+    "message": "Doğrudan İndir",
+    "description": "Quick bar download button in Turkish"
+  },
+  "hudQuickBarOcr": {
+    "message": "Metni Kopyala (OCR)",
+    "description": "Quick bar OCR button in Turkish"
+  },
+  "hudQuickBarStudio": {
+    "message": "Stüdyoda Aç",
+    "description": "Quick bar studio button in Turkish"
+  },
+  "hudQuickBarPin": {
+    "message": "Ekrana Sabitle",
+    "description": "Quick bar pin button in Turkish"
+  }
+}
