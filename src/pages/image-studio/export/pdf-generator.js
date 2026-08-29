@@ -266,6 +266,8 @@ async function generateMultiPageA4PDF(imgOrCanvas, title = 'FullShot Pro Ekran G
     sliceCanvas.width = imgWidth;
     sliceCanvas.height = currentSliceHeight;
     const sliceCtx = sliceCanvas.getContext('2d');
+    sliceCtx.imageSmoothingEnabled = true;
+    sliceCtx.imageSmoothingQuality = 'high';
     sliceCtx.fillStyle = '#ffffff';
     sliceCtx.fillRect(0, 0, imgWidth, currentSliceHeight);
 
@@ -275,7 +277,7 @@ async function generateMultiPageA4PDF(imgOrCanvas, title = 'FullShot Pro Ekran G
       0, 0, imgWidth, currentSliceHeight
     );
 
-    const jpegBytes = await canvasToJpegBytes(sliceCanvas, 0.94);
+    const jpegBytes = await canvasToJpegBytes(sliceCanvas, 0.98);
 
     // Image XObject
     const imgObj = builder.addObject({

@@ -301,11 +301,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Update Toolbar Button States
     toolButtons.forEach(btn => {
-      if (btn.dataset.tool === toolName) {
+      const isActive = btn.dataset.tool === toolName;
+      if (isActive) {
         btn.classList.add('active');
       } else {
         btn.classList.remove('active');
       }
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
     });
 
     updateCursor();
@@ -379,8 +381,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Color Swatch Selection
   colorSwatches.forEach(swatch => {
     swatch.addEventListener('click', () => {
-      colorSwatches.forEach(s => s.classList.remove('active'));
+      colorSwatches.forEach(s => {
+        s.classList.remove('active');
+        s.setAttribute('aria-checked', 'false');
+      });
       swatch.classList.add('active');
+      swatch.setAttribute('aria-checked', 'true');
       activeColor = swatch.dataset.color;
       updateStepBadgePreview();
     });
@@ -390,7 +396,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (customColorInput) {
     customColorInput.addEventListener('input', (e) => {
       activeColor = e.target.value;
-      colorSwatches.forEach(s => s.classList.remove('active'));
+      colorSwatches.forEach(s => {
+        s.classList.remove('active');
+        s.setAttribute('aria-checked', 'false');
+      });
       if (customColorIndicator) {
         customColorIndicator.style.backgroundColor = activeColor;
       }
@@ -401,8 +410,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Stroke Width Selection
   strokeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      strokeButtons.forEach(b => b.classList.remove('active'));
+      strokeButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
       activeStrokeWidth = parseInt(btn.dataset.width, 10);
     });
   });
@@ -411,14 +424,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (lineSolidBtn) {
     lineSolidBtn.addEventListener('click', () => {
       lineSolidBtn.classList.add('active');
-      if (lineDashedBtn) lineDashedBtn.classList.remove('active');
+      lineSolidBtn.setAttribute('aria-checked', 'true');
+      if (lineDashedBtn) {
+        lineDashedBtn.classList.remove('active');
+        lineDashedBtn.setAttribute('aria-checked', 'false');
+      }
       activeLineDashed = false;
     });
   }
   if (lineDashedBtn) {
     lineDashedBtn.addEventListener('click', () => {
       lineDashedBtn.classList.add('active');
-      if (lineSolidBtn) lineSolidBtn.classList.remove('active');
+      lineDashedBtn.setAttribute('aria-checked', 'true');
+      if (lineSolidBtn) {
+        lineSolidBtn.classList.remove('active');
+        lineSolidBtn.setAttribute('aria-checked', 'false');
+      }
       activeLineDashed = true;
     });
   }
@@ -427,14 +448,22 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (arrowSingleBtn) {
     arrowSingleBtn.addEventListener('click', () => {
       arrowSingleBtn.classList.add('active');
-      if (arrowDoubleBtn) arrowDoubleBtn.classList.remove('active');
+      arrowSingleBtn.setAttribute('aria-checked', 'true');
+      if (arrowDoubleBtn) {
+        arrowDoubleBtn.classList.remove('active');
+        arrowDoubleBtn.setAttribute('aria-checked', 'false');
+      }
       activeArrowMode = 'single';
     });
   }
   if (arrowDoubleBtn) {
     arrowDoubleBtn.addEventListener('click', () => {
       arrowDoubleBtn.classList.add('active');
-      if (arrowSingleBtn) arrowSingleBtn.classList.remove('active');
+      arrowDoubleBtn.setAttribute('aria-checked', 'true');
+      if (arrowSingleBtn) {
+        arrowSingleBtn.classList.remove('active');
+        arrowSingleBtn.setAttribute('aria-checked', 'false');
+      }
       activeArrowMode = 'double';
     });
   }
@@ -442,8 +471,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Blur Type Selection
   blurTypeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      blurTypeButtons.forEach(b => b.classList.remove('active'));
+      blurTypeButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
       activeBlurType = btn.dataset.blur;
     });
   });
@@ -451,8 +484,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Text Size Selection
   textSizeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
-      textSizeButtons.forEach(b => b.classList.remove('active'));
+      textSizeButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
       activeFontSize = parseInt(btn.dataset.fontsize, 10);
     });
   });
@@ -798,13 +835,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (downloadDropdownBtn && downloadMenu) {
     downloadDropdownBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      downloadMenu.classList.toggle('hidden');
-      downloadDropdownBtn.parentElement.classList.toggle('active');
+      const isHidden = downloadMenu.classList.toggle('hidden');
+      downloadDropdownBtn.parentElement.classList.toggle('active', !isHidden);
+      downloadDropdownBtn.setAttribute('aria-expanded', String(!isHidden));
     });
 
     window.addEventListener('click', () => {
       downloadMenu.classList.add('hidden');
       downloadDropdownBtn.parentElement.classList.remove('active');
+      downloadDropdownBtn.setAttribute('aria-expanded', 'false');
     });
   }
 
@@ -941,6 +980,87 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // --- ACCESSIBLE FOCUS TRAP CONTROLLER ---
+  function createFocusTrap(modalElement, onCloseCallback) {
+    let previousActiveElement = null;
+
+    function getFocusableElements() {
+      return Array.from(modalElement.querySelectorAll(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter(el => {
+        return el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement;
+      });
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const focusables = getFocusableElements();
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || !modalElement.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !modalElement.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+
+    function open(triggerEl = null) {
+      previousActiveElement = triggerEl || document.activeElement;
+      modalElement.classList.remove('hidden');
+      modalElement.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', handleKeyDown, true);
+
+      requestAnimationFrame(() => {
+        const focusables = getFocusableElements();
+        if (focusables.length > 0) {
+          focusables[0].focus();
+        } else {
+          modalElement.focus();
+        }
+      });
+    }
+
+    function close() {
+      modalElement.classList.add('hidden');
+      modalElement.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', handleKeyDown, true);
+
+      if (onCloseCallback) {
+        onCloseCallback();
+      }
+
+      if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+        previousActiveElement.focus();
+      }
+    }
+
+    function isOpen() {
+      return !modalElement.classList.contains('hidden');
+    }
+
+    return { open, close, isOpen, handleKeyDown };
+  }
+
   // --- 11. MOCKUP WINDOW FRAME GENERATOR ---
   function updateMockupPreview() {
     if (!mockupPreviewCanvas || !mainCanvas) return;
@@ -957,23 +1077,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  if (mockupBtn) {
-    mockupBtn.addEventListener('click', () => {
-      mockupModal.classList.remove('hidden');
-      updateMockupPreview();
-    });
-  }
-
-  if (closeMockupBtn) {
-    closeMockupBtn.addEventListener('click', () => {
-      mockupModal.classList.add('hidden');
-    });
-  }
-
+  let mockupTrap = null;
   if (mockupModal) {
+    mockupTrap = createFocusTrap(mockupModal);
+
+    if (mockupBtn) {
+      mockupBtn.addEventListener('click', () => {
+        mockupTrap.open(mockupBtn);
+        updateMockupPreview();
+      });
+    }
+
+    if (closeMockupBtn) {
+      closeMockupBtn.addEventListener('click', () => {
+        mockupTrap.close();
+      });
+    }
+
     mockupModal.addEventListener('click', (e) => {
       if (e.target === mockupModal) {
-        mockupModal.classList.add('hidden');
+        mockupTrap.close();
       }
     });
   }
@@ -981,8 +1104,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Mockup Controls Listeners
   mockupThemeBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      mockupThemeBtns.forEach(b => b.classList.remove('active'));
+      mockupThemeBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
       mockupConfig.theme = btn.dataset.theme;
       updateMockupPreview();
     });
@@ -990,8 +1117,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   mockupPaddingBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      mockupPaddingBtns.forEach(b => b.classList.remove('active'));
+      mockupPaddingBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
       mockupConfig.padding = parseInt(btn.dataset.padding, 10);
       updateMockupPreview();
     });
@@ -999,8 +1130,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   mockupHeaderBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      mockupHeaderBtns.forEach(b => b.classList.remove('active'));
+      mockupHeaderBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
       mockupConfig.hasHeader = btn.dataset.header === 'true';
       updateMockupPreview();
     });
@@ -1008,8 +1143,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   mockupShadowBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      mockupShadowBtns.forEach(b => b.classList.remove('active'));
+      mockupShadowBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
       mockupConfig.shadow = btn.dataset.shadow;
       updateMockupPreview();
     });
@@ -1062,31 +1201,34 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // --- 12. WATERMARK & STAMP MODAL HANDLERS ---
-  if (watermarkBtn && watermarkModal) {
-    watermarkBtn.addEventListener('click', () => {
-      if (wmCustomTextInput && (!wmCustomTextInput.value || wmCustomTextInput.value === '')) {
-        wmCustomTextInput.value = captureData?.url || 'https://fullshot.app';
-      }
-      watermarkModal.classList.remove('hidden');
-    });
-  }
-
-  if (closeWatermarkBtn && watermarkModal) {
-    closeWatermarkBtn.addEventListener('click', () => {
-      watermarkModal.classList.add('hidden');
-    });
-  }
-
-  if (wmCancelBtn && watermarkModal) {
-    wmCancelBtn.addEventListener('click', () => {
-      watermarkModal.classList.add('hidden');
-    });
-  }
-
+  let watermarkTrap = null;
   if (watermarkModal) {
+    watermarkTrap = createFocusTrap(watermarkModal);
+
+    if (watermarkBtn) {
+      watermarkBtn.addEventListener('click', () => {
+        if (wmCustomTextInput && (!wmCustomTextInput.value || wmCustomTextInput.value === '')) {
+          wmCustomTextInput.value = captureData?.url || 'https://fullshot.app';
+        }
+        watermarkTrap.open(watermarkBtn);
+      });
+    }
+
+    if (closeWatermarkBtn) {
+      closeWatermarkBtn.addEventListener('click', () => {
+        watermarkTrap.close();
+      });
+    }
+
+    if (wmCancelBtn) {
+      wmCancelBtn.addEventListener('click', () => {
+        watermarkTrap.close();
+      });
+    }
+
     watermarkModal.addEventListener('click', (e) => {
       if (e.target === watermarkModal) {
-        watermarkModal.classList.add('hidden');
+        watermarkTrap.close();
       }
     });
   }
@@ -1152,40 +1294,82 @@ document.addEventListener('DOMContentLoaded', async () => {
         style
       });
 
-      watermarkModal.classList.add('hidden');
+      if (watermarkTrap) watermarkTrap.close();
       showToast('Damga Eklendi', 'Filigran tuval üzerine işlendi.');
     });
   }
 
   // --- 13. KEYBOARD SHORTCUTS & MODAL ---
-  if (shortcutsBtn && shortcutsModal) {
-    shortcutsBtn.addEventListener('click', () => {
-      shortcutsModal.classList.remove('hidden');
-    });
-  }
-
-  if (closeShortcutsBtn && shortcutsModal) {
-    closeShortcutsBtn.addEventListener('click', () => {
-      shortcutsModal.classList.add('hidden');
-    });
-  }
-
+  let shortcutsTrap = null;
   if (shortcutsModal) {
+    shortcutsTrap = createFocusTrap(shortcutsModal);
+
+    if (shortcutsBtn) {
+      shortcutsBtn.addEventListener('click', () => {
+        shortcutsTrap.open(shortcutsBtn);
+      });
+    }
+
+    if (closeShortcutsBtn) {
+      closeShortcutsBtn.addEventListener('click', () => {
+        shortcutsTrap.close();
+      });
+    }
+
     shortcutsModal.addEventListener('click', (e) => {
       if (e.target === shortcutsModal) {
-        shortcutsModal.classList.add('hidden');
+        shortcutsTrap.close();
       }
     });
   }
 
   window.addEventListener('keydown', (e) => {
-    if (document.activeElement === textInputField || (wmCustomTextInput && document.activeElement === wmCustomTextInput)) return;
+    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    const isTextInputFocused = document.activeElement === textInputField || (wmCustomTextInput && document.activeElement === wmCustomTextInput);
 
+    if (isTextInputFocused) {
+      if (e.key === 'Escape') {
+        closeTextInput();
+      }
+      return;
+    }
+
+    // Modal Escape handling
     if (e.key === 'Escape') {
-      if (shortcutsModal) shortcutsModal.classList.add('hidden');
-      if (mockupModal) mockupModal.classList.add('hidden');
-      if (watermarkModal) watermarkModal.classList.add('hidden');
+      if (shortcutsTrap && shortcutsTrap.isOpen()) {
+        shortcutsTrap.close();
+        return;
+      }
+      if (mockupTrap && mockupTrap.isOpen()) {
+        mockupTrap.close();
+        return;
+      }
+      if (watermarkTrap && watermarkTrap.isOpen()) {
+        watermarkTrap.close();
+        return;
+      }
+      if (downloadMenu && !downloadMenu.classList.contains('hidden')) {
+        downloadMenu.classList.add('hidden');
+        downloadDropdownBtn?.parentElement.classList.remove('active');
+        downloadDropdownBtn?.setAttribute('aria-expanded', 'false');
+        downloadDropdownBtn?.focus();
+        return;
+      }
       closeTextInput();
+      return;
+    }
+
+    if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') return;
+
+    if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+      e.preventDefault();
+      if (shortcutsTrap) {
+        if (shortcutsTrap.isOpen()) {
+          shortcutsTrap.close();
+        } else {
+          shortcutsTrap.open(shortcutsBtn);
+        }
+      }
       return;
     }
 
@@ -1213,23 +1397,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (e.key === 'v' || e.key === 'V') {
       setActiveTool('select');
     } else if (e.key === 'm' || e.key === 'M') {
-      if (mockupModal) {
-        if (mockupModal.classList.contains('hidden')) {
-          mockupModal.classList.remove('hidden');
-          updateMockupPreview();
+      if (mockupTrap) {
+        if (mockupTrap.isOpen()) {
+          mockupTrap.close();
         } else {
-          mockupModal.classList.add('hidden');
+          mockupTrap.open(mockupBtn);
+          updateMockupPreview();
         }
       }
     } else if (e.key === 'w' || e.key === 'W') {
-      if (watermarkModal) {
-        if (watermarkModal.classList.contains('hidden')) {
+      if (watermarkTrap) {
+        if (watermarkTrap.isOpen()) {
+          watermarkTrap.close();
+        } else {
           if (wmCustomTextInput && (!wmCustomTextInput.value || wmCustomTextInput.value === '')) {
             wmCustomTextInput.value = captureData?.url || 'https://fullshot.app';
           }
-          watermarkModal.classList.remove('hidden');
-        } else {
-          watermarkModal.classList.add('hidden');
+          watermarkTrap.open(watermarkBtn);
         }
       }
     } else if (e.key === 'q' || e.key === 'Q') {
@@ -1258,8 +1442,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (zoomPan) zoomPan.zoomTo(zoomPan.getScale() - 0.25);
     } else if (e.key === '0') {
       if (zoomPan) zoomPan.fitToScreen(mainCanvas.width);
-    } else if (e.key === '?') {
-      if (shortcutsModal) shortcutsModal.classList.toggle('hidden');
     }
   });
 });
+

@@ -87,7 +87,7 @@ function triggerBlobDownload(blob, filename) {
  * @param {string} [customFilename] - Optional custom filename
  * @returns {Promise<boolean>}
  */
-async function downloadCanvasAsImage(canvas, format = 'png', quality = 0.95, customFilename = null) {
+async function downloadCanvasAsImage(canvas, format = 'png', quality = 0.98, customFilename = null) {
   if (!canvas || !canvas.width || !canvas.height) {
     throw new Error('Geçersiz tuval veya boş görüntü verisi.');
   }

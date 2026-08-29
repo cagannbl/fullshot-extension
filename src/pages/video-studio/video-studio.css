@@ -1654,3 +1654,39 @@ kbd {
   border-radius: 0;
   aspect-ratio: auto;
 }
+
+/* ============================================================
+   ACCESSIBILITY (A11Y), FOCUS RINGS & KEYBOARD BADGES
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(109, 129, 150, 0.35) !important;
+}
+
+button:focus:not(:focus-visible),
+input:focus:not(:focus-visible),
+select:focus:not(:focus-visible),
+video:focus:not(:focus-visible) {
+  outline: none;
+}
+
+kbd, .sc-keys kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+  user-select: none;
+}
+

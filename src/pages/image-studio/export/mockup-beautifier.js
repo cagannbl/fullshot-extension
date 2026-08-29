@@ -83,6 +83,8 @@ function generateMockupCanvas(sourceCanvas, config = {}) {
   outCanvas.width = totalW;
   outCanvas.height = totalH;
   const mCtx = outCanvas.getContext('2d');
+  mCtx.imageSmoothingEnabled = true;
+  mCtx.imageSmoothingQuality = 'high';
 
   // 1. Draw Gradient Backdrop Theme
   const grad = mCtx.createLinearGradient(0, 0, totalW, totalH);

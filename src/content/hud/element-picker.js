@@ -381,8 +381,10 @@
           const img = await loadImage(res.dataUrl);
           const imgWidth = img.naturalWidth || img.width;
           const imgHeight = img.naturalHeight || img.height;
-          const imgDprX = imgWidth / window.innerWidth;
-          const imgDprY = imgHeight / window.innerHeight;
+          const viewportW = document.documentElement.clientWidth || window.innerWidth;
+          const viewportH = document.documentElement.clientHeight || window.innerHeight;
+          const imgDprX = imgWidth / viewportW;
+          const imgDprY = imgHeight / viewportH;
 
           const sx = Math.max(0, Math.round(rect.left * imgDprX));
           const sy = Math.max(0, Math.round(rect.top * imgDprY));
