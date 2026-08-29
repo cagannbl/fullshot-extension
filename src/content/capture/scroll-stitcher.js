@@ -210,6 +210,7 @@
       masterCanvas.width = targetWidth;
       masterCanvas.height = targetHeight;
       const ctx = masterCanvas.getContext('2d', { alpha: format === 'png' });
+      ctx.imageSmoothingEnabled = false;
 
       if (format === 'jpeg') {
         ctx.fillStyle = '#ffffff';

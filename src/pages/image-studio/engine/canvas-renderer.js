@@ -30,10 +30,18 @@
       if (this.mainCanvas) {
         this.mainCanvas.width = width;
         this.mainCanvas.height = height;
+        if (this.mainCtx) {
+          this.mainCtx.imageSmoothingEnabled = true;
+          this.mainCtx.imageSmoothingQuality = 'high';
+        }
       }
       if (this.overlayCanvas) {
         this.overlayCanvas.width = width;
         this.overlayCanvas.height = height;
+        if (this.overlayCtx) {
+          this.overlayCtx.imageSmoothingEnabled = true;
+          this.overlayCtx.imageSmoothingQuality = 'high';
+        }
       }
     }
 
@@ -47,11 +55,13 @@
     }
 
     /**
-     * Draw the initial base capture image onto main canvas.
+     * Draw the initial base capture image onto main canvas with maximum quality.
      * @param {HTMLImageElement} baseImage 
      */
     drawBaseImage(baseImage) {
       if (!this.mainCtx || !this.mainCanvas || !baseImage) return;
+      this.mainCtx.imageSmoothingEnabled = true;
+      this.mainCtx.imageSmoothingQuality = 'high';
       this.mainCtx.clearRect(0, 0, this.mainCanvas.width, this.mainCanvas.height);
       this.mainCtx.drawImage(baseImage, 0, 0, this.mainCanvas.width, this.mainCanvas.height);
     }

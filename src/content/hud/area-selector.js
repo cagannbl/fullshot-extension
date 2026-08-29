@@ -465,7 +465,10 @@
           const cropCanvas = document.createElement('canvas');
           cropCanvas.width = sw;
           cropCanvas.height = sh;
-          const cropCtx = cropCanvas.getContext('2d');
+          const cropCtx = cropCanvas.getContext('2d', { alpha: true });
+
+          // Disable interpolation filter for 1:1 crisp pixel-perfect slice copy
+          cropCtx.imageSmoothingEnabled = false;
 
           if (format === 'jpeg') {
             cropCtx.fillStyle = '#ffffff';
@@ -479,7 +482,9 @@
           );
 
           const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
-          const croppedDataUrl = cropCanvas.toDataURL(mime, quality / 100);
+          const croppedDataUrl = format === 'jpeg' 
+            ? cropCanvas.toDataURL('image/jpeg', (quality || 98) / 100)
+            : cropCanvas.toDataURL('image/png');
 
           const item = {
             dataUrl: croppedDataUrl,
