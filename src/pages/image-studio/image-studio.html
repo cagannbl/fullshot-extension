@@ -94,6 +94,14 @@
         </svg>
       </button>
 
+      <button class="action-btn secondary ai-censor-btn" id="autoCensorBtn" data-action="auto-censor" title="Akıllı Otomatik Sansürle (E-Posta, Kredi Kartı, Şifre, API Token) ( Shift+B )" aria-label="Akıllı Otomatik Sansür">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          <line x1="9" y1="12" x2="15" y2="12"></line>
+        </svg>
+        <span>Akıllı Sansür</span>
+      </button>
+
       <button class="action-btn secondary" id="watermarkBtn" title="Filigran & Damga Ekle ( URL, Tarih, Yazar )" aria-label="Filigran & Damga Ekle">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
@@ -309,6 +317,40 @@
             <span class="tool-btn-label">Sansür</span>
             <kbd class="tool-btn-key">B</kbd>
           </button>
+
+          <!-- Spotlight / Focus -->
+          <button class="tool-icon-btn highlight-spotlight" data-tool="spotlight" id="toolSpotlight" role="button" aria-pressed="false" title="Spotlight / Odak Vurgusu ( F )" aria-label="Spotlight Odak Vurgusu (F)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"></circle>
+              <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+            </svg>
+            <span class="tool-btn-label">Odak</span>
+            <kbd class="tool-btn-key">F</kbd>
+          </button>
+
+          <!-- Magnifier / Loupe -->
+          <button class="tool-icon-btn highlight-magnifier" data-tool="magnifier" id="toolMagnifier" role="button" aria-pressed="false" title="Büyüteç Merceği ( Z )" aria-label="Büyüteç Merceği (Z)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <line x1="11" y1="8" x2="11" y2="14"></line>
+              <line x1="8" y1="11" x2="14" y2="11"></line>
+            </svg>
+            <span class="tool-btn-label">Büyüteç</span>
+            <kbd class="tool-btn-key">Z</kbd>
+          </button>
+
+          <!-- Stamp / Keycap / Emoji -->
+          <button class="tool-icon-btn highlight-stamp" data-tool="stamp" id="toolStamp" role="button" aria-pressed="false" title="QA Damga & Emoji ( E )" aria-label="QA Damga ve Emoji (E)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 22h14"></path>
+              <path d="M19 17a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2z"></path>
+              <path d="M12 15V5a3 3 0 0 0-3-3v0a3 3 0 0 0-3 3v2"></path>
+              <path d="M15 5a3 3 0 0 0-3-3"></path>
+            </svg>
+            <span class="tool-btn-label">Damga</span>
+            <kbd class="tool-btn-key">E</kbd>
+          </button>
         </div>
       </div>
 
@@ -385,6 +427,64 @@
                 <span>Çift Ok</span>
               </button>
             </div>
+            <div class="arrow-curve-selector hidden" id="arrowCurveSelector" role="radiogroup" aria-label="Ok Eğriliği">
+              <button class="arrow-curve-btn active" data-curve="straight" id="arrowStraightBtn" role="radio" aria-checked="true" title="Düz Ok">
+                <span>Düz Ok</span>
+              </button>
+              <button class="arrow-curve-btn" data-curve="curved" id="arrowCurvedBtn" role="radio" aria-checked="false" title="Kavisli Bézier Ok">
+                <span>⚡ Kavisli Bézier</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spotlight Options -->
+        <div class="option-card hidden" id="spotlightOptionGroup">
+          <span class="option-card-label">Odak Şekli & Yoğunluk:</span>
+          <div class="spotlight-shape-selector" role="radiogroup" aria-label="Odak Şekli">
+            <button class="spotlight-shape-btn active" data-shape="rounded-rect" role="radio" aria-checked="true" title="Yuvarlak Köşe">
+              <span>Yuvarlak Kutu</span>
+            </button>
+            <button class="spotlight-shape-btn" data-shape="ellipse" role="radio" aria-checked="false" title="Daire / Elips">
+              <span>Elips</span>
+            </button>
+            <button class="spotlight-shape-btn" data-shape="rect" role="radio" aria-checked="false" title="Keskin Kutu">
+              <span>Düz Kutu</span>
+            </button>
+          </div>
+          <div class="spotlight-darkness-selector" style="margin-top: 8px;" role="radiogroup" aria-label="Karartma Yoğunluğu">
+            <button class="spotlight-dark-btn" data-darkness="0.45" role="radio" aria-checked="false" title="Hafif (%45)">Hafif %45</button>
+            <button class="spotlight-dark-btn active" data-darkness="0.65" role="radio" aria-checked="true" title="Standart (%65)">Standart %65</button>
+            <button class="spotlight-dark-btn" data-darkness="0.85" role="radio" aria-checked="false" title="Koyu (%85)">Koyu %85</button>
+          </div>
+        </div>
+
+        <!-- Magnifier Options -->
+        <div class="option-card hidden" id="magnifierOptionGroup">
+          <span class="option-card-label">Büyütme Oranı (Zoom):</span>
+          <div class="magnifier-zoom-selector" role="radiogroup" aria-label="Büyütme Oranı">
+            <button class="mag-zoom-btn" data-zoom="1.5" role="radio" aria-checked="false">1.5x</button>
+            <button class="mag-zoom-btn active" data-zoom="2.0" role="radio" aria-checked="true">2.0x</button>
+            <button class="mag-zoom-btn" data-zoom="3.0" role="radio" aria-checked="false">3.0x</button>
+            <button class="mag-zoom-btn" data-zoom="4.0" role="radio" aria-checked="false">4.0x</button>
+          </div>
+        </div>
+
+        <!-- Stamp & Sticker Options -->
+        <div class="option-card hidden" id="stampOptionGroup">
+          <span class="option-card-label">Damga & Çıkartma Kataloğu:</span>
+          <div class="stamp-category-tabs" role="tablist" aria-label="Damga Kategorileri">
+            <button class="stamp-tab active" data-cat="qa" role="tab" aria-selected="true">QA Rozetleri</button>
+            <button class="stamp-tab" data-cat="key" role="tab" aria-selected="false">3D Tuşlar</button>
+            <button class="stamp-tab" data-cat="emoji" role="tab" aria-selected="false">Emojiler</button>
+          </div>
+          <div class="stamp-selector-grid" id="stampSelectorGrid" role="group" aria-label="Damga Seçimi">
+            <!-- Dynamically populated or default QA items -->
+            <button class="stamp-item-btn active" data-stamp="approved" title="ONAYLANDI (Approved)">✓ ONAY</button>
+            <button class="stamp-item-btn" data-stamp="bug" title="HATA (Bug Fix)">⚡ HATA</button>
+            <button class="stamp-item-btn" data-stamp="review" title="REVİZE (Review)">↻ REVİZE</button>
+            <button class="stamp-item-btn" data-stamp="critical" title="ÖNEMLİ (Critical)">! ÖNEMLİ</button>
+            <button class="stamp-item-btn" data-stamp="rejected" title="REDDEDİLDİ (Rejected)">✕ RET</button>
           </div>
         </div>
 
@@ -421,14 +521,20 @@
 
         <!-- Text Size & Background -->
         <div class="option-card hidden" id="textSizeOptionGroup">
-          <span class="option-card-label">Yazı Boyutu & Arka Plan:</span>
+          <span class="option-card-label">Yazı Boyutu & Balon Stili:</span>
           <div class="text-size-selector" role="radiogroup" aria-label="Yazı Boyutu">
             <button class="text-size-btn" data-fontsize="16" role="radio" aria-checked="false" aria-label="Küçük Boyut (16px)">S</button>
             <button class="text-size-btn active" data-fontsize="24" role="radio" aria-checked="true" aria-label="Orta Boyut (24px)">M</button>
             <button class="text-size-btn" data-fontsize="36" role="radio" aria-checked="false" aria-label="Büyük Boyut (36px)">L</button>
             <button class="text-size-btn" data-fontsize="48" role="radio" aria-checked="false" aria-label="Ekstra Büyük Boyut (48px)">XL</button>
           </div>
-          <label class="text-bg-toggle" title="Okunabilirlik için koyu arka plan kartı ekle">
+          <div class="callout-style-selector" style="margin-top: 8px;" role="radiogroup" aria-label="Balon & Kart Stili">
+            <button class="callout-style-btn active" data-textstyle="bubble" role="radio" aria-checked="true" title="Çizgi Roman Konuşma Balonu">💬 Balon</button>
+            <button class="callout-style-btn" data-textstyle="thought" role="radio" aria-checked="false" title="Düşünce Bulutu">💭 Bulut</button>
+            <button class="callout-style-btn" data-textstyle="frosted" role="radio" aria-checked="false" title="Cam Kart (Frosted Glass)">✨ Cam Kart</button>
+            <button class="callout-style-btn" data-textstyle="plain" role="radio" aria-checked="false" title="Sade Metin">Aa Sade</button>
+          </div>
+          <label class="text-bg-toggle" title="Okunabilirlik için koyu arka plan kartı ekle" style="margin-top: 8px;">
             <input type="checkbox" id="textBgCheckbox" checked aria-label="Koyu Arka Plan Kartı Ekle">
             <span>Koyu Arka Plan</span>
           </label>
@@ -514,6 +620,18 @@
                 <div class="sc-keys"><kbd>S</kbd></div>
               </div>
               <div class="shortcut-item">
+                <span class="sc-desc">Spotlight / Odak Vurgusu</span>
+                <div class="sc-keys"><kbd>F</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">Büyüteç Merceği</span>
+                <div class="sc-keys"><kbd>Z</kbd></div>
+              </div>
+              <div class="shortcut-item">
+                <span class="sc-desc">QA Damga & Emoji</span>
+                <div class="sc-keys"><kbd>E</kbd></div>
+              </div>
+              <div class="shortcut-item">
                 <span class="sc-desc">Konuşma Balonu</span>
                 <div class="sc-keys"><kbd>Q</kbd></div>
               </div>
@@ -596,7 +714,7 @@
     </div>
   </div>
 
-  <!-- macOS Mockup Frame Modal -->
+  <!-- CleanShot X & Shots.so Level 3D Mockup Studio Modal -->
   <div class="modal-backdrop mockup-modal hidden" id="mockupModal" role="dialog" aria-modal="true" aria-labelledby="mockupModalTitle" aria-hidden="true">
     <div class="modal-card mockup-modal-card">
       <div class="modal-header">
@@ -608,74 +726,198 @@
             <circle cx="12" cy="7" r="1" fill="currentColor"></circle>
             <line x1="2" y1="11" x2="22" y2="11"></line>
           </svg>
-          <span id="mockupModalTitle">macOS Pencere Mockup Çerçevesi</span>
+          <span id="mockupModalTitle">3D Mockup & Cihaz Çerçevesi Stüdyosu</span>
         </div>
         <button class="modal-close-btn" id="closeMockupBtn" title="Kapat (ESC)" aria-label="Kapat (ESC)">✕</button>
       </div>
       <div class="modal-body mockup-modal-body">
-        <div class="mockup-preview-container">
-          <canvas id="mockupPreviewCanvas" aria-label="Mockup Önizleme Tuvali"></canvas>
-        </div>
-        
-        <div class="mockup-controls-grid">
-          <!-- Backdrop Theme -->
-          <div class="mockup-control-item">
-            <label class="mockup-label">Arka Plan Teması:</label>
-            <div class="mockup-theme-selector" id="mockupThemeSelector" role="radiogroup" aria-label="Arka Plan Teması">
-              <button class="mockup-theme-btn active" data-theme="obsidian" role="radio" aria-checked="true" style="background: linear-gradient(135deg, #111215, #1e2025, #0d0e11);" title="Obsidian Dark (Kömür & Siyah)" aria-label="Obsidian Dark Teması"></button>
-              <button class="mockup-theme-btn" data-theme="sunset" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #4338ca, #a855f7, #f43f5e);" title="Sunset Glow (Mor & Pembe Gün Batımı)" aria-label="Sunset Glow Teması"></button>
-              <button class="mockup-theme-btn" data-theme="cyber" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #090a0f, #1e1b4b, #059669);" title="Neon Cyber (Siberpunk Neon & Zümrüt)" aria-label="Neon Cyber Teması"></button>
-              <button class="mockup-theme-btn" data-theme="slate" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #2b323c, #485461, #28313b);" title="Slate Minimalist (Slate Koyu Gri)" aria-label="Slate Minimalist Teması"></button>
-              <button class="mockup-theme-btn" data-theme="arctic" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #f8fafc, #e2e8f0, #cbd5e1);" title="Arctic White (Kutup Beyazı)" aria-label="Arctic White Teması"></button>
-              <button class="mockup-theme-btn" data-theme="emerald" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #064e3b, #047857, #10b981);" title="Emerald Glass (Zümrüt Cam Gradyan)" aria-label="Emerald Glass Teması"></button>
-            </div>
-          </div>
-
-          <!-- Padding -->
-          <div class="mockup-control-item">
-            <label class="mockup-label">Boşluk / Kenar Payı:</label>
-            <div class="mockup-btn-group" id="mockupPaddingGroup" role="radiogroup" aria-label="Kenar Payı">
-              <button class="mockup-opt-btn" data-padding="24" role="radio" aria-checked="false" title="Dar Kenar Payı (24px)" aria-label="Dar Kenar Payı (24px)">Dar (24px)</button>
-              <button class="mockup-opt-btn active" data-padding="44" role="radio" aria-checked="true" title="Orta Kenar Payı (44px)" aria-label="Orta Kenar Payı (44px)">Orta (44px)</button>
-              <button class="mockup-opt-btn" data-padding="68" role="radio" aria-checked="false" title="Geniş Kenar Payı (68px)" aria-label="Geniş Kenar Payı (68px)">Geniş (68px)</button>
-            </div>
-          </div>
-
-          <!-- Window Header / URL bar -->
-          <div class="mockup-control-item">
-            <label class="mockup-label">Pencere Başlığı:</label>
-            <div class="mockup-btn-group" id="mockupHeaderGroup" role="radiogroup" aria-label="Pencere Başlığı Görünümü">
-              <button class="mockup-opt-btn active" data-header="true" role="radio" aria-checked="true" title="macOS Başlık Çubuğu ve Butonları" aria-label="macOS Başlık Çubuğu Göster">Göster (🔴🟡🟢 + URL)</button>
-              <button class="mockup-opt-btn" data-header="false" role="radio" aria-checked="false" title="Sadece Yuvarlatılmış Çerçeve" aria-label="Sadece Çerçeve Göster">Sadece Çerçeve</button>
-            </div>
-          </div>
-
-          <!-- Shadow -->
-          <div class="mockup-control-item">
-            <label class="mockup-label">Gölge Yoğunluğu:</label>
-            <div class="mockup-btn-group" id="mockupShadowGroup" role="radiogroup" aria-label="Gölge Yoğunluğu">
-              <button class="mockup-opt-btn" data-shadow="none" role="radio" aria-checked="false" title="Gölgesiz Düz" aria-label="Gölgesiz Düz">Yok</button>
-              <button class="mockup-opt-btn" data-shadow="subtle" role="radio" aria-checked="false" title="Hafif Yumuşak Gölge" aria-label="Hafif Yumuşak Gölge">Hafif</button>
-              <button class="mockup-opt-btn active" data-shadow="deep" role="radio" aria-checked="true" title="Derin Gerçekçi 3D Drop Shadow" aria-label="Derin Gerçekçi 3D Gölge">Derin 3D</button>
-            </div>
-          </div>
+        <!-- Live Mockup 3D Viewport Preview -->
+        <div class="mockup-preview-container" id="mockupPreviewContainer">
+          <canvas id="mockupPreviewCanvas" aria-label="3D Mockup Canlı Önizleme Tuvali"></canvas>
+          <div class="mockup-ratio-badge" id="mockupRatioBadge">Auto</div>
         </div>
 
+        <div class="mockup-controls-layout">
+          <!-- Column 1: Frame & 3D Tilt Matrix -->
+          <div class="mockup-col">
+            <!-- 1. Device Frame Selector -->
+            <div class="mockup-control-item">
+              <div class="control-label-row">
+                <span class="mockup-label">Cihaz Çerçevesi:</span>
+                <span class="mockup-sublabel" id="activeFrameLabel">macOS Window</span>
+              </div>
+              <div class="mockup-frame-tabs" id="mockupFrameTabs" role="radiogroup" aria-label="Cihaz Çerçevesi Seçimi">
+                <button class="mockup-frame-btn active" data-frame="macos" role="radio" aria-checked="true" title="macOS Pencere Çerçevesi">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="3"></rect><circle cx="6" cy="7" r="1" fill="currentColor"></circle><circle cx="9" cy="7" r="1" fill="currentColor"></circle><circle cx="12" cy="7" r="1" fill="currentColor"></circle><line x1="2" y1="11" x2="22" y2="11"></line></svg>
+                  <span>macOS</span>
+                </button>
+                <button class="mockup-frame-btn" data-frame="iphone16pro" role="radio" aria-checked="false" title="iPhone 16 Pro Titanyum Çerçeve">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="4"></rect><line x1="10" y1="5" x2="14" y2="5" stroke-width="2.5" stroke-linecap="round"></line><line x1="9" y1="19" x2="15" y2="19"></line></svg>
+                  <span>iPhone 16</span>
+                </button>
+                <button class="mockup-frame-btn" data-frame="safari" role="radio" aria-checked="false" title="Safari Tarayıcı Çubuğu">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                  <span>Safari</span>
+                </button>
+                <button class="mockup-frame-btn" data-frame="glass" role="radio" aria-checked="false" title="Minimalist Glass Cam Çerçeve">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="4"></rect><path d="M7 17L17 7"></path></svg>
+                  <span>Glass</span>
+                </button>
+                <button class="mockup-frame-btn" data-frame="none" role="radio" aria-checked="false" title="Sadece Görsel (Çerçevesiz)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect></svg>
+                  <span>Düz</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. 3D Isometric Tilt & Perspective Puck -->
+            <div class="mockup-control-item">
+              <div class="control-label-row">
+                <span class="mockup-label">3D Eğim & Projeksiyon Açısı:</span>
+                <span class="mockup-sublabel" id="tiltValueText">X: 0° | Y: 0°</span>
+              </div>
+              <div class="tilt-control-wrapper">
+                <!-- Interactive 2D Tilt Joystick / Puck Area -->
+                <div class="tilt-puck-track" id="tiltPuckTrack" title="3D Perspektifi canlı ayarlamak için sürükleyin">
+                  <div class="tilt-puck-crosshair-x"></div>
+                  <div class="tilt-puck-crosshair-y"></div>
+                  <div class="tilt-puck-handle" id="tiltPuckHandle"></div>
+                  <span class="tilt-center-mark" title="Sıfırla">●</span>
+                </div>
+                <!-- Sliders & Quick Presets -->
+                <div class="tilt-sliders-col">
+                  <div class="tilt-slider-row">
+                    <label for="tiltYRange" class="tilt-axis-tag">Yatay (Yaw Y):</label>
+                    <input type="range" id="tiltYRange" min="-25" max="25" value="0" step="1" class="mockup-slider" aria-label="Yatay Eğim Açısı">
+                    <span class="tilt-num" id="tiltYNum">0°</span>
+                  </div>
+                  <div class="tilt-slider-row">
+                    <label for="tiltXRange" class="tilt-axis-tag">Dikey (Pitch X):</label>
+                    <input type="range" id="tiltXRange" min="-25" max="25" value="0" step="1" class="mockup-slider" aria-label="Dikey Eğim Açısı">
+                    <span class="tilt-num" id="tiltXNum">0°</span>
+                  </div>
+                  <!-- Quick 3D Presets -->
+                  <div class="tilt-preset-btns">
+                    <button class="tilt-preset-btn active" data-tiltx="0" data-tilty="0" type="button">0° Düz</button>
+                    <button class="tilt-preset-btn" data-tiltx="8" data-tilty="-14" type="button">↖ Sol 3D</button>
+                    <button class="tilt-preset-btn" data-tiltx="8" data-tilty="14" type="button">↗ Sağ 3D</button>
+                    <button class="tilt-preset-btn" data-tiltx="-12" data-tilty="16" type="button">📐 İzometrik</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Social Media Aspect Ratio Presets -->
+            <div class="mockup-control-item">
+              <span class="mockup-label">Sosyal Medya En/Boy Oranı:</span>
+              <div class="mockup-ratio-pills" id="mockupRatioGroup" role="radiogroup" aria-label="Sosyal Medya Boyut Oranları">
+                <button class="ratio-pill-btn active" data-ratio="auto" role="radio" aria-checked="true" title="Orijinal Oran">Auto</button>
+                <button class="ratio-pill-btn" data-ratio="16:9" role="radio" aria-checked="false" title="Twitter / YouTube Thumbnail (16:9)">16:9</button>
+                <button class="ratio-pill-btn" data-ratio="1:1" role="radio" aria-checked="false" title="Instagram Post (1:1)">1:1</button>
+                <button class="ratio-pill-btn" data-ratio="4:5" role="radio" aria-checked="false" title="Instagram Portre (4:5)">4:5</button>
+                <button class="ratio-pill-btn" data-ratio="4:3" role="radio" aria-checked="false" title="Dribbble Shot (4:3)">4:3</button>
+                <button class="ratio-pill-btn" data-ratio="1.91:1" role="radio" aria-checked="false" title="LinkedIn / Feed (1.91:1)">1.91:1</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Column 2: Gradients, Grain, Padding & Shadow -->
+          <div class="mockup-col">
+            <!-- 4. Ultra-HD Mesh Gradient Backdrop Theme -->
+            <div class="mockup-control-item">
+              <div class="control-label-row">
+                <span class="mockup-label">Ultra-HD Degrade Teması:</span>
+                <span class="mockup-sublabel" id="activeThemeLabel">Frosted Obsidian</span>
+              </div>
+              <div class="mockup-theme-grid" id="mockupThemeSelector" role="radiogroup" aria-label="Arka Plan Teması">
+                <button class="mockup-theme-card" data-theme="aurora" data-name="Aurora Borealis" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #0b1021, #064e3b, #06b6d4, #4f46e5);" title="Aurora Borealis (Kuzey Işıkları)">
+                  <span>Aurora</span>
+                </button>
+                <button class="mockup-theme-card" data-theme="sunset" data-name="Sunset Mirage" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #2e0854, #831843, #ea580c, #facc15);" title="Sunset Mirage (Gün Batımı)">
+                  <span>Sunset</span>
+                </button>
+                <button class="mockup-theme-card" data-theme="cyber" data-name="Midnight Cyber" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #030712, #1e1b4b, #0891b2, #db2777);" title="Midnight Cyber (Neon Siberpunk)">
+                  <span>Cyber</span>
+                </button>
+                <button class="mockup-theme-card" data-theme="emerald" data-name="Emerald Glow" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #022c22, #065f46, #10b981, #6ee7b7);" title="Emerald Glow (Zümrüt Işıltısı)">
+                  <span>Emerald</span>
+                </button>
+                <button class="mockup-theme-card active" data-theme="obsidian" data-name="Frosted Obsidian" role="radio" aria-checked="true" style="background: linear-gradient(135deg, #0f1117, #1a1d24, #2d3139, #14161d);" title="Frosted Obsidian (Füme Grafit)">
+                  <span>Obsidian</span>
+                </button>
+                <button class="mockup-theme-card" data-theme="pastel" data-name="Pastel Dream" role="radio" aria-checked="false" style="background: linear-gradient(135deg, #c7d2fe, #fbcfe8, #fed7aa, #ddd6fe);" title="Pastel Dream (Yumuşak Pastel)">
+                  <span style="color: #1e2025;">Pastel</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="mockup-compact-grid">
+              <!-- 5. Padding -->
+              <div class="mockup-control-item">
+                <span class="mockup-label">Kenar Payı:</span>
+                <div class="mockup-btn-group" id="mockupPaddingGroup" role="radiogroup" aria-label="Kenar Payı">
+                  <button class="mockup-opt-btn" data-padding="24" role="radio" aria-checked="false" title="Dar (24px)">Dar</button>
+                  <button class="mockup-opt-btn active" data-padding="48" role="radio" aria-checked="true" title="Orta (48px)">Orta</button>
+                  <button class="mockup-opt-btn" data-padding="80" role="radio" aria-checked="false" title="Geniş (80px)">Geniş</button>
+                  <button class="mockup-opt-btn" data-padding="120" role="radio" aria-checked="false" title="Maksimum (120px)">Maks</button>
+                </div>
+              </div>
+
+              <!-- 6. Shadow -->
+              <div class="mockup-control-item">
+                <span class="mockup-label">3D Temas Gölgesi:</span>
+                <div class="mockup-btn-group" id="mockupShadowGroup" role="radiogroup" aria-label="Gölge Yoğunluğu">
+                  <button class="mockup-opt-btn" data-shadow="none" role="radio" aria-checked="false">Yok</button>
+                  <button class="mockup-opt-btn" data-shadow="subtle" role="radio" aria-checked="false">Hafif</button>
+                  <button class="mockup-opt-btn active" data-shadow="deep" role="radio" aria-checked="true">Derin 3D</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="mockup-toggles-row">
+              <!-- 7. Film Grain Toggle -->
+              <label class="mockup-toggle-card" title="Renk bantlaşmasını önleyen analog granül dokusu">
+                <input type="checkbox" id="mockupGrainCheckbox" checked aria-label="Analog Film Grain Doku">
+                <div class="toggle-card-body">
+                  <span class="toggle-card-title">Film Grain Dokusu</span>
+                  <span class="toggle-card-desc">Analog derinlik katar, bantlaşmayı önler</span>
+                </div>
+              </label>
+
+              <!-- 8. Window Header Toggle -->
+              <label class="mockup-toggle-card" id="mockupHeaderToggleWrap" title="macOS / Safari üst başlık ve butonlarını göster">
+                <input type="checkbox" id="mockupHeaderCheckbox" checked aria-label="Üst Başlık Çubuğu Göster">
+                <div class="toggle-card-body">
+                  <span class="toggle-card-title">Başlık & URL Çubuğu</span>
+                  <span class="toggle-card-desc">🔴🟡🟢 Butonları ve URL alanı</span>
+                </div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Export Actions Row -->
         <div class="mockup-actions-row">
-          <button class="action-btn primary" id="downloadMockupPngBtn" title="Mockup Görüntüsünü PNG Olarak İndir" aria-label="Mockup PNG Olarak İndir">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            <span>Mockup PNG İndir</span>
-          </button>
-          <button class="action-btn secondary" id="downloadMockupWebpBtn" title="Mockup Görüntüsünü WebP Olarak İndir" aria-label="Mockup WebP Olarak İndir">
-            <span>Mockup WebP İndir</span>
-          </button>
-          <button class="action-btn secondary" id="copyMockupClipboardBtn" title="Mockup Görüntüsünü Panoya Kopyala (Ctrl+C)" aria-label="Mockup Panoya Kopyala">
-            <span>Panoya Kopyala</span>
-          </button>
+          <div class="mockup-action-info">
+            <span class="mockup-info-text">✨ 3D Projeksiyon & Ultra-HD Çıktı</span>
+          </div>
+          <div class="mockup-action-buttons">
+            <button class="action-btn secondary" id="copyMockupClipboardBtn" title="Mockup Görüntüsünü Panoya Kopyala (Ctrl+C)" aria-label="Mockup Panoya Kopyala">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Panoya Kopyala</span>
+            </button>
+            <button class="action-btn secondary" id="downloadMockupWebpBtn" title="Mockup Görüntüsünü WebP Olarak İndir" aria-label="Mockup WebP Olarak İndir">
+              <span>WebP İndir</span>
+            </button>
+            <button class="action-btn primary" id="downloadMockupPngBtn" title="Mockup Görüntüsünü PNG Olarak İndir" aria-label="Mockup PNG Olarak İndir">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Mockup PNG İndir (HD)</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -773,11 +1015,15 @@
   <script src="tools/shapes.js"></script>
   <script src="tools/blur.js"></script>
   <script src="tools/text.js"></script>
+  <script src="tools/spotlight.js"></script>
+  <script src="tools/magnifier.js"></script>
+  <script src="tools/stamp.js"></script>
 
   <!-- Core Canvas Engines -->
   <script src="engine/history-stack.js"></script>
   <script src="engine/zoom-pan.js"></script>
   <script src="engine/canvas-renderer.js"></script>
+  <script src="engine/auto-censor-engine.js"></script>
 
   <!-- Export Modules -->
   <script src="export/pdf-generator.js"></script>

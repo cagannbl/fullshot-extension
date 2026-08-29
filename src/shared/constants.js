@@ -60,6 +60,13 @@ const ACTIONS = {
   RESUME_RECORDING_WIDGET: 'resumeRecordingWidget',
   START_COUNTDOWN: 'startCountdown',
   CANCEL_COUNTDOWN: 'cancelCountdown',
+  START_PIXEL_RULER: 'startPixelRuler',
+  TOGGLE_PIXEL_RULER: 'togglePixelRuler',
+  STOP_PIXEL_RULER: 'stopPixelRuler',
+  PIN_CAPTURE: 'pinCapture',
+  PIN_TO_SCREEN: 'pinToScreen',
+  PERFORM_OCR: 'PERFORM_OCR',
+  EXTRACT_TEXT: 'EXTRACT_TEXT',
   
   // Service Worker Keep-Alive & Heartbeat
   HEARTBEAT: 'heartbeat',

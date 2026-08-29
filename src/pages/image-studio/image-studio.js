@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   'use strict';
 
   const CanvasTools = window.FullShotCanvas || {};
-  const { CanvasRenderer, HistoryStack, ZoomPanController, Pen, Badge, Highlighter, Arrow, Shapes, Blur, Text } = CanvasTools;
+  const { CanvasRenderer, HistoryStack, ZoomPanController, Pen, Badge, Highlighter, Arrow, Shapes, Blur, Text, Spotlight, Magnifier, Stamp } = CanvasTools;
+  const AutoCensorEngine = window.FullShotAutoCensor;
 
   // --- DOM Elements ---
   const mainCanvas = document.getElementById('mainCanvas');
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const zoomFitBtn = document.getElementById('zoomFitBtn');
   const zoomActualBtn = document.getElementById('zoomActualBtn');
 
+  const autoCensorBtn = document.getElementById('autoCensorBtn');
   const copyClipboardBtn = document.getElementById('copyClipboardBtn');
   const downloadDropdownBtn = document.getElementById('downloadDropdownBtn');
   const downloadMenu = document.getElementById('downloadMenu');
@@ -52,6 +54,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const stepOptionGroup = document.getElementById('stepOptionGroup');
   const blurOptionGroup = document.getElementById('blurOptionGroup');
   const textSizeOptionGroup = document.getElementById('textSizeOptionGroup');
+  const spotlightOptionGroup = document.getElementById('spotlightOptionGroup');
+  const magnifierOptionGroup = document.getElementById('magnifierOptionGroup');
+  const stampOptionGroup = document.getElementById('stampOptionGroup');
 
   const colorSwatches = document.querySelectorAll('.color-swatch');
   const customColorInput = document.getElementById('customColorInput');
@@ -62,6 +67,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const arrowModeSelector = document.getElementById('arrowModeSelector');
   const arrowSingleBtn = document.getElementById('arrowSingleBtn');
   const arrowDoubleBtn = document.getElementById('arrowDoubleBtn');
+  const arrowCurveSelector = document.getElementById('arrowCurveSelector');
+  const arrowStraightBtn = document.getElementById('arrowStraightBtn');
+  const arrowCurvedBtn = document.getElementById('arrowCurvedBtn');
+  const spotlightShapeButtons = document.querySelectorAll('.spotlight-shape-btn');
+  const spotlightDarknessButtons = document.querySelectorAll('.spotlight-dark-btn');
+  const magZoomButtons = document.querySelectorAll('.mag-zoom-btn');
+  const stampTabs = document.querySelectorAll('.stamp-tab');
+  const stampSelectorGrid = document.getElementById('stampSelectorGrid');
+  const calloutStyleButtons = document.querySelectorAll('.callout-style-btn');
   const stepBadgePreview = document.getElementById('stepBadgePreview');
   const stepResetBtn = document.getElementById('stepResetBtn');
   const blurTypeButtons = document.querySelectorAll('.blur-type-btn');
@@ -93,10 +107,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   const mockupModal = document.getElementById('mockupModal');
   const closeMockupBtn = document.getElementById('closeMockupBtn');
   const mockupPreviewCanvas = document.getElementById('mockupPreviewCanvas');
-  const mockupThemeBtns = document.querySelectorAll('.mockup-theme-btn');
+  const mockupPreviewContainer = document.getElementById('mockupPreviewContainer');
+  const mockupRatioBadge = document.getElementById('mockupRatioBadge');
+  const activeFrameLabel = document.getElementById('activeFrameLabel');
+  const activeThemeLabel = document.getElementById('activeThemeLabel');
+  const tiltValueText = document.getElementById('tiltValueText');
+  const tiltPuckTrack = document.getElementById('tiltPuckTrack');
+  const tiltPuckHandle = document.getElementById('tiltPuckHandle');
+  const tiltXRange = document.getElementById('tiltXRange');
+  const tiltYRange = document.getElementById('tiltYRange');
+  const tiltXNum = document.getElementById('tiltXNum');
+  const tiltYNum = document.getElementById('tiltYNum');
+  const tiltPresetBtns = document.querySelectorAll('.tilt-preset-btn');
+  const mockupFrameBtns = document.querySelectorAll('.mockup-frame-btn');
+  const mockupThemeCards = document.querySelectorAll('.mockup-theme-card');
+  const mockupRatioBtns = document.querySelectorAll('.ratio-pill-btn');
   const mockupPaddingBtns = document.querySelectorAll('#mockupPaddingGroup .mockup-opt-btn');
-  const mockupHeaderBtns = document.querySelectorAll('#mockupHeaderGroup .mockup-opt-btn');
   const mockupShadowBtns = document.querySelectorAll('#mockupShadowGroup .mockup-opt-btn');
+  const mockupGrainCheckbox = document.getElementById('mockupGrainCheckbox');
+  const mockupHeaderCheckbox = document.getElementById('mockupHeaderCheckbox');
+  const mockupHeaderToggleWrap = document.getElementById('mockupHeaderToggleWrap');
   const downloadMockupPngBtn = document.getElementById('downloadMockupPngBtn');
   const downloadMockupWebpBtn = document.getElementById('downloadMockupWebpBtn');
   const copyMockupClipboardBtn = document.getElementById('copyMockupClipboardBtn');
@@ -124,14 +154,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   let captureData = null;
   let baseImage = null;
 
-  let activeTool = 'select'; // 'select' | 'pan' | 'pen' | 'line' | 'highlighter' | 'arrow' | 'rect' | 'circle' | 'step' | 'callout' | 'blur' | 'text'
+  let activeTool = 'select'; // 'select' | 'pan' | 'pen' | 'line' | 'highlighter' | 'arrow' | 'rect' | 'circle' | 'step' | 'callout' | 'blur' | 'text' | 'spotlight' | 'magnifier' | 'stamp'
   let activeColor = '#ff3366';
   let activeStrokeWidth = 4;
   let activeLineDashed = false;
   let activeArrowMode = 'single'; // 'single' | 'double'
+  let activeArrowCurved = false;
   let activeBlurType = 'pixelate'; // 'pixelate' | 'blackout' | 'gaussian'
   let activeFontSize = 24;
   let activeTextBg = true;
+  let activeCalloutStyle = 'bubble'; // 'bubble' | 'thought' | 'frosted' | 'plain'
+  let activeSpotlightShape = 'rounded-rect'; // 'rounded-rect' | 'ellipse' | 'rect'
+  let activeSpotlightDarkness = 0.65;
+  let activeMagnifierZoom = 2.0;
+  let activeStampId = 'approved';
+  let activeStampCategory = 'qa';
   let stepCounter = 1;
 
   // Interactive Drawing State
@@ -142,10 +179,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   let pendingTextPos = null;
   let pendingCallout = null;
 
-  // Mockup Configuration
+  // Advanced 3D Mockup Configuration (CleanShot X & Shots.so Düzeyi)
   const mockupConfig = {
     theme: 'obsidian',
-    padding: 44,
+    frameType: 'macos',
+    padding: 48,
+    tiltX: 0,
+    tiltY: 0,
+    aspectRatio: 'auto',
+    enableGrain: true,
     hasHeader: true,
     shadow: 'deep'
   };
@@ -319,9 +361,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (stepOptionGroup) stepOptionGroup.classList.add('hidden');
     if (blurOptionGroup) blurOptionGroup.classList.add('hidden');
     if (textSizeOptionGroup) textSizeOptionGroup.classList.add('hidden');
+    if (spotlightOptionGroup) spotlightOptionGroup.classList.add('hidden');
+    if (magnifierOptionGroup) magnifierOptionGroup.classList.add('hidden');
+    if (stampOptionGroup) stampOptionGroup.classList.add('hidden');
 
     if (toolName === 'blur') {
       if (blurOptionGroup) blurOptionGroup.classList.remove('hidden');
+    } else if (toolName === 'spotlight') {
+      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
+      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
+      if (spotlightOptionGroup) spotlightOptionGroup.classList.remove('hidden');
+    } else if (toolName === 'magnifier') {
+      if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
+      if (strokeOptionGroup) strokeOptionGroup.classList.remove('hidden');
+      if (magnifierOptionGroup) magnifierOptionGroup.classList.remove('hidden');
+    } else if (toolName === 'stamp') {
+      if (stampOptionGroup) stampOptionGroup.classList.remove('hidden');
+      renderStampCatalog(activeStampCategory);
     } else if (toolName === 'text') {
       if (colorOptionGroup) colorOptionGroup.classList.remove('hidden');
       if (textSizeOptionGroup) textSizeOptionGroup.classList.remove('hidden');
@@ -342,8 +398,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (arrowModeSelector) {
           if (toolName === 'arrow') {
             arrowModeSelector.classList.remove('hidden');
+            if (arrowCurveSelector) arrowCurveSelector.classList.remove('hidden');
           } else {
             arrowModeSelector.classList.add('hidden');
+            if (arrowCurveSelector) arrowCurveSelector.classList.add('hidden');
           }
         }
       }
@@ -468,6 +526,126 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Arrow Curve Mode (Straight vs Curved Bézier)
+  if (arrowStraightBtn) {
+    arrowStraightBtn.addEventListener('click', () => {
+      arrowStraightBtn.classList.add('active');
+      arrowStraightBtn.setAttribute('aria-checked', 'true');
+      if (arrowCurvedBtn) {
+        arrowCurvedBtn.classList.remove('active');
+        arrowCurvedBtn.setAttribute('aria-checked', 'false');
+      }
+      activeArrowCurved = false;
+    });
+  }
+  if (arrowCurvedBtn) {
+    arrowCurvedBtn.addEventListener('click', () => {
+      arrowCurvedBtn.classList.add('active');
+      arrowCurvedBtn.setAttribute('aria-checked', 'true');
+      if (arrowStraightBtn) {
+        arrowStraightBtn.classList.remove('active');
+        arrowStraightBtn.setAttribute('aria-checked', 'false');
+      }
+      activeArrowCurved = true;
+    });
+  }
+
+  // Spotlight Shape & Darkness Listeners
+  spotlightShapeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      spotlightShapeButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      activeSpotlightShape = btn.dataset.shape;
+    });
+  });
+
+  spotlightDarknessButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      spotlightDarknessButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      activeSpotlightDarkness = parseFloat(btn.dataset.darkness);
+    });
+  });
+
+  // Magnifier Zoom Listeners
+  magZoomButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      magZoomButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      activeMagnifierZoom = parseFloat(btn.dataset.zoom);
+    });
+  });
+
+  // Stamp Category Tabs & Grid Selector
+  function renderStampCatalog(category) {
+    if (!stampSelectorGrid) return;
+    stampSelectorGrid.innerHTML = '';
+    const presets = window.FullShotCanvas.Stamp?.STAMP_PRESETS || {};
+
+    for (const [id, item] of Object.entries(presets)) {
+      if (item.category === category) {
+        const btn = document.createElement('button');
+        btn.className = `stamp-item-btn ${id === activeStampId ? 'active' : ''}`;
+        btn.dataset.stamp = id;
+        btn.title = item.label || item.key || item.char || id;
+
+        if (item.type === 'keycap') {
+          btn.textContent = `[${item.key}]`;
+        } else if (item.type === 'emoji') {
+          btn.textContent = `${item.char} ${id.replace('emoji-', '')}`;
+        } else {
+          btn.textContent = `${item.icon} ${item.label}`;
+        }
+
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.stamp-item-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          activeStampId = id;
+        });
+
+        stampSelectorGrid.appendChild(btn);
+      }
+    }
+  }
+
+  stampTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      stampTabs.forEach(t => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
+      activeStampCategory = tab.dataset.cat;
+      renderStampCatalog(activeStampCategory);
+    });
+  });
+
+  // Callout & Text Style Listeners
+  calloutStyleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      calloutStyleButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      activeCalloutStyle = btn.dataset.textstyle;
+    });
+  });
+
   // Blur Type Selection
   blurTypeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -530,6 +708,18 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    // QA Stamp / Keycap / Emoji Tool
+    if (activeTool === 'stamp') {
+      pushAction({
+        type: 'stamp',
+        x: coords.x,
+        y: coords.y,
+        stampId: activeStampId,
+        scale: 1.0
+      });
+      return;
+    }
+
     // Text Overlay Tool
     if (activeTool === 'text') {
       openTextInput(coords, e.clientX, e.clientY);
@@ -561,13 +751,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else if (activeTool === 'line' && Arrow) {
       Arrow.drawLine(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth, activeLineDashed);
     } else if (activeTool === 'arrow' && Arrow) {
-      Arrow.drawArrow(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth, activeLineDashed, activeArrowMode === 'double');
+      Arrow.drawArrow(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth, activeLineDashed, activeArrowMode === 'double', activeArrowCurved);
+    } else if (activeTool === 'spotlight' && Spotlight) {
+      Spotlight.drawSpotlightPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeSpotlightShape, activeColor, activeStrokeWidth, activeSpotlightDarkness);
+    } else if (activeTool === 'magnifier' && Magnifier) {
+      Magnifier.drawMagnifierPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeMagnifierZoom, baseImage || mainCanvas, activeColor, activeStrokeWidth);
     } else if (activeTool === 'rect' && Shapes) {
       Shapes.drawRect(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth, activeLineDashed);
     } else if (activeTool === 'circle' && Shapes) {
       Shapes.drawCircle(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth, activeLineDashed);
     } else if (activeTool === 'callout' && Text) {
-      Text.drawCalloutPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth);
+      Text.drawCalloutPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y, activeColor, activeStrokeWidth, activeCalloutStyle);
     } else if (activeTool === 'blur' && Blur) {
       Blur.drawBlurPreview(renderer.overlayCtx, startPos.x, startPos.y, currentPos.x, currentPos.y);
     }
@@ -620,9 +814,38 @@ document.addEventListener('DOMContentLoaded', async () => {
           color: activeColor,
           width: activeStrokeWidth,
           dashed: activeLineDashed,
-          isDouble: activeArrowMode === 'double'
+          isDouble: activeArrowMode === 'double',
+          isCurved: activeArrowCurved
         });
       }
+    } else if (activeTool === 'spotlight') {
+      const w = Math.abs(currentPos.x - startPos.x);
+      const h = Math.abs(currentPos.y - startPos.y);
+      if (w > 8 && h > 8) {
+        pushAction({
+          type: 'spotlight',
+          x1: startPos.x,
+          y1: startPos.y,
+          x2: currentPos.x,
+          y2: currentPos.y,
+          shape: activeSpotlightShape,
+          color: activeColor,
+          width: activeStrokeWidth,
+          darkness: activeSpotlightDarkness
+        });
+      }
+    } else if (activeTool === 'magnifier') {
+      const dist = Math.hypot(currentPos.x - startPos.x, currentPos.y - startPos.y);
+      const radius = Math.max(35, Math.min(220, dist > 5 ? dist : 65));
+      pushAction({
+        type: 'magnifier',
+        x: startPos.x,
+        y: startPos.y,
+        radius: radius,
+        zoomFactor: activeMagnifierZoom,
+        color: activeColor,
+        width: activeStrokeWidth
+      });
     } else if (activeTool === 'rect') {
       const w = Math.abs(currentPos.x - startPos.x);
       const h = Math.abs(currentPos.y - startPos.y);
@@ -722,6 +945,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           color: activeColor,
           width: activeStrokeWidth,
           fontSize: activeFontSize,
+          style: activeCalloutStyle,
           hasBg: activeTextBg
         });
       } else if (pendingTextPos) {
@@ -732,6 +956,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           y: pendingTextPos.y,
           fontSize: activeFontSize,
           color: activeColor,
+          bgStyle: activeCalloutStyle === 'plain' ? false : activeCalloutStyle,
           hasBg: activeTextBg
         });
       }
@@ -1061,22 +1286,242 @@ document.addEventListener('DOMContentLoaded', async () => {
     return { open, close, isOpen, handleKeyDown };
   }
 
-  // --- 11. MOCKUP WINDOW FRAME GENERATOR ---
+  // --- 11. ADVANCED 3D MOCKUP & DEVICE FRAME STUDIO CONTROLLER ---
   function updateMockupPreview() {
     if (!mockupPreviewCanvas || !mainCanvas) return;
     if (window.FullShotMockup) {
-      window.FullShotMockup.renderMockupPreview(mainCanvas, mockupPreviewCanvas, { ...mockupConfig, title: captureData?.title || captureData?.url });
+      window.FullShotMockup.renderMockupPreview(mainCanvas, mockupPreviewCanvas, {
+        ...mockupConfig,
+        title: captureData?.title || captureData?.url
+      });
     } else if (renderer && renderer.generateMockupCanvas) {
       const rendered = renderer.generateMockupCanvas(mainCanvas, mockupConfig, captureData);
       if (rendered) {
         mockupPreviewCanvas.width = rendered.width;
         mockupPreviewCanvas.height = rendered.height;
         const pCtx = mockupPreviewCanvas.getContext('2d');
+        pCtx.imageSmoothingEnabled = true;
+        pCtx.imageSmoothingQuality = 'high';
         pCtx.drawImage(rendered, 0, 0);
       }
     }
   }
 
+  function updateTiltUI(x, y) {
+    const tiltX = Math.max(-25, Math.min(25, parseInt(x, 10) || 0));
+    const tiltY = Math.max(-25, Math.min(25, parseInt(y, 10) || 0));
+
+    mockupConfig.tiltX = tiltX;
+    mockupConfig.tiltY = tiltY;
+
+    if (tiltXRange) tiltXRange.value = tiltX;
+    if (tiltYRange) tiltYRange.value = tiltY;
+    if (tiltXNum) tiltXNum.textContent = `${tiltX}°`;
+    if (tiltYNum) tiltYNum.textContent = `${tiltY}°`;
+    if (tiltValueText) tiltValueText.textContent = `X: ${tiltX}° | Y: ${tiltY}°`;
+
+    // Update 2D Joystick Puck Position
+    if (tiltPuckHandle) {
+      const maxOffset = 26; // px radius in trackpad
+      const normX = (tiltY / 25) * maxOffset;
+      const normY = (-tiltX / 25) * maxOffset;
+      tiltPuckHandle.style.transform = `translate(calc(-50% + ${normX}px), calc(-50% + ${normY}px))`;
+    }
+
+    // Sync Active Tilt Preset state
+    tiltPresetBtns.forEach(btn => {
+      const px = parseInt(btn.dataset.tiltx, 10);
+      const py = parseInt(btn.dataset.tilty, 10);
+      if (px === tiltX && py === tiltY) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    updateMockupPreview();
+  }
+
+  // Interactive 3D Tilt Joystick Trackpad
+  let isPuckDragging = false;
+
+  function handlePuckMove(e) {
+    if (!tiltPuckTrack) return;
+    const rect = tiltPuckTrack.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const deltaX = (e.clientX - centerX) / (rect.width / 2);
+    const deltaY = (e.clientY - centerY) / (rect.height / 2);
+
+    const clampedX = Math.max(-1, Math.min(1, deltaX));
+    const clampedY = Math.max(-1, Math.min(1, deltaY));
+
+    const newTiltY = Math.round(clampedX * 25);
+    const newTiltX = Math.round(-clampedY * 25);
+
+    updateTiltUI(newTiltX, newTiltY);
+  }
+
+  if (tiltPuckTrack) {
+    tiltPuckTrack.addEventListener('mousedown', (e) => {
+      isPuckDragging = true;
+      handlePuckMove(e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isPuckDragging) {
+        handlePuckMove(e);
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isPuckDragging) {
+        isPuckDragging = false;
+      }
+    });
+  }
+
+  // Tilt Sliders
+  if (tiltXRange) {
+    tiltXRange.addEventListener('input', (e) => {
+      updateTiltUI(e.target.value, mockupConfig.tiltY);
+    });
+  }
+
+  if (tiltYRange) {
+    tiltYRange.addEventListener('input', (e) => {
+      updateTiltUI(mockupConfig.tiltX, e.target.value);
+    });
+  }
+
+  // Quick Tilt Presets
+  tiltPresetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const px = parseInt(btn.dataset.tiltx, 10) || 0;
+      const py = parseInt(btn.dataset.tilty, 10) || 0;
+      updateTiltUI(px, py);
+    });
+  });
+
+  // Device Frame Switcher
+  mockupFrameBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      mockupFrameBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+
+      const frame = btn.dataset.frame;
+      mockupConfig.frameType = frame;
+
+      const frameNames = {
+        macos: 'macOS Window',
+        iphone16pro: 'iPhone 16 Pro',
+        safari: 'Safari Browser',
+        glass: 'Minimalist Glass',
+        none: 'Çerçevesiz (Düz)'
+      };
+      if (activeFrameLabel) activeFrameLabel.textContent = frameNames[frame] || frame;
+
+      // Adjust Header checkbox visibility for frames without titlebars
+      if (mockupHeaderToggleWrap) {
+        if (frame === 'iphone16pro' || frame === 'glass' || frame === 'none') {
+          mockupHeaderToggleWrap.style.opacity = '0.4';
+          mockupHeaderToggleWrap.style.pointerEvents = 'none';
+        } else {
+          mockupHeaderToggleWrap.style.opacity = '1';
+          mockupHeaderToggleWrap.style.pointerEvents = 'auto';
+        }
+      }
+
+      updateMockupPreview();
+    });
+  });
+
+  // Social Media Aspect Ratio Presets
+  mockupRatioBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      mockupRatioBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+
+      mockupConfig.aspectRatio = btn.dataset.ratio;
+      if (mockupRatioBadge) {
+        mockupRatioBadge.textContent = btn.textContent;
+      }
+      updateMockupPreview();
+    });
+  });
+
+  // Ultra-HD Mesh Gradient Themes
+  mockupThemeCards.forEach(card => {
+    card.addEventListener('click', () => {
+      mockupThemeCards.forEach(c => {
+        c.classList.remove('active');
+        c.setAttribute('aria-checked', 'false');
+      });
+      card.classList.add('active');
+      card.setAttribute('aria-checked', 'true');
+
+      mockupConfig.theme = card.dataset.theme;
+      if (activeThemeLabel) {
+        activeThemeLabel.textContent = card.dataset.name || card.dataset.theme;
+      }
+      updateMockupPreview();
+    });
+  });
+
+  // Padding Options
+  mockupPaddingBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      mockupPaddingBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      mockupConfig.padding = parseInt(btn.dataset.padding, 10);
+      updateMockupPreview();
+    });
+  });
+
+  // Shadow Options
+  mockupShadowBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      mockupShadowBtns.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      mockupConfig.shadow = btn.dataset.shadow;
+      updateMockupPreview();
+    });
+  });
+
+  // Film Grain Toggle
+  if (mockupGrainCheckbox) {
+    mockupGrainCheckbox.addEventListener('change', () => {
+      mockupConfig.enableGrain = mockupGrainCheckbox.checked;
+      updateMockupPreview();
+    });
+  }
+
+  // Window Header Toggle
+  if (mockupHeaderCheckbox) {
+    mockupHeaderCheckbox.addEventListener('change', () => {
+      mockupConfig.hasHeader = mockupHeaderCheckbox.checked;
+      updateMockupPreview();
+    });
+  }
+
+  // Modal Focus Trap & Open / Close
   let mockupTrap = null;
   if (mockupModal) {
     mockupTrap = createFocusTrap(mockupModal);
@@ -1084,6 +1529,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (mockupBtn) {
       mockupBtn.addEventListener('click', () => {
         mockupTrap.open(mockupBtn);
+        updateTiltUI(mockupConfig.tiltX, mockupConfig.tiltY);
         updateMockupPreview();
       });
     }
@@ -1101,59 +1547,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Mockup Controls Listeners
-  mockupThemeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      mockupThemeBtns.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-checked', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-checked', 'true');
-      mockupConfig.theme = btn.dataset.theme;
-      updateMockupPreview();
-    });
-  });
-
-  mockupPaddingBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      mockupPaddingBtns.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-checked', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-checked', 'true');
-      mockupConfig.padding = parseInt(btn.dataset.padding, 10);
-      updateMockupPreview();
-    });
-  });
-
-  mockupHeaderBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      mockupHeaderBtns.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-checked', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-checked', 'true');
-      mockupConfig.hasHeader = btn.dataset.header === 'true';
-      updateMockupPreview();
-    });
-  });
-
-  mockupShadowBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      mockupShadowBtns.forEach(b => {
-        b.classList.remove('active');
-        b.setAttribute('aria-checked', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-checked', 'true');
-      mockupConfig.shadow = btn.dataset.shadow;
-      updateMockupPreview();
-    });
-  });
-
+  // Export Actions
   if (downloadMockupPngBtn) {
     downloadMockupPngBtn.addEventListener('click', async () => {
       const rendered = window.FullShotMockup
@@ -1299,6 +1693,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // --- 14. AUTO-CENSOR ENGINE ACTION ---
+  if (autoCensorBtn) {
+    autoCensorBtn.addEventListener('click', async () => {
+      if (AutoCensorEngine && AutoCensorEngine.autoCensorCanvas) {
+        showToast('Otomatik Tarama', 'Sayfadaki hassas veriler taranıyor...');
+        const res = await AutoCensorEngine.autoCensorCanvas({
+          ctx: renderer.mainCtx,
+          pushAction,
+          canvas: mainCanvas,
+          captureData,
+          blurType: activeBlurType
+        });
+        if (res && res.count > 0) {
+          showToast('Sansürleme Tamamlandı', res.summary);
+        } else {
+          showToast('Güvenlik Taraması', 'Otomatik sansürlenecek açık veri tespit edilmedi.');
+        }
+      }
+    });
+  }
+
   // --- 13. KEYBOARD SHORTCUTS & MODAL ---
   let shortcutsTrap = null;
   if (shortcutsModal) {
@@ -1373,6 +1788,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    // Shift + B -> Auto Censor
+    if (e.shiftKey && (e.key === 'b' || e.key === 'B') && !e.ctrlKey && !e.metaKey) {
+      e.preventDefault();
+      if (autoCensorBtn) autoCensorBtn.click();
+      return;
+    }
+
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
       if (e.shiftKey) {
@@ -1396,6 +1818,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (downloadSinglePdfBtn) downloadSinglePdfBtn.click();
     } else if (e.key === 'v' || e.key === 'V') {
       setActiveTool('select');
+    } else if (e.key === 'f' || e.key === 'F') {
+      setActiveTool('spotlight');
+    } else if ((e.key === 'z' || e.key === 'Z') && !e.ctrlKey && !e.metaKey) {
+      setActiveTool('magnifier');
+    } else if (e.key === 'e' || e.key === 'E') {
+      setActiveTool('stamp');
     } else if (e.key === 'm' || e.key === 'M') {
       if (mockupTrap) {
         if (mockupTrap.isOpen()) {

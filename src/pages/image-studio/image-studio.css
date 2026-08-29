@@ -1210,26 +1210,47 @@ kbd {
 }
 
 /* ============================================================
-   7. MOCKUP FRAME MODAL
+   7. ADVANCED 3D MOCKUP & DEVICE FRAME STUDIO MODAL
    ============================================================ */
 .mockup-modal-card {
-  width: 720px;
+  width: 820px;
   max-width: 95vw;
+  max-height: 94vh;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-medium);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-floating);
+  overflow: hidden;
 }
 
 .mockup-modal-body {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
+  gap: 14px;
+  padding: 16px 20px 20px 20px;
+  overflow-y: auto;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
+.mockup-modal-body::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Live Mockup Viewport Container */
 .mockup-preview-container {
   width: 100%;
-  height: 270px;
-  background: #14161a;
+  height: 250px;
+  min-height: 220px;
+  background: #111317;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%);
+  background-size: 18px 18px, 100% 100%;
   border: 1px solid var(--border-subtle);
   border-radius: 14px;
   display: flex;
@@ -1237,67 +1258,345 @@ kbd {
   justify-content: center;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 2px 14px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 2px 16px rgba(0, 0, 0, 0.7);
 }
 
 #mockupPreviewCanvas {
-  max-width: 92%;
-  max-height: 92%;
+  max-width: 90%;
+  max-height: 90%;
   object-fit: contain;
-  border-radius: 14px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6);
-  transition: transform 0.15s ease;
+  border-radius: 8px;
+  filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.55));
+  transition: transform 0.15s ease-out;
 }
 
-.mockup-controls-grid {
+.mockup-ratio-badge {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* 2-Column Controls Layout */
+.mockup-controls-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .mockup-controls-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mockup-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .mockup-control-item {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
+}
+
+.control-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .mockup-label {
   font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.mockup-sublabel {
+  font-size: 10px;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: var(--primary);
+  font-family: ui-monospace, monospace;
 }
 
-.mockup-theme-selector {
+/* 1. Device Frame Selector Tabs */
+.mockup-frame-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.mockup-frame-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-}
-
-.mockup-theme-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid transparent;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.mockup-frame-btn svg {
+  stroke: currentColor;
+}
+
+.mockup-frame-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.mockup-frame-btn.active {
+  background: var(--primary);
+  color: #FFFFE3;
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+/* 2. 3D Tilt Joystick Trackpad & Sliders */
+.tilt-control-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 10px;
+}
+
+.tilt-puck-track {
+  width: 74px;
+  height: 74px;
+  min-width: 74px;
+  background: #15171b;
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
   position: relative;
+  cursor: crosshair;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.6);
+  user-select: none;
+  touch-action: none;
 }
 
-.mockup-theme-btn:hover {
-  transform: scale(1.15);
+.tilt-puck-crosshair-x {
+  position: absolute;
+  top: 50%;
+  left: 6px;
+  right: 6px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.mockup-theme-btn.active {
-  border-color: #ffffff;
-  box-shadow: 0 0 0 2.5px var(--primary), 0 4px 12px rgba(0, 0, 0, 0.5);
-  transform: scale(1.08);
+.tilt-puck-crosshair-y {
+  position: absolute;
+  left: 50%;
+  top: 6px;
+  bottom: 6px;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.tilt-center-mark {
+  font-size: 8px;
+  color: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+}
+
+.tilt-puck-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid #FFFFE3;
+  box-shadow: 0 0 8px var(--primary-glow), 0 2px 4px rgba(0, 0, 0, 0.5);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: transform 0.05s ease-out;
+}
+
+.tilt-sliders-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tilt-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tilt-axis-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  width: 75px;
+  flex-shrink: 0;
+}
+
+.mockup-slider {
+  flex: 1;
+  accent-color: var(--primary);
+  height: 4px;
+  cursor: pointer;
+  background: var(--bg-surface);
+  border-radius: 2px;
+}
+
+.tilt-num {
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 28px;
+  text-align: right;
+}
+
+.tilt-preset-btns {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.tilt-preset-btn {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 3px 2px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: center;
+}
+
+.tilt-preset-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.tilt-preset-btn.active {
+  background: var(--primary);
+  color: #FFFFE3;
+  border-color: var(--primary);
+}
+
+/* 3. Aspect Ratio Pills */
+.mockup-ratio-pills {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.ratio-pill-btn {
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 6px 2px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: center;
+}
+
+.ratio-pill-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.ratio-pill-btn.active {
+  background: var(--primary);
+  color: #FFFFE3;
+  box-shadow: 0 2px 6px var(--primary-glow);
+}
+
+/* 4. Mesh Gradient Cards */
+.mockup-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+
+.mockup-theme-card {
+  height: 38px;
+  border-radius: var(--radius-sm);
+  border: 2px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.mockup-theme-card span {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.mockup-theme-card:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.mockup-theme-card.active {
+  border-color: #FFFFE3;
+  box-shadow: 0 0 0 2px var(--primary), 0 4px 12px rgba(0, 0, 0, 0.6);
+  transform: scale(1.02);
+}
+
+/* 5 & 6. Compact Grid for Padding & Shadows */
+.mockup-compact-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 .mockup-btn-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
@@ -1309,12 +1608,12 @@ kbd {
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
-  padding: 6px 8px;
-  border-radius: 6px;
+  padding: 5px 6px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.12s ease;
   text-align: center;
   user-select: none;
 }
@@ -1326,18 +1625,87 @@ kbd {
 
 .mockup-opt-btn.active {
   background: var(--primary);
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 2px 8px var(--primary-glow);
+  color: #FFFFE3;
+  font-weight: 700;
+  box-shadow: 0 2px 6px var(--primary-glow);
 }
 
+/* 7 & 8. Toggle Cards (Film Grain & Header) */
+.mockup-toggles-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mockup-toggle-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.mockup-toggle-card:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+}
+
+.mockup-toggle-card input[type="checkbox"] {
+  accent-color: var(--primary);
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.toggle-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.toggle-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.toggle-card-desc {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+/* Bottom Action Row */
 .mockup-actions-row {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.mockup-action-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mockup-info-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.mockup-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ============================================================
@@ -1487,5 +1855,186 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   white-space: nowrap;
   user-select: none;
 }
+
+/* ============================================================
+   11. NEW TOOLS & COMPONENT STYLES (SPOTLIGHT, MAGNIFIER, STAMP, CURVE)
+   ============================================================ */
+
+/* Tool Cursors */
+.canvas-stage.cursor-spotlight { cursor: crosshair; }
+.canvas-stage.cursor-magnifier { cursor: crosshair; }
+.canvas-stage.cursor-stamp { cursor: cell; }
+
+/* AI Auto-Censor Button */
+.ai-censor-btn {
+  background: linear-gradient(135deg, rgba(109, 129, 150, 0.25), rgba(74, 74, 74, 0.6)) !important;
+  border-color: #6D8196 !important;
+  color: #FFFFE3 !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-censor-btn:hover {
+  background: linear-gradient(135deg, #6D8196, #4A4A4A) !important;
+  box-shadow: 0 0 12px rgba(109, 129, 150, 0.45);
+}
+
+.ai-censor-btn svg {
+  color: #00d2ff;
+}
+
+/* Spotlight & Magnifier & Stamp Icon Highlights */
+.tool-icon-btn.highlight-spotlight.active {
+  background: rgba(0, 210, 255, 0.18);
+  border-color: #00d2ff;
+  color: #00d2ff;
+}
+
+.tool-icon-btn.highlight-magnifier.active {
+  background: rgba(109, 129, 150, 0.25);
+  border-color: #6D8196;
+  color: #FFFFE3;
+}
+
+.tool-icon-btn.highlight-stamp.active {
+  background: rgba(5, 150, 105, 0.22);
+  border-color: #10b981;
+  color: #34d399;
+}
+
+/* Spotlight Shape & Darkness Selectors */
+.spotlight-shape-selector,
+.spotlight-darkness-selector,
+.magnifier-zoom-selector,
+.arrow-curve-selector,
+.callout-style-selector {
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+  width: 100%;
+}
+
+.spotlight-shape-btn,
+.spotlight-dark-btn,
+.mag-zoom-btn,
+.arrow-curve-btn,
+.callout-style-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.spotlight-shape-btn:hover,
+.spotlight-dark-btn:hover,
+.mag-zoom-btn:hover,
+.arrow-curve-btn:hover,
+.callout-style-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.spotlight-shape-btn.active,
+.spotlight-dark-btn.active,
+.mag-zoom-btn.active,
+.arrow-curve-btn.active,
+.callout-style-btn.active {
+  background: var(--primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* Stamp Category Tabs & Grid */
+.stamp-category-tabs {
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 2px;
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.stamp-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.stamp-tab:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.stamp-tab.active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.stamp-selector-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+  gap: 4px;
+  max-height: 140px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: 2px;
+}
+
+.stamp-selector-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.stamp-item-btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 4px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stamp-item-btn:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+}
+
+.stamp-item-btn.active {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+}
+
 
 

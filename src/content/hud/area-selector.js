@@ -1,6 +1,8 @@
 /**
- * FullShot Pro - In-Page Area Selector (Crop HUD)
+ * FullShot Pro - In-Page Area Selector (Crop HUD & 8x Magnifier Loupe)
  * Isolated Shadow DOM v1 Component for interactive crosshair region selection & capture.
+ * Features: 8x Magnifier Loupe, Crosshair, Pixel Grid, Live HEX/RGB Color Picker,
+ * OCR Text Extraction, Pin to Screen, Clipboard Copy, Direct Download, Image Studio.
  * 4-Color Slate/Charcoal Palette (#4A4A4A, #CBCBCB, #FFFFE3, #6D8196)
  */
 
@@ -63,20 +65,56 @@
   }
 
   /**
+   * Extracts DOM text nodes intersecting the selection bounding box.
+   */
+  function extractDomTextInBox(x, y, w, h) {
+    try {
+      const walker = document.createTreeWalker(
+        document.body || document.documentElement,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode: (node) => {
+            if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+            const parent = node.parentElement;
+            if (!parent || parent.closest('[id^="__fullshot_"]')) return NodeFilter.FILTER_REJECT;
+            const rect = parent.getBoundingClientRect();
+            if (rect.right < x || rect.left > x + w || rect.bottom < y || rect.top > y + h) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            return NodeFilter.FILTER_ACCEPT;
+          }
+        }
+      );
+
+      const linesMap = new Map();
+      let node;
+      while ((node = walker.nextNode())) {
+        const parent = node.parentElement;
+        const rect = parent.getBoundingClientRect();
+        const lineKey = Math.round(rect.top / 10) * 10;
+        if (!linesMap.has(lineKey)) linesMap.set(lineKey, []);
+        linesMap.get(lineKey).push(node.nodeValue.trim());
+      }
+
+      const sortedKeys = Array.from(linesMap.keys()).sort((a, b) => a - b);
+      const resultLines = sortedKeys.map((k) => linesMap.get(k).join(' ')).filter(Boolean);
+      return resultLines.join('\n').trim();
+    } catch (e) {
+      return '';
+    }
+  }
+
+  /**
    * Starts the interactive crosshair area selection mode.
    * @param {Object} [options={}] - Selection and capture options
-   * @param {string} [options.format='png'] - Capture image format ('png' or 'jpeg')
-   * @param {number} [options.quality=95] - Image quality (1-100)
-   * @param {Function} [options.onSelected] - Optional callback receiving cropped image data
-   * @param {Function} [options.onCancel] - Optional callback on cancellation
    */
   function start(options = {}) {
     cleanup();
 
     if (window.FullShotHUD.toast) {
-      window.FullShotHUD.toast.show('Seçili Alan Modu (Alt+Shift+S) - Kırpmak için sürükleyin, çıkmak için ESC', {
+      window.FullShotHUD.toast.show('Seçili Alan Modu (Alt+Shift+S) - Kırpmak için sürükleyin, Renk Kopyala [C], Çıkış [ESC]', {
         icon: 'crop',
-        duration: 3000
+        duration: 3200
       });
     }
 
@@ -193,6 +231,82 @@
           from { transform: translate(-50%, -15px); opacity: 0; }
           to { transform: translate(-50%, 0); opacity: 1; }
         }
+        .banner kbd {
+          background: #24262b;
+          border: 1px solid #545862;
+          color: #FFFFE3;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 11px;
+          font-weight: 600;
+        }
+
+        /* 8x Magnifier Loupe & Live Color Picker HUD */
+        .magnifier-loupe {
+          position: fixed;
+          display: none;
+          flex-direction: column;
+          align-items: center;
+          pointer-events: none;
+          z-index: 25;
+          gap: 6px;
+        }
+        .loupe-circle {
+          width: 140px;
+          height: 140px;
+          border-radius: 50%;
+          border: 2.5px solid #6D8196;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.25), inset 0 0 8px rgba(0,0,0,0.4);
+          overflow: hidden;
+          background: #24262b;
+          position: relative;
+        }
+        .loupe-canvas {
+          width: 140px;
+          height: 140px;
+          display: block;
+        }
+        .color-panel {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          background: #373a40;
+          border: 1px solid #545862;
+          border-radius: 8px;
+          padding: 4px 8px;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 11px;
+          color: #FFFFE3;
+          white-space: nowrap;
+        }
+        .color-swatch {
+          width: 14px;
+          height: 14px;
+          border-radius: 4px;
+          border: 1px solid #545862;
+          background: #6D8196;
+          flex-shrink: 0;
+        }
+        .color-hex {
+          font-weight: 700;
+          color: #FFFFE3;
+        }
+        .color-rgb {
+          color: #CBCBCB;
+          font-size: 10px;
+        }
+        .color-kbd {
+          background: #24262b;
+          border: 1px solid #545862;
+          color: #FFFFE3;
+          padding: 1px 4px;
+          border-radius: 3px;
+          font-size: 10px;
+        }
+
+        /* Floating Quick Action Bar */
         .quick-bar {
           position: absolute;
           display: none;
@@ -224,7 +338,7 @@
           color: #FFFFE3;
           border: 1px solid #545862;
           border-radius: 8px;
-          padding: 7px 12px;
+          padding: 7px 11px;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           font-size: 12px;
           font-weight: 600;
@@ -252,6 +366,22 @@
           background: #8096ac;
           border-color: #8096ac;
         }
+        .qb-btn.qb-pin {
+          background: #373a40;
+          color: #FFFFE3;
+        }
+        .qb-btn.qb-pin:hover {
+          background: #6D8196;
+          border-color: #6D8196;
+        }
+        .qb-btn.qb-ocr {
+          background: #373a40;
+          color: #FFFFE3;
+        }
+        .qb-btn.qb-ocr:hover {
+          background: #6D8196;
+          border-color: #6D8196;
+        }
         .qb-btn.qb-cancel {
           padding: 7px 9px;
           color: #CBCBCB;
@@ -271,23 +401,46 @@
         <canvas class="selection-canvas" id="canvas"></canvas>
         <div class="badge" id="badge">0 x 0</div>
         <div class="banner" id="banner">
-          <span>Alanı seçmek için sürükleyin. Çıkmak için <b>ESC</b> tuşuna basın.</span>
+          <span>Kırpmak için sürükleyin | Renk Kopyala <kbd>C</kbd> | Çıkış <kbd>ESC</kbd></span>
         </div>
+
+        <!-- 8x Magnifier Loupe -->
+        <div class="magnifier-loupe" id="loupe">
+          <div class="loupe-circle">
+            <canvas class="loupe-canvas" id="loupeCanvas" width="140" height="140"></canvas>
+          </div>
+          <div class="color-panel">
+            <span class="color-swatch" id="colorSwatch"></span>
+            <span class="color-hex" id="colorHex">#4A4A4A</span>
+            <span class="color-rgb" id="colorRgb">rgb(74, 74, 74)</span>
+            <kbd class="color-kbd">C</kbd>
+          </div>
+        </div>
+
+        <!-- Floating Quick Action Bar -->
         <div class="quick-bar" id="quickBar">
+          <button class="qb-btn qb-ocr" id="qbOcrBtn" title="Metni Kopyala (OCR)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"></path></svg>
+            <span>Metni Kopyala (OCR)</span>
+          </button>
+          <button class="qb-btn qb-pin" id="qbPinBtn" title="Ekrana Sabitle (Yüzen Referans)">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+            <span>Sabitle (Pin)</span>
+          </button>
           <button class="qb-btn qb-copy" id="qbCopyBtn" title="Panoya Kopyala (Ctrl+C)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
             <span>Kopyala</span>
           </button>
           <button class="qb-btn qb-download" id="qbDownloadBtn" title="Doğrudan İndir (PNG)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>İndir</span>
           </button>
-          <button class="qb-btn qb-studio" id="qbStudioBtn" title="Gelişmiş Çizim ve İşaretleme Stüdyosunda Aç">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            <span>Gelişmiş Stüdyo ↗</span>
+          <button class="qb-btn qb-studio" id="qbStudioBtn" title="Gelişmiş Çizim ve Düzenleme Stüdyosunda Aç">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            <span>Stüdyo ↗</span>
           </button>
           <button class="qb-btn qb-cancel" id="qbCancelBtn" title="İptal Et (ESC)">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
       </div>
@@ -305,12 +458,49 @@
     const canvas = shadow.getElementById('canvas');
     const badge = shadow.getElementById('badge');
     const banner = shadow.getElementById('banner');
+    const loupe = shadow.getElementById('loupe');
+    const loupeCanvas = shadow.getElementById('loupeCanvas');
+    const colorSwatch = shadow.getElementById('colorSwatch');
+    const colorHex = shadow.getElementById('colorHex');
+    const colorRgb = shadow.getElementById('colorRgb');
     const quickBar = shadow.getElementById('quickBar');
+    const qbOcrBtn = shadow.getElementById('qbOcrBtn');
+    const qbPinBtn = shadow.getElementById('qbPinBtn');
     const qbCopyBtn = shadow.getElementById('qbCopyBtn');
     const qbDownloadBtn = shadow.getElementById('qbDownloadBtn');
     const qbStudioBtn = shadow.getElementById('qbStudioBtn');
     const qbCancelBtn = shadow.getElementById('qbCancelBtn');
     const ctx = canvas ? canvas.getContext('2d') : null;
+    const loupeCtx = loupeCanvas ? loupeCanvas.getContext('2d') : null;
+
+    // Snapshot image for instantaneous 8x pixel magnification
+    let bgSnapshotImg = null;
+    let bgSnapshotCanvas = null;
+    let bgSnapshotCtx = null;
+    let bgSnapshotDpr = dpr;
+    let currentHoverHex = '#4A4A4A';
+    let currentHoverRgb = 'rgb(74, 74, 74)';
+
+    // Pre-capture background snapshot for sub-pixel sampling
+    chrome.runtime.sendMessage({
+      action: 'captureVisibleTab',
+      format: 'png'
+    }, async (res) => {
+      if (res && res.success && res.dataUrl) {
+        try {
+          const img = await loadImage(res.dataUrl);
+          bgSnapshotImg = img;
+          bgSnapshotCanvas = document.createElement('canvas');
+          bgSnapshotCanvas.width = img.naturalWidth || img.width;
+          bgSnapshotCanvas.height = img.naturalHeight || img.height;
+          bgSnapshotCtx = bgSnapshotCanvas.getContext('2d', { willReadFrequently: true });
+          bgSnapshotCtx.drawImage(img, 0, 0);
+          bgSnapshotDpr = (img.naturalWidth || img.width) / (window.innerWidth || 1);
+        } catch (e) {
+          console.warn('[AreaSelector] Arka plan görseli oluşturulamadı:', e);
+        }
+      }
+    });
 
     const updateCanvasSize = () => {
       if (!canvas || !ctx) return;
@@ -346,7 +536,7 @@
 
     function positionQuickBar(x, y, w, h) {
       if (!quickBar) return;
-      const barWidth = 340;
+      const barWidth = 460;
       const barHeight = 44;
       const margin = 12;
 
@@ -368,6 +558,110 @@
       quickBar.style.top = `${Math.round(barTop)}px`;
     }
 
+    /**
+     * Renders the 8x circular magnifier loupe with crosshair, pixel grid, and color swatch.
+     */
+    function renderMagnifierLoupe(clientX, clientY) {
+      if (!loupe || !loupeCtx) return;
+
+      // When selection is finalized and quick bar is open, hide loupe
+      if (hasSelectedArea) {
+        loupe.style.display = 'none';
+        return;
+      }
+
+      loupe.style.display = 'flex';
+
+      // Smart positioning near cursor (offset 24px, clamped inside viewport)
+      const loupeSize = 140;
+      const panelHeight = 32;
+      let left = clientX + 24;
+      let top = clientY + 24;
+
+      if (left + loupeSize > window.innerWidth - 12) {
+        left = clientX - loupeSize - 24;
+      }
+      if (top + loupeSize + panelHeight > window.innerHeight - 12) {
+        top = clientY - loupeSize - panelHeight - 24;
+      }
+
+      loupe.style.left = `${Math.max(12, Math.round(left))}px`;
+      loupe.style.top = `${Math.max(12, Math.round(top))}px`;
+
+      // Draw 8x zoomed pixels on loupe canvas
+      loupeCtx.clearRect(0, 0, 140, 140);
+
+      // Default background if snapshot pending
+      loupeCtx.fillStyle = '#1e2024';
+      loupeCtx.fillRect(0, 0, 140, 140);
+
+      const zoom = 8;
+      const sampleW = 140 / zoom; // 17.5px source size
+      const sampleH = 140 / zoom;
+
+      if (bgSnapshotCanvas && bgSnapshotCtx) {
+        const sx = Math.round((clientX * bgSnapshotDpr) - (sampleW * bgSnapshotDpr / 2));
+        const sy = Math.round((clientY * bgSnapshotDpr) - (sampleH * bgSnapshotDpr / 2));
+        const sw = Math.round(sampleW * bgSnapshotDpr);
+        const sh = Math.round(sampleH * bgSnapshotDpr);
+
+        loupeCtx.imageSmoothingEnabled = false;
+        try {
+          loupeCtx.drawImage(bgSnapshotCanvas, sx, sy, sw, sh, 0, 0, 140, 140);
+
+          // Sample center pixel color
+          const samplePixelX = Math.round(clientX * bgSnapshotDpr);
+          const samplePixelY = Math.round(clientY * bgSnapshotDpr);
+          const p = bgSnapshotCtx.getImageData(samplePixelX, samplePixelY, 1, 1).data;
+          const r = p[0], g = p[1], b = p[2];
+          currentHoverHex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('').toUpperCase();
+          currentHoverRgb = `rgb(${r}, ${g}, ${b})`;
+
+          if (colorSwatch) colorSwatch.style.backgroundColor = currentHoverHex;
+          if (colorHex) colorHex.textContent = currentHoverHex;
+          if (colorRgb) colorRgb.textContent = currentHoverRgb;
+        } catch (err) {}
+      }
+
+      // Draw Pixel Grid Overlay (Subtle 1px lines separating 8x8 pixel blocks)
+      loupeCtx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+      loupeCtx.lineWidth = 1;
+      loupeCtx.beginPath();
+      for (let p = 0; p <= 140; p += zoom) {
+        loupeCtx.moveTo(p, 0);
+        loupeCtx.lineTo(p, 140);
+        loupeCtx.moveTo(0, p);
+        loupeCtx.lineTo(140, p);
+      }
+      loupeCtx.stroke();
+
+      // Draw Center Crosshairs (Hairlines)
+      const center = 70;
+      const centerBoxSize = zoom; // 8px
+
+      loupeCtx.strokeStyle = 'rgba(255, 255, 227, 0.85)';
+      loupeCtx.lineWidth = 1;
+      loupeCtx.beginPath();
+      // Top hairline
+      loupeCtx.moveTo(center, 0);
+      loupeCtx.lineTo(center, center - centerBoxSize / 2);
+      // Bottom hairline
+      loupeCtx.moveTo(center, center + centerBoxSize / 2);
+      loupeCtx.lineTo(center, 140);
+      // Left hairline
+      loupeCtx.moveTo(0, center);
+      loupeCtx.lineTo(center - centerBoxSize / 2, center);
+      // Right hairline
+      loupeCtx.moveTo(center + centerBoxSize / 2, center);
+      loupeCtx.lineTo(140, center);
+      loupeCtx.stroke();
+
+      // Center Pixel Highlight Box
+      loupeCtx.strokeStyle = '#6D8196';
+      loupeCtx.lineWidth = 1.5;
+      loupeCtx.strokeRect(center - centerBoxSize / 2, center - centerBoxSize / 2, centerBoxSize, centerBoxSize);
+    }
+
     updateCanvasSize();
     window.addEventListener('resize', updateCanvasSize);
 
@@ -376,6 +670,15 @@
         cleanup();
         if (typeof options.onCancel === 'function') {
           options.onCancel();
+        }
+      } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
+        // [C] Copy Color to Clipboard
+        navigator.clipboard.writeText(currentHoverHex);
+        if (window.FullShotHUD.toast) {
+          window.FullShotHUD.toast.show(`Renk Kodu Kopyalandı: ${currentHoverHex} 🎨 (${currentHoverRgb})`, {
+            icon: 'copy',
+            duration: 2500
+          });
         }
       } else if (hasSelectedArea && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
         e.preventDefault();
@@ -414,9 +717,12 @@
     };
 
     const onMouseMove = (e) => {
-      if (!isSelecting) return;
       currentX = e.clientX;
       currentY = e.clientY;
+
+      renderMagnifierLoupe(currentX, currentY);
+
+      if (!isSelecting) return;
 
       const x = Math.min(startX, currentX);
       const y = Math.min(startY, currentY);
@@ -455,6 +761,8 @@
       hasSelectedArea = true;
       selectedBounds = { x, y, w, h };
 
+      if (loupe) loupe.style.display = 'none';
+
       // Position In-Page Quick Bar smartly near the selection
       if (quickBar) {
         quickBar.style.display = 'inline-flex';
@@ -474,6 +782,7 @@
       if (quickBar) quickBar.style.display = 'none';
       if (badge) badge.style.display = 'none';
       if (banner) banner.style.display = 'none';
+      if (loupe) loupe.style.display = 'none';
       drawMask(0, 0, 0, 0);
 
       // GPU Compositor reflow & Double rAF ghosting protection
@@ -517,7 +826,6 @@
           cropCanvas.height = sh;
           const cropCtx = cropCanvas.getContext('2d', { alpha: true });
 
-          // High-precision anti-aliased bicubic sampling for smooth curved edges and text
           cropCtx.imageSmoothingEnabled = true;
           cropCtx.imageSmoothingQuality = 'high';
 
@@ -532,7 +840,6 @@
             0, 0, sw, sh
           );
 
-          const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
           const croppedDataUrl = format === 'jpeg' 
             ? cropCanvas.toDataURL('image/jpeg', (quality || 98) / 100)
             : cropCanvas.toDataURL('image/png');
@@ -548,7 +855,51 @@
             type: 'crop'
           };
 
-          if (actionType === 'copy') {
+          if (actionType === 'ocr') {
+            // 1. First attempt instant high-fidelity DOM text extraction
+            let text = extractDomTextInBox(x, y, w, h);
+
+            if (text) {
+              await navigator.clipboard.writeText(text);
+              if (window.FullShotHUD.toast) {
+                const preview = text.length > 50 ? text.substring(0, 48) + '...' : text;
+                window.FullShotHUD.toast.show(`Metin Panoya Kopyalandı (OCR): "${preview}" 📋`, {
+                  icon: 'copy',
+                  duration: 3000
+                });
+              }
+            } else {
+              // 2. Fallback to Offscreen Raster OCR Engine
+              chrome.runtime.sendMessage({
+                target: 'offscreen',
+                action: 'PERFORM_OCR',
+                dataUrl: croppedDataUrl
+              }, async (ocrRes) => {
+                const ocrText = ocrRes?.text || '';
+                if (ocrText) {
+                  await navigator.clipboard.writeText(ocrText);
+                  if (window.FullShotHUD.toast) {
+                    const preview = ocrText.length > 50 ? ocrText.substring(0, 48) + '...' : ocrText;
+                    window.FullShotHUD.toast.show(`Metin Panoya Kopyalandı (OCR): "${preview}" 📋`, {
+                      icon: 'copy',
+                      duration: 3000
+                    });
+                  }
+                } else {
+                  if (window.FullShotHUD.toast) {
+                    window.FullShotHUD.toast.show('Seçili alanda algılanabilir metin bulunamadı.', {
+                      icon: 'warning',
+                      duration: 2500
+                    });
+                  }
+                }
+              });
+            }
+          } else if (actionType === 'pin') {
+            if (window.FullShotHUD.pinWindow) {
+              window.FullShotHUD.pinWindow.pin(item);
+            }
+          } else if (actionType === 'copy') {
             const copied = await copyDataUrlToClipboard(croppedDataUrl);
             if (window.FullShotHUD.toast) {
               window.FullShotHUD.toast.show(copied ? 'Görsel Panoya Kopyalandı! 📋' : 'Panoya kopyalama tamamlandı.', {
@@ -581,6 +932,20 @@
         } catch (err) {
           console.error('Kırpma işleme hatası:', err);
         }
+      });
+    }
+
+    if (qbOcrBtn) {
+      qbOcrBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        executeCropCapture('ocr');
+      });
+    }
+
+    if (qbPinBtn) {
+      qbPinBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        executeCropCapture('pin');
       });
     }
 

@@ -1,6 +1,7 @@
 /**
  * FullShot Pro - In-Page Element Picker HUD
  * Isolated Shadow DOM v1 Component for interactive DOM element hover inspection & click-to-capture.
+ * Features: OCR text copy, Pin to screen, Copy to clipboard, Direct download, Image Studio.
  * 4-Color Slate/Charcoal Palette (#4A4A4A, #CBCBCB, #FFFFE3, #6D8196)
  */
 
@@ -65,10 +66,6 @@
   /**
    * Starts the interactive DOM element hover highlighter & picker mode.
    * @param {Object} [options={}] - Picker & capture options
-   * @param {string} [options.format='png'] - Capture image format ('png' or 'jpeg')
-   * @param {number} [options.quality=95] - Image quality (1-100)
-   * @param {Function} [options.onSelected] - Optional custom handler on element captured
-   * @param {Function} [options.onCancel] - Optional cancel callback
    */
   function start(options = {}) {
     cleanup();
@@ -203,7 +200,7 @@
           color: #FFFFE3;
           border: 1px solid #545862;
           border-radius: 8px;
-          padding: 7px 12px;
+          padding: 7px 11px;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           font-size: 12px;
           font-weight: 600;
@@ -231,6 +228,14 @@
           background: #8096ac;
           border-color: #8096ac;
         }
+        .qb-btn.qb-pin:hover {
+          background: #6D8196;
+          border-color: #6D8196;
+        }
+        .qb-btn.qb-ocr:hover {
+          background: #6D8196;
+          border-color: #6D8196;
+        }
         .qb-btn.qb-cancel {
           padding: 7px 9px;
           color: #CBCBCB;
@@ -253,20 +258,28 @@
         <span>Yakalamak istediğiniz öğeye veya bölüme tıklayın. Çıkmak için <b>ESC</b> tuşuna basın.</span>
       </div>
       <div class="quick-bar" id="quickBar">
+        <button class="qb-btn qb-ocr" id="qbOcrBtn" title="Metni Kopyala (OCR)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"></path></svg>
+          <span>Metni Kopyala (OCR)</span>
+        </button>
+        <button class="qb-btn qb-pin" id="qbPinBtn" title="Ekrana Sabitle (Yüzen Referans)">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
+          <span>Sabitle (Pin)</span>
+        </button>
         <button class="qb-btn qb-copy" id="qbCopyBtn" title="Panoya Kopyala (Ctrl+C)">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
           <span>Kopyala</span>
         </button>
         <button class="qb-btn qb-download" id="qbDownloadBtn" title="Doğrudan İndir (PNG)">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           <span>İndir</span>
         </button>
         <button class="qb-btn qb-studio" id="qbStudioBtn" title="Gelişmiş Çizim ve İşaretleme Stüdyosunda Aç">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-          <span>Gelişmiş Stüdyo ↗</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          <span>Stüdyo ↗</span>
         </button>
         <button class="qb-btn qb-cancel" id="qbCancelBtn" title="İptal Et (ESC)">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
     `;
@@ -283,6 +296,8 @@
     const tag = shadow.getElementById('tag');
     const banner = shadow.getElementById('banner');
     const quickBar = shadow.getElementById('quickBar');
+    const qbOcrBtn = shadow.getElementById('qbOcrBtn');
+    const qbPinBtn = shadow.getElementById('qbPinBtn');
     const qbCopyBtn = shadow.getElementById('qbCopyBtn');
     const qbDownloadBtn = shadow.getElementById('qbDownloadBtn');
     const qbStudioBtn = shadow.getElementById('qbStudioBtn');
@@ -320,7 +335,6 @@
       const tagLabel = isFrame ? `<iframe> (Frame)` : `<${tagName}${className}>`;
       tag.textContent = `${tagLabel} • ${Math.round(rect.width * dpr)} × ${Math.round(rect.height * dpr)} px`;
 
-      // If box is too close to top edge, place badge inside
       if (rect.top < 30) {
         tag.style.top = '4px';
         tag.style.left = '4px';
@@ -398,7 +412,6 @@
           cropCanvas.height = sh;
           const cropCtx = cropCanvas.getContext('2d', { alpha: true });
 
-          // High-precision anti-aliased bicubic sampling for smooth curved edges and text
           cropCtx.imageSmoothingEnabled = true;
           cropCtx.imageSmoothingQuality = 'high';
 
@@ -413,7 +426,6 @@
             0, 0, sw, sh
           );
 
-          const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
           const croppedDataUrl = format === 'jpeg' 
             ? cropCanvas.toDataURL('image/jpeg', (quality || 98) / 100)
             : cropCanvas.toDataURL('image/png');
@@ -429,7 +441,48 @@
             type: 'element'
           };
 
-          if (actionType === 'copy') {
+          if (actionType === 'ocr') {
+            let text = (targetEl.innerText || targetEl.textContent || '').trim();
+            if (text) {
+              await navigator.clipboard.writeText(text);
+              if (window.FullShotHUD.toast) {
+                const preview = text.length > 50 ? text.substring(0, 48) + '...' : text;
+                window.FullShotHUD.toast.show(`Metin Panoya Kopyalandı (OCR): "${preview}" 📋`, {
+                  icon: 'copy',
+                  duration: 3000
+                });
+              }
+            } else {
+              chrome.runtime.sendMessage({
+                target: 'offscreen',
+                action: 'PERFORM_OCR',
+                dataUrl: croppedDataUrl
+              }, async (ocrRes) => {
+                const ocrText = ocrRes?.text || '';
+                if (ocrText) {
+                  await navigator.clipboard.writeText(ocrText);
+                  if (window.FullShotHUD.toast) {
+                    const preview = ocrText.length > 50 ? ocrText.substring(0, 48) + '...' : ocrText;
+                    window.FullShotHUD.toast.show(`Metin Panoya Kopyalandı (OCR): "${preview}" 📋`, {
+                      icon: 'copy',
+                      duration: 3000
+                    });
+                  }
+                } else {
+                  if (window.FullShotHUD.toast) {
+                    window.FullShotHUD.toast.show('Öğede algılanabilir metin bulunamadı.', {
+                      icon: 'warning',
+                      duration: 2500
+                    });
+                  }
+                }
+              });
+            }
+          } else if (actionType === 'pin') {
+            if (window.FullShotHUD.pinWindow) {
+              window.FullShotHUD.pinWindow.pin(item);
+            }
+          } else if (actionType === 'copy') {
             const copied = await copyDataUrlToClipboard(croppedDataUrl);
             if (window.FullShotHUD.toast) {
               window.FullShotHUD.toast.show(copied ? 'Görsel Panoya Kopyalandı! 📋' : 'Panoya kopyalama tamamlandı.', {
@@ -462,6 +515,20 @@
         } catch (err) {
           console.error('Element işleme hatası:', err);
         }
+      });
+    }
+
+    if (qbOcrBtn) {
+      qbOcrBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        executeElementCapture('ocr');
+      });
+    }
+
+    if (qbPinBtn) {
+      qbPinBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        executeElementCapture('pin');
       });
     }
 
@@ -498,7 +565,7 @@
 
     function positionQuickBar(rect) {
       if (!quickBar || !rect) return;
-      const barWidth = 340;
+      const barWidth = 460;
       const barHeight = 44;
       const margin = 12;
 
@@ -533,7 +600,6 @@
     window.addEventListener('resize', onResize);
 
     const onClick = (e) => {
-      // Ignore clicks originating from inside the quickBar
       if (e.composedPath && e.composedPath().includes(quickBar)) return;
       e.preventDefault();
       e.stopPropagation();

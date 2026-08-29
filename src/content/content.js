@@ -162,6 +162,75 @@
       sendResponse({ success: true });
       return true;
     }
+
+    // --- Pixel Ruler & Distance Measurement Actions ---
+    if (action === 'startPixelRuler') {
+      startPixelRuler(request.options || {});
+      sendResponse({ success: true });
+      return true;
+    }
+
+    if (action === 'togglePixelRuler') {
+      togglePixelRuler(request.options || {});
+      sendResponse({ success: true });
+      return true;
+    }
+
+    if (action === 'stopPixelRuler') {
+      stopPixelRuler();
+      sendResponse({ success: true });
+      return true;
+    }
+
+    // --- Pin Capture / Floating Reference Window Actions ---
+    if (action === 'pinCapture' || action === 'pinToScreen') {
+      pinCapture(request.captureData || request.dataUrl, request.options || {});
+      sendResponse({ success: true });
+      return true;
+    }
+
+    // --- Camera Bubble (Facecam Overlay) Actions ---
+    if (action === 'showCameraBubble' || action === 'startCameraBubble') {
+      if (window.FullShotHUD?.cameraBubble?.show) {
+        window.FullShotHUD.cameraBubble.show(request.options || {});
+      }
+      sendResponse({ success: true });
+      return true;
+    }
+
+    if (action === 'hideCameraBubble' || action === 'stopCameraBubble') {
+      if (window.FullShotHUD?.cameraBubble?.hide) {
+        window.FullShotHUD.cameraBubble.hide();
+      }
+      sendResponse({ success: true });
+      return true;
+    }
+
+    if (action === 'toggleCameraBubble') {
+      if (window.FullShotHUD?.cameraBubble?.toggle) {
+        window.FullShotHUD.cameraBubble.toggle(request.options || {});
+      }
+      sendResponse({ success: true });
+      return true;
+    }
+
+    // --- Cursor Effects & Spotlight Actions ---
+    if (action === 'toggleSpotlight') {
+      let isEnabled = false;
+      if (window.FullShotHUD?.cursorEffects?.toggleSpotlight) {
+        isEnabled = window.FullShotHUD.cursorEffects.toggleSpotlight(request.enabled);
+      }
+      sendResponse({ success: true, isEnabled });
+      return true;
+    }
+
+    if (action === 'setClickRipples') {
+      if (window.FullShotHUD?.cursorEffects?.setRipplesEnabled) {
+        window.FullShotHUD.cursorEffects.setRipplesEnabled(request.enabled !== false);
+      }
+      sendResponse({ success: true });
+      return true;
+    }
   });
 
   // =========================================================================
@@ -175,7 +244,11 @@
     '__fullshot_countdown_host__',
     '__fullshot_selection_host__',
     '__fullshot_picker_host__',
-    '__fullshot_quickbar_host__'
+    '__fullshot_quickbar_host__',
+    '__fullshot_pin_host__',
+    '__fullshot_ruler_host__',
+    '__fullshot_camera_bubble_host__',
+    '__fullshot_cursor_effects_host__'
   ];
 
   function hideOverlaysForCapture() {
@@ -313,8 +386,32 @@
     }
   }
 
+  function startPixelRuler(options = {}) {
+    if (window.FullShotHUD?.pixelRuler?.start) {
+      window.FullShotHUD.pixelRuler.start(options);
+    }
+  }
+
+  function togglePixelRuler(options = {}) {
+    if (window.FullShotHUD?.pixelRuler?.toggle) {
+      window.FullShotHUD.pixelRuler.toggle(options);
+    }
+  }
+
+  function stopPixelRuler() {
+    if (window.FullShotHUD?.pixelRuler?.stop) {
+      window.FullShotHUD.pixelRuler.stop();
+    }
+  }
+
+  function pinCapture(captureData, options = {}) {
+    if (window.FullShotHUD?.pinWindow?.pin) {
+      window.FullShotHUD.pinWindow.pin(captureData, options);
+    }
+  }
+
   // =========================================================================
-  // --- IN-PAGE KEYBOARD SHORTCUTS (Alt+Shift+F, Alt+Shift+V, Alt+Shift+S, Alt+Shift+E) ---
+  // --- IN-PAGE KEYBOARD SHORTCUTS (Alt+Shift+F, Alt+Shift+V, Alt+Shift+S, Alt+Shift+E, Alt+Shift+R) ---
   // =========================================================================
 
   window.addEventListener('keydown', (e) => {
@@ -371,6 +468,10 @@
       e.stopPropagation();
       if (isCapturing) return;
       startElementPicker({ format: 'png', quality: 95 });
+    } else if (code === 'KeyR') {
+      e.preventDefault();
+      e.stopPropagation();
+      togglePixelRuler();
     }
   }, true);
 
@@ -386,6 +487,10 @@
   window.FullShotHUD.removeToast = removeHUDToast;
   window.FullShotHUD.startAreaSelection = startAreaSelection;
   window.FullShotHUD.startElementPicker = startElementPicker;
+  window.FullShotHUD.startPixelRuler = startPixelRuler;
+  window.FullShotHUD.togglePixelRuler = togglePixelRuler;
+  window.FullShotHUD.stopPixelRuler = stopPixelRuler;
+  window.FullShotHUD.pinCapture = pinCapture;
   window.FullShotHUD.showRecordingWidget = showRecordingWidget;
   window.FullShotHUD.removeRecordingWidget = removeRecordingWidget;
   window.FullShotHUD.showCountdown = showCountdownOverlay;
@@ -407,6 +512,9 @@
   window.__fullshot_hide_toast__ = removeHUDToast;
   window.__fullshot_start_area_selection__ = startAreaSelection;
   window.__fullshot_start_element_picker__ = startElementPicker;
+  window.__fullshot_start_pixel_ruler__ = startPixelRuler;
+  window.__fullshot_toggle_pixel_ruler__ = togglePixelRuler;
+  window.__fullshot_pin_capture__ = pinCapture;
   window.__fullshot_show_quick_bar__ = showQuickBar;
   window.__fullshot_hide_quick_bar__ = hideQuickBar;
 })();

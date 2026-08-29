@@ -452,6 +452,21 @@
 
         <!-- Action Buttons -->
         <div class="btn-group">
+          <!-- Camera Bubble Toggle Button -->
+          <button class="btn btn-camera" id="btnCamera" title="Facecam / Kamera Baloncuğu" aria-label="Kamera Baloncuğu">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 9a3 3 0 100 6 3 3 0 000-6zm-7-2h2.2l1.4-2h6.8l1.4 2H19a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V9a2 2 0 012-2z"/>
+            </svg>
+          </button>
+
+          <!-- Spotlight Toggle Button -->
+          <button class="btn btn-spotlight" id="btnSpotlight" title="Spot Işığı (Alt+Shift+S)" aria-label="Spot Işığı">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+
           <!-- Pause / Resume Button -->
           <button class="btn btn-pause" id="btnPause" title="Duraklat" aria-label="Duraklat">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
@@ -477,8 +492,28 @@
 
     const widgetCard = recordingWidgetShadow.getElementById('widgetCard');
     const dragHandle = recordingWidgetShadow.getElementById('dragHandle');
+    const btnCamera = recordingWidgetShadow.getElementById('btnCamera');
+    const btnSpotlight = recordingWidgetShadow.getElementById('btnSpotlight');
     const btnPause = recordingWidgetShadow.getElementById('btnPause');
     const btnStop = recordingWidgetShadow.getElementById('btnStop');
+
+    if (btnCamera) {
+      btnCamera.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (window.FullShotHUD?.cameraBubble) {
+          window.FullShotHUD.cameraBubble.toggle();
+        }
+      });
+    }
+
+    if (btnSpotlight) {
+      btnSpotlight.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (window.FullShotHUD?.cursorEffects) {
+          window.FullShotHUD.cursorEffects.toggleSpotlight();
+        }
+      });
+    }
 
     // Drag & Drop Implementation using Pointer Events
     let isDragging = false;

@@ -144,7 +144,25 @@
 
         case 'arrow':
           if (tools.Arrow) {
-            tools.Arrow.drawArrow(ctx, action.x1, action.y1, action.x2, action.y2, action.color, action.width, action.dashed, action.isDouble);
+            tools.Arrow.drawArrow(ctx, action.x1, action.y1, action.x2, action.y2, action.color, action.width, action.dashed, action.isDouble, action.isCurved, action.curveOffset);
+          }
+          break;
+
+        case 'spotlight':
+          if (tools.Spotlight) {
+            tools.Spotlight.drawSpotlight(ctx, action.x1, action.y1, action.x2, action.y2, action.shape, action.color, action.width, action.darkness, canvasW, canvasH);
+          }
+          break;
+
+        case 'magnifier':
+          if (tools.Magnifier) {
+            tools.Magnifier.drawMagnifier(ctx, action.x, action.y, action.radius, action.zoomFactor, baseImage || this.mainCanvas, action.color, action.width, canvasW, canvasH);
+          }
+          break;
+
+        case 'stamp':
+          if (tools.Stamp) {
+            tools.Stamp.drawStamp(ctx, action.x, action.y, action.stampId, action.scale);
           }
           break;
 
@@ -168,7 +186,7 @@
 
         case 'callout':
           if (tools.Text) {
-            tools.Text.drawCallout(ctx, action.tailX, action.tailY, action.bubbleX, action.bubbleY, action.text, action.color, action.width, action.fontSize, action.hasBg);
+            tools.Text.drawCallout(ctx, action.tailX, action.tailY, action.bubbleX, action.bubbleY, action.text, action.color, action.width, action.fontSize, action.style || (action.hasBg ? 'bubble' : 'plain'));
           }
           break;
 
@@ -180,7 +198,7 @@
 
         case 'text':
           if (tools.Text) {
-            tools.Text.renderTextOnCanvas(ctx, action.text, action.x, action.y, action.fontSize, action.color, action.hasBg, canvasW, canvasH);
+            tools.Text.renderTextOnCanvas(ctx, action.text, action.x, action.y, action.fontSize, action.color, action.bgStyle || action.hasBg, canvasW, canvasH);
           }
           break;
 

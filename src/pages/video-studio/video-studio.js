@@ -62,26 +62,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   const fullscreenBtn = document.getElementById('fullscreenBtn');
 
   // Sidebar / Trimming & Export Elements
-  const fileNameInput = document.getElementById('fileNameInput');
+  const fileNameInput = document.getElementById('videoFilenameInput') || document.getElementById('fileNameInput');
   const resetFilenameBtn = document.getElementById('resetFilenameBtn');
   const activeExtLabel = document.getElementById('activeExtLabel');
 
-  const trimCard = document.getElementById('trimCard');
+  const trimCard = document.getElementById('trimCard') || document.getElementById('trimSettingsCard');
   const resetTrimBtn = document.getElementById('resetTrimBtn');
-  const trimStartTimeText = document.getElementById('trimStartTimeText');
-  const trimEndTimeText = document.getElementById('trimEndTimeText');
-  const setTrimInBtn = document.getElementById('setTrimInBtn');
-  const setTrimOutBtn = document.getElementById('setTrimOutBtn');
+  const trimStartTimeText = document.getElementById('trimStartTimeText') || document.getElementById('trimInInput');
+  const trimEndTimeText = document.getElementById('trimEndTimeText') || document.getElementById('trimOutInput');
+  const setTrimInBtn = document.getElementById('setTrimInBtn') || document.getElementById('setTrimInCurBtn');
+  const setTrimOutBtn = document.getElementById('setTrimOutBtn') || document.getElementById('setTrimOutCurBtn');
   const trimDurationText = document.getElementById('trimDurationText');
   const playTrimmedBtn = document.getElementById('playTrimmedBtn');
+  const applyTrimBtn = document.getElementById('applyTrimBtn');
 
   const exportWebmBtn = document.getElementById('exportWebmBtn');
+  const downloadWebmBtn = document.getElementById('downloadWebmBtn');
+  const downloadGifBtn = document.getElementById('downloadGifBtn');
   const exportMp4Btn = document.getElementById('exportMp4Btn');
   const webmBadgeTag = document.getElementById('webmBadgeTag');
   const webmExportDesc = document.getElementById('webmExportDesc');
   const webmSizeMeta = document.getElementById('webmSizeMeta');
 
   const snapshotCurrentTime = document.getElementById('snapshotCurrentTime');
+  const snapshotFrameBtn = document.getElementById('snapshotFrameBtn');
   const openImageStudioSnapshotBtn = document.getElementById('openImageStudioSnapshotBtn');
   const downloadSnapshotBtn = document.getElementById('downloadSnapshotBtn');
   const copySnapshotBtn = document.getElementById('copySnapshotBtn');
@@ -468,7 +472,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Handle Infinity duration in UI gracefully
     if (!isFinite(duration) || duration <= 0) {
-      duration = (videoData?.duration ? videoData.duration / 1000 : 0);
+      if (videoData && videoData.duration) {
+        duration = videoData.duration > 1000 ? (videoData.duration / 1000) : videoData.duration;
+      }
+      
+      // Force Chrome to parse the full WebM timeline by seeking to the end
+      const originalTime = mainVideo.currentTime;
+      mainVideo.currentTime = 1e101;
+      mainVideo.ontimeupdate = function() {
+        this.ontimeupdate = null;
+        mainVideo.currentTime = originalTime;
+        if (isFinite(mainVideo.duration) && mainVideo.duration > 0) {
+          duration = mainVideo.duration;
+          const formattedDuration = formatTime(duration);
+          if (durationText) durationText.textContent = formattedDuration;
+          if (timeTotal) timeTotal.textContent = formattedDuration;
+          trimOut = duration;
+          updateTrimUI();
+        }
+      };
     }
 
     // Aspect Ratio & Label
@@ -487,7 +509,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (timeTotal) timeTotal.textContent = formattedDuration;
 
     // Video Player Container Aspect Ratio adjustment
-    if (width > 0 && height > 0) {
+    if (width > 0 && height > 0 && videoPlayerContainer) {
       videoPlayerContainer.style.aspectRatio = `${width} / ${height}`;
     }
 
@@ -495,6 +517,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     trimIn = 0;
     trimOut = duration > 0 ? duration : 0;
     updateTrimUI();
+  });
+
+  mainVideo.addEventListener('error', (e) => {
+    console.error('[VideoStudio] Video yükleme hatası:', mainVideo.error, e);
   });
 
   // ============================================================
@@ -513,6 +539,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   function updatePlayPauseIcons(isPlaying) {
     const playIcons = document.querySelectorAll('.icon-play');
     const pauseIcons = document.querySelectorAll('.icon-pause');
+
+    if (playPauseBtn) {
+      playPauseBtn.setAttribute('aria-pressed', String(isPlaying));
+      playPauseBtn.setAttribute('aria-label', isPlaying ? 'Duraklat (Boşluk / K)' : 'Oynat (Boşluk / K)');
+    }
 
     if (isPlaying) {
       playIcons.forEach((el) => el.classList.add('hidden'));
@@ -579,6 +610,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (timelineProgress) timelineProgress.style.width = `${pct}%`;
     if (timelineThumb) timelineThumb.style.left = `${pct}%`;
+    if (timelineTrack) {
+      timelineTrack.setAttribute('aria-valuenow', String(Math.round(pct)));
+      timelineTrack.setAttribute('aria-valuetext', `${formatTime(current)} / ${formatTime(total)}`);
+    }
     if (timeCurrent) timeCurrent.textContent = formatTime(current);
     if (snapshotCurrentTime) snapshotCurrentTime.textContent = formatTime(current);
 
@@ -789,6 +824,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     trimToggleBtn.addEventListener('click', () => {
       isTrimModeActive = !isTrimModeActive;
       trimToggleBtn.classList.toggle('active', isTrimModeActive);
+      trimToggleBtn.setAttribute('aria-pressed', String(isTrimModeActive));
       updateTrimUI();
       showFeedback(isTrimModeActive ? 'Kırpma Açık' : 'Kırpma Kapalı');
     });
@@ -826,7 +862,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     val = Math.max(0, Math.min(1, val));
     mainVideo.volume = val;
     mainVideo.muted = val === 0;
-    if (volumeSlider) volumeSlider.value = val;
+    if (volumeSlider) {
+      volumeSlider.value = val;
+      volumeSlider.setAttribute('aria-valuenow', String(Math.round(val * 100)));
+      volumeSlider.setAttribute('aria-valuetext', `%${Math.round(val * 100)}`);
+    }
     updateVolumeIcon(val, mainVideo.muted);
   }
 
@@ -856,7 +896,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       lastVolume = mainVideo.volume;
       mainVideo.muted = true;
-      if (volumeSlider) volumeSlider.value = 0;
+      if (volumeSlider) {
+        volumeSlider.value = 0;
+        volumeSlider.setAttribute('aria-valuenow', '0');
+        volumeSlider.setAttribute('aria-valuetext', '%0');
+      }
       updateVolumeIcon(0, true);
       showFeedback('Sessiz');
     }
@@ -869,6 +913,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       lastVolume = val;
       mainVideo.muted = val === 0;
       mainVideo.volume = val;
+      volumeSlider.setAttribute('aria-valuenow', String(Math.round(val * 100)));
+      volumeSlider.setAttribute('aria-valuetext', `%${Math.round(val * 100)}`);
       updateVolumeIcon(val, mainVideo.muted);
     });
   }
@@ -879,12 +925,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (speedMenuBtn && speedDropdown) {
     speedMenuBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      speedDropdown.classList.toggle('hidden');
+      const isHidden = speedDropdown.classList.toggle('hidden');
+      speedMenuBtn.setAttribute('aria-expanded', String(!isHidden));
     });
 
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.speed-menu-container')) {
         speedDropdown.classList.add('hidden');
+        speedMenuBtn.setAttribute('aria-expanded', 'false');
       }
     });
 
@@ -895,9 +943,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         mainVideo.playbackRate = speed;
         if (speedValueText) speedValueText.textContent = `${speed}x`;
 
-        speedOptions.forEach((o) => o.classList.remove('active'));
+        speedOptions.forEach((o) => {
+          o.classList.remove('active');
+          o.setAttribute('aria-checked', 'false');
+        });
         opt.classList.add('active');
+        opt.setAttribute('aria-checked', 'true');
         speedDropdown.classList.add('hidden');
+        speedMenuBtn.setAttribute('aria-expanded', 'false');
 
         showFeedback(`Hız: ${speed}x`);
       });
@@ -912,6 +965,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loopToggleBtn.addEventListener('click', () => {
       mainVideo.loop = !mainVideo.loop;
       loopToggleBtn.classList.toggle('active', mainVideo.loop);
+      loopToggleBtn.setAttribute('aria-pressed', String(mainVideo.loop));
       showFeedback(mainVideo.loop ? 'Döngü Açık' : 'Döngü Kapalı');
     });
   }
@@ -1305,7 +1359,58 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  if (exportMp4Btn) exportMp4Btn.addEventListener('click', downloadMP4);
+  // 3. Download Animated GIF (Full Video or Trimmed Segment via Pure JS NeuQuant/LZW GIF Engine)
+  async function downloadGIF() {
+    if (typeof FullShotGifExporter === 'undefined' && !window.FullShotGifExporter) {
+      showToast('GIF Hatası', 'GIF dışa aktarma motoru yüklenemedi.', 'error');
+      return;
+    }
+
+    const Exporter = window.FullShotGifExporter || FullShotGifExporter;
+    const totalDur = isFinite(mainVideo.duration) && mainVideo.duration > 0 ? mainVideo.duration : trimOut;
+    const hasTrim = isTrimModeActive && (trimIn > 0.05 || (totalDur > 0 && trimOut < (totalDur - 0.05)));
+    const start = hasTrim ? trimIn : 0;
+    const end = hasTrim ? trimOut : totalDur;
+    const duration = Math.max(0.1, end - start);
+
+    if (duration > 35) {
+      showToast('Süre Uyarısı', 'GIF formatı kısa klipler için uygundur. Dosya boyutunu optimize etmek için kırpma aralığı seçebilirsiniz.', 'info', 4000);
+    }
+
+    showExportProgress(0, 'GIF Oluşturuluyor...', 'Kareler yakalanıyor ve renk kuantizasyonu yapılıyor...');
+
+    try {
+      const userVal = (fileNameInput?.value || defaultBaseName).trim();
+      const clean = sanitizeFilename(userVal);
+      const filename = `${clean}.gif`;
+
+      const gifBlob = await Exporter.exportGif(activeVideoUrl || mainVideo, {
+        startTime: start,
+        endTime: end,
+        fps: 15,
+        maxWidth: 720,
+        onProgress: (pct, frame, total) => {
+          updateExportProgress(pct);
+          if (exportProgressDesc) {
+            exportProgressDesc.textContent = `Kare işleniyor: ${frame} / ${total} (%${pct})`;
+          }
+        }
+      });
+
+      hideExportProgress();
+      triggerFileDownload(gifBlob, filename);
+      showToast('GIF İndirildi', `${filename} (${formatBytes(gifBlob.size)}) başarıyla oluşturuldu!`, 'success');
+    } catch (err) {
+      console.error('GIF export hatası:', err);
+      hideExportProgress();
+      showToast('GIF Hatası', err.message || 'GIF oluşturulamadı.', 'error');
+    }
+  }
+
+  if (downloadGifBtn) downloadGifBtn.addEventListener('click', downloadGIF);
+  if (downloadWebmBtn) downloadWebmBtn.addEventListener('click', downloadWebM);
+  if (applyTrimBtn) applyTrimBtn.addEventListener('click', downloadWebM);
+  if (snapshotFrameBtn) snapshotFrameBtn.addEventListener('click', downloadSnapshotPNG);
 
   // 3. Snapshot / Frame Grabber (PNG export, Clipboard copy & Image Studio markup)
   function captureCurrentFrameCanvas() {
@@ -1574,39 +1679,143 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ============================================================
-  // 13. KEYBOARD SHORTCUTS MODAL & GLOBAL HANDLER
+  // 13. ACCESSIBLE FOCUS TRAP & KEYBOARD SHORTCUTS
   // ============================================================
-  function openShortcutsModal() {
-    if (shortcutsModal) shortcutsModal.classList.remove('hidden');
+
+  function createFocusTrap(modalElement, onCloseCallback) {
+    let previousActiveElement = null;
+
+    function getFocusableElements() {
+      return Array.from(modalElement.querySelectorAll(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )).filter(el => {
+        return el.offsetWidth > 0 || el.offsetHeight > 0 || el === document.activeElement;
+      });
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        const focusables = getFocusableElements();
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || !modalElement.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !modalElement.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+
+    function open(triggerEl = null) {
+      previousActiveElement = triggerEl || document.activeElement;
+      modalElement.classList.remove('hidden');
+      modalElement.setAttribute('aria-hidden', 'false');
+      document.addEventListener('keydown', handleKeyDown, true);
+
+      requestAnimationFrame(() => {
+        const focusables = getFocusableElements();
+        if (focusables.length > 0) {
+          focusables[0].focus();
+        } else {
+          modalElement.focus();
+        }
+      });
+    }
+
+    function close() {
+      modalElement.classList.add('hidden');
+      modalElement.setAttribute('aria-hidden', 'true');
+      document.removeEventListener('keydown', handleKeyDown, true);
+
+      if (onCloseCallback) {
+        onCloseCallback();
+      }
+
+      if (previousActiveElement && typeof previousActiveElement.focus === 'function') {
+        previousActiveElement.focus();
+      }
+    }
+
+    function isOpen() {
+      return !modalElement.classList.contains('hidden');
+    }
+
+    return { open, close, isOpen, handleKeyDown };
   }
 
-  function closeShortcutsModal() {
-    if (shortcutsModal) shortcutsModal.classList.add('hidden');
-  }
-
-  if (shortcutsBtn) shortcutsBtn.addEventListener('click', openShortcutsModal);
-  if (closeShortcutsBtn) closeShortcutsBtn.addEventListener('click', closeShortcutsModal);
+  let shortcutsTrap = null;
   if (shortcutsModal) {
+    shortcutsTrap = createFocusTrap(shortcutsModal);
+    if (shortcutsBtn) shortcutsBtn.addEventListener('click', () => shortcutsTrap.open(shortcutsBtn));
+    if (closeShortcutsBtn) closeShortcutsBtn.addEventListener('click', () => shortcutsTrap.close());
     shortcutsModal.addEventListener('click', (e) => {
-      if (e.target === shortcutsModal) closeShortcutsModal();
+      if (e.target === shortcutsModal) shortcutsTrap.close();
     });
+  }
+
+  let exportProgressTrap = null;
+  if (exportProgressModal) {
+    exportProgressTrap = createFocusTrap(exportProgressModal);
   }
 
   // Global Keyboard Listener
   document.addEventListener('keydown', (e) => {
-    if (document.activeElement === fileNameInput) {
-      if (e.key === 'Enter') fileNameInput.blur();
+    const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+    const isTextInputFocused = activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select';
+
+    if (isTextInputFocused) {
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        document.activeElement.blur();
+      }
       return;
     }
 
     if (e.key === 'Escape') {
-      closeShortcutsModal();
+      if (shortcutsTrap && shortcutsTrap.isOpen()) {
+        shortcutsTrap.close();
+        return;
+      }
+      if (speedDropdown && !speedDropdown.classList.contains('hidden')) {
+        speedDropdown.classList.add('hidden');
+        speedMenuBtn?.setAttribute('aria-expanded', 'false');
+        speedMenuBtn?.focus();
+        return;
+      }
+      if (document.fullscreenElement) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        return;
+      }
       return;
     }
 
     if (e.key === '?' || (e.shiftKey && e.key === '/')) {
       e.preventDefault();
-      openShortcutsModal();
+      if (shortcutsTrap) {
+        if (shortcutsTrap.isOpen()) {
+          shortcutsTrap.close();
+        } else {
+          shortcutsTrap.open(shortcutsBtn);
+        }
+      }
       return;
     }
 
@@ -1737,3 +1946,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Start initialization
   loadInitialVideo();
 });
+

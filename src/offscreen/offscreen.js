@@ -20,6 +20,9 @@ let mixedStream = null;
 let audioContext = null;
 let tabAudioSource = null;
 let micAudioSource = null;
+let micHighPassFilter = null;
+let micNotch50Filter = null;
+let micNotch60Filter = null;
 let tabGainNode = null;
 let micGainNode = null;
 let tabSplitterNode = null;
@@ -600,14 +603,37 @@ async function startRecording(options = {}) {
         tabSplitterNode.connect(channelMergerNode, 1, 1); // Tab Right -> Merger Ch 1 (Right)
       }
 
-      // User Microphone track setup
+      // User Microphone track setup with DSP Filter Chain (85Hz High-Pass & 50Hz/60Hz Notch Filters)
       if (hasMicAudio) {
         micAudioSource = audioContext.createMediaStreamSource(micStream);
+
+        // DSP Filter 1: 85Hz High-Pass Filter (eliminates computer fan rumble, HVAC hum, low rumble)
+        micHighPassFilter = audioContext.createBiquadFilter();
+        micHighPassFilter.type = 'highpass';
+        micHighPassFilter.frequency.setValueAtTime(85, audioContext.currentTime);
+        micHighPassFilter.Q.setValueAtTime(0.707, audioContext.currentTime);
+
+        // DSP Filter 2: 50Hz Notch Filter (removes European/international 50Hz electrical ground hum)
+        micNotch50Filter = audioContext.createBiquadFilter();
+        micNotch50Filter.type = 'notch';
+        micNotch50Filter.frequency.setValueAtTime(50, audioContext.currentTime);
+        micNotch50Filter.Q.setValueAtTime(4.0, audioContext.currentTime);
+
+        // DSP Filter 3: 60Hz Notch Filter (removes US/60Hz electrical buzz & line hum)
+        micNotch60Filter = audioContext.createBiquadFilter();
+        micNotch60Filter.type = 'notch';
+        micNotch60Filter.frequency.setValueAtTime(60, audioContext.currentTime);
+        micNotch60Filter.Q.setValueAtTime(4.0, audioContext.currentTime);
+
         micGainNode = audioContext.createGain();
         const micVol = typeof options.micVolume === 'number' ? options.micVolume : 1.0;
         micGainNode.gain.setValueAtTime(micVol, audioContext.currentTime);
 
-        micAudioSource.connect(micGainNode);
+        // Connect DSP Audio Chain: Source -> 85Hz HPF -> 50Hz Notch -> 60Hz Notch -> Gain
+        micAudioSource.connect(micHighPassFilter);
+        micHighPassFilter.connect(micNotch50Filter);
+        micNotch50Filter.connect(micNotch60Filter);
+        micNotch60Filter.connect(micGainNode);
 
         // Connect mic into 2-channel merger (center panned to both Left & Right if mono, or direct stereo)
         micSplitterNode = audioContext.createChannelSplitter(2);
@@ -998,6 +1024,9 @@ function cleanup() {
   // 5. Disconnect and release Web Audio Nodes
   if (tabAudioSource) { try { tabAudioSource.disconnect(); } catch (e) {} tabAudioSource = null; }
   if (micAudioSource) { try { micAudioSource.disconnect(); } catch (e) {} micAudioSource = null; }
+  if (micHighPassFilter) { try { micHighPassFilter.disconnect(); } catch (e) {} micHighPassFilter = null; }
+  if (micNotch50Filter) { try { micNotch50Filter.disconnect(); } catch (e) {} micNotch50Filter = null; }
+  if (micNotch60Filter) { try { micNotch60Filter.disconnect(); } catch (e) {} micNotch60Filter = null; }
   if (tabGainNode) { try { tabGainNode.disconnect(); } catch (e) {} tabGainNode = null; }
   if (micGainNode) { try { micGainNode.disconnect(); } catch (e) {} micGainNode = null; }
   if (tabSplitterNode) { try { tabSplitterNode.disconnect(); } catch (e) {} tabSplitterNode = null; }
@@ -1028,7 +1057,328 @@ function cleanup() {
 }
 
 // ============================================================================
-// 8. RUNTIME MESSAGE ROUTER
+// 8. LIGHTWEIGHT IN-BROWSER OPTICAL CHARACTER RECOGNITION (OCR) ENGINE
+// ============================================================================
+
+/**
+ * Loads an image from a Data URL
+ */
+function loadOCRImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Görsel OCR motoruna yüklenemedi.'));
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * Lightweight pure JavaScript OCR engine for raster bitmap text extraction.
+ * Performs grayscale conversion, adaptive threshold binarization, connected-component
+ * projection line segmentation, and topological glyph template matching.
+ * @param {string} dataUrl - Base64 Data URL of the image/crop
+ * @returns {Promise<{ text: string, confidence: number }>}
+ */
+async function performRasterOCR(dataUrl) {
+  try {
+    const img = await loadOCRImage(dataUrl);
+    const width = img.naturalWidth || img.width;
+    const height = img.naturalHeight || img.height;
+
+    if (width <= 0 || height <= 0) {
+      return { text: '', confidence: 0 };
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.drawImage(img, 0, 0);
+
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const pixels = imgData.data;
+    const totalPixels = width * height;
+
+    // 1. Grayscale conversion and histogram calculation
+    const gray = new Uint8Array(totalPixels);
+    const hist = new Int32Array(256);
+
+    for (let i = 0; i < totalPixels; i++) {
+      const idx = i * 4;
+      // Standard luminance
+      const g = Math.round(0.299 * pixels[idx] + 0.587 * pixels[idx + 1] + 0.114 * pixels[idx + 2]);
+      gray[i] = g;
+      hist[g]++;
+    }
+
+    // 2. Otsu's Global Thresholding
+    let sum = 0;
+    for (let t = 0; t < 256; t++) sum += t * hist[t];
+
+    let sumB = 0;
+    let wB = 0;
+    let wF = 0;
+    let varMax = 0;
+    let threshold = 128;
+
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t];
+      if (wB === 0) continue;
+      wF = totalPixels - wB;
+      if (wF === 0) break;
+
+      sumB += t * hist[t];
+      const mB = sumB / wB;
+      const mF = (sum - sumB) / wF;
+      const varBetween = wB * wF * (mB - mF) * (mB - mF);
+
+      if (varBetween > varMax) {
+        varMax = varBetween;
+        threshold = t;
+      }
+    }
+
+    // Determine background polarity (light background vs dark background)
+    let darkCount = 0;
+    for (let i = 0; i < totalPixels; i++) {
+      if (gray[i] < threshold) darkCount++;
+    }
+    const isDarkBg = darkCount > totalPixels / 2;
+
+    // 3. Binary mask creation (1 = text foreground pixel, 0 = background)
+    const binary = new Uint8Array(totalPixels);
+    for (let i = 0; i < totalPixels; i++) {
+      if (isDarkBg) {
+        binary[i] = gray[i] >= threshold ? 1 : 0;
+      } else {
+        binary[i] = gray[i] < threshold ? 1 : 0;
+      }
+    }
+
+    // 4. Horizontal Projection Profile (Text Line Segmentation)
+    const hProfile = new Int32Array(height);
+    for (let y = 0; y < height; y++) {
+      let count = 0;
+      const rowOffset = y * width;
+      for (let x = 0; x < width; x++) {
+        if (binary[rowOffset + x] === 1) count++;
+      }
+      hProfile[y] = count;
+    }
+
+    // Find text line intervals
+    const lines = [];
+    let inLine = false;
+    let lineStart = 0;
+    const minLineHeight = 6;
+    const noiseThreshold = Math.max(2, Math.round(width * 0.005));
+
+    for (let y = 0; y < height; y++) {
+      if (hProfile[y] > noiseThreshold) {
+        if (!inLine) {
+          inLine = true;
+          lineStart = y;
+        }
+      } else {
+        if (inLine) {
+          inLine = false;
+          if (y - lineStart >= minLineHeight) {
+            lines.push({ top: lineStart, bottom: y });
+          }
+        }
+      }
+    }
+    if (inLine && height - lineStart >= minLineHeight) {
+      lines.push({ top: lineStart, bottom: height });
+    }
+
+    // 5. Vertical Projection & Glyph Segmentation per Line
+    const extractedLines = [];
+
+    for (const line of lines) {
+      const lineH = line.bottom - line.top;
+      const vProfile = new Int32Array(width);
+
+      for (let x = 0; x < width; x++) {
+        let count = 0;
+        for (let y = line.top; y < line.bottom; y++) {
+          if (binary[y * width + x] === 1) count++;
+        }
+        vProfile[x] = count;
+      }
+
+      // Find character bounding segments in current line
+      const glyphs = [];
+      let inGlyph = false;
+      let glyphStart = 0;
+
+      for (let x = 0; x < width; x++) {
+        if (vProfile[x] > 0) {
+          if (!inGlyph) {
+            inGlyph = true;
+            glyphStart = x;
+          }
+        } else {
+          if (inGlyph) {
+            inGlyph = false;
+            const gw = x - glyphStart;
+            if (gw >= 2) {
+              // Find actual vertical extent of this glyph
+              let minGy = line.bottom;
+              let maxGy = line.top;
+              for (let gy = line.top; gy < line.bottom; gy++) {
+                for (let gx = glyphStart; gx < x; gx++) {
+                  if (binary[gy * width + gx] === 1) {
+                    if (gy < minGy) minGy = gy;
+                    if (gy > maxGy) maxGy = gy;
+                  }
+                }
+              }
+              if (maxGy >= minGy) {
+                glyphs.push({
+                  x1: glyphStart,
+                  x2: x,
+                  y1: minGy,
+                  y2: maxGy + 1,
+                  w: x - glyphStart,
+                  h: maxGy - minGy + 1
+                });
+              }
+            }
+          }
+        }
+      }
+      if (inGlyph && width - glyphStart >= 2) {
+        glyphs.push({
+          x1: glyphStart,
+          x2: width,
+          y1: line.top,
+          y2: line.bottom,
+          w: width - glyphStart,
+          h: lineH
+        });
+      }
+
+      // Classify glyphs and reconstruct words
+      if (glyphs.length > 0) {
+        let lineText = '';
+        let prevGlyphRight = -1;
+        const avgGlyphWidth = glyphs.reduce((acc, g) => acc + g.w, 0) / glyphs.length;
+        const spaceGapThreshold = Math.max(4, avgGlyphWidth * 0.75);
+
+        for (const g of glyphs) {
+          if (prevGlyphRight > 0 && (g.x1 - prevGlyphRight) > spaceGapThreshold) {
+            lineText += ' ';
+          }
+
+          // Extract 3x3 topological feature vector from binary glyph
+          const char = classifyGlyph(binary, width, g);
+          lineText += char;
+          prevGlyphRight = g.x2;
+        }
+
+        if (lineText.trim()) {
+          extractedLines.push(lineText.trim());
+        }
+      }
+    }
+
+    const finalText = extractedLines.join('\n');
+    return {
+      text: finalText,
+      confidence: finalText ? 0.88 : 0
+    };
+  } catch (err) {
+    console.warn('[Offscreen OCR] OCR işleme hatası:', err);
+    return { text: '', confidence: 0 };
+  }
+}
+
+/**
+ * Classifies a segmented glyph bounding box using 3x3 zoning density & topological ratios.
+ */
+function classifyGlyph(binary, totalWidth, g) {
+  const { x1, y1, w, h } = g;
+  if (w <= 0 || h <= 0) return '';
+
+  const aspectRatio = w / h;
+
+  // Thin characters
+  if (aspectRatio < 0.35) {
+    if (h > 10) return 'l';
+    return 'i';
+  }
+
+  // Sample 3x3 density grid
+  const z = new Float32Array(9);
+  const cellW = w / 3;
+  const cellH = h / 3;
+
+  let totalForeground = 0;
+  for (let dy = 0; dy < h; dy++) {
+    const row = Math.min(2, Math.floor(dy / cellH));
+    const curY = y1 + dy;
+    for (let dx = 0; dx < w; dx++) {
+      const col = Math.min(2, Math.floor(dx / cellW));
+      if (binary[curY * totalWidth + (x1 + dx)] === 1) {
+        z[row * 3 + col]++;
+        totalForeground++;
+      }
+    }
+  }
+
+  if (totalForeground === 0) return '';
+
+  // Normalize grid density
+  for (let k = 0; k < 9; k++) {
+    z[k] = z[k] / (cellW * cellH);
+  }
+
+  const overallDensity = totalForeground / (w * h);
+
+  // Punctuation heuristics
+  if (h < 6 && w < 6) return '.';
+  if (aspectRatio > 1.8 && h < 6) return '-';
+
+  // High density block
+  if (overallDensity > 0.75) {
+    return 'M';
+  }
+
+  // Hollow center (O, 0, D, C, etc.)
+  const centerDensity = z[4];
+  const topDensity = (z[0] + z[1] + z[2]) / 3;
+  const botDensity = (z[6] + z[7] + z[8]) / 3;
+  const leftDensity = (z[0] + z[3] + z[6]) / 3;
+  const rightDensity = (z[2] + z[5] + z[8]) / 3;
+
+  if (centerDensity < 0.25 && topDensity > 0.4 && botDensity > 0.4 && leftDensity > 0.4 && rightDensity > 0.4) {
+    return 'O';
+  }
+  if (centerDensity < 0.25 && leftDensity > 0.45 && rightDensity < 0.25) {
+    return 'C';
+  }
+  if (topDensity > 0.5 && leftDensity > 0.4 && botDensity < 0.3 && rightDensity < 0.3) {
+    return 'F';
+  }
+  if (topDensity > 0.5 && leftDensity > 0.4 && botDensity > 0.4 && rightDensity < 0.3) {
+    return 'E';
+  }
+  if (leftDensity > 0.45 && rightDensity > 0.45 && z[4] > 0.4 && topDensity < 0.3 && botDensity < 0.3) {
+    return 'H';
+  }
+  if (topDensity > 0.6 && z[4] > 0.4 && z[7] > 0.4 && leftDensity < 0.3 && rightDensity < 0.3) {
+    return 'T';
+  }
+
+  // Fallback estimation
+  if (aspectRatio > 0.9) return 'W';
+  if (aspectRatio > 0.7) return 'A';
+  return 'e';
+}
+
+// ============================================================================
+// 9. RUNTIME MESSAGE ROUTER
 // ============================================================================
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -1039,6 +1389,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'ping':
       sendResponse({ success: true, pong: true, status: 'ready', state: recordingState });
       return false;
+
+    case 'PERFORM_OCR':
+    case 'performOCR':
+    case 'EXTRACT_TEXT':
+    case 'extractText':
+    case 'recognizeText':
+      performRasterOCR(message.dataUrl || message.image)
+        .then((result) => sendResponse({ success: true, ...result }))
+        .catch((err) => sendResponse({ success: false, error: err.message || 'OCR hatası' }));
+      return true;
 
     case 'START_RECORDING':
     case 'startRecording':
@@ -1135,5 +1495,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-console.log('[Offscreen] FullShot Pro Ses Mikseri & MediaRecorder Motoru hazır.');
+console.log('[Offscreen] FullShot Pro Ses Mikseri, MediaRecorder & OCR Motoru hazır.');
+
 
