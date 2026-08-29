@@ -192,7 +192,10 @@
 
         case 'blur':
           if (tools.Blur) {
-            tools.Blur.applyRedaction(ctx, action.x1, action.y1, action.x2, action.y2, action.blurType, canvasW, canvasH);
+            tools.Blur.applyRedaction(ctx, action.x1, action.y1, action.x2, action.y2, action.blurType || 'pixelate', canvasW, canvasH, {
+              intensity: action.intensity || 'medium',
+              rounded: action.rounded
+            });
           }
           break;
 

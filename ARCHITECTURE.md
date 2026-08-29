@@ -132,7 +132,7 @@ sequenceDiagram
 }
 ```
 
-### Video Recording Entry (`IndexedDB: FullShotVideoDB -> recordings`):
+### Video Recording Entry (`IndexedDB: FullShotMediaDB v2 -> recordings`):
 ```json
 {
   "id": "rec_1788012345678",
@@ -143,6 +143,13 @@ sequenceDiagram
   "height": 1080,
   "format": "webm",
   "timestamp": 1788012345678,
-  "type": "tab"
+  "scope": "tab",
+  "hasAudio": true,
+  "hasMic": true
 }
 ```
+
+### IndexedDB Schema (`FullShotMediaDB v2`):
+- `RECORDINGS`: Primary key `id` (timestamped string), indexes on `timestamp`, `scope`, `format`.
+- `VIDEOS`: Aliased mirror for quick lookups and streaming buffers.
+- `CAPTURES`: Long-term capture history and metadata archives.

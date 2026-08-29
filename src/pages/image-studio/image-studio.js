@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const stepBadgePreview = document.getElementById('stepBadgePreview');
   const stepResetBtn = document.getElementById('stepResetBtn');
   const blurTypeButtons = document.querySelectorAll('.blur-type-btn');
+  const blurIntensityButtons = document.querySelectorAll('.blur-intensity-btn');
+  const blurDockAutoCensorBtn = document.getElementById('blurDockAutoCensorBtn');
   const textSizeButtons = document.querySelectorAll('.text-size-btn');
   const textBgCheckbox = document.getElementById('textBgCheckbox');
 
@@ -164,7 +166,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let activeLineDashed = false;
   let activeArrowMode = 'single'; // 'single' | 'double'
   let activeArrowCurved = false;
-  let activeBlurType = 'pixelate'; // 'pixelate' | 'blackout' | 'gaussian'
+  let activeBlurType = 'pixelate'; // 'pixelate' | 'blackout' | 'gaussian' | 'tape'
+  let activeBlurIntensity = 'medium'; // 'light' | 'medium' | 'strong'
   let activeFontSize = 24;
   let activeTextBg = true;
   let activeCalloutStyle = 'bubble'; // 'bubble' | 'thought' | 'frosted' | 'plain'
@@ -702,6 +705,25 @@ document.addEventListener('DOMContentLoaded', async () => {
       activeBlurType = btn.dataset.blur;
     });
   });
+
+  // Blur Intensity Selection
+  blurIntensityButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      blurIntensityButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+      activeBlurIntensity = btn.dataset.intensity;
+    });
+  });
+
+  if (blurDockAutoCensorBtn) {
+    blurDockAutoCensorBtn.addEventListener('click', () => {
+      runAutoCensor();
+    });
+  }
 
   // Text Size Selection
   textSizeButtons.forEach(btn => {

@@ -110,29 +110,44 @@ c:\Users\cagan\Desktop\chrome ss\
 
 ## ⚡ 2. Feature-to-Module Quick Lookup
 
-| Feature / Capability | Primary Source Files |
-|---|---|
-| **Full Page Stitching** | `src/content/capture/scroll-stitcher.js`, `src/content/capture/dom-measurer.js` |
-| **8x Loupe & Color Picker** | `src/content/hud/area-selector.js` (<kbd>C</kbd> copies HEX color) |
-| **Tarayıcı İçi OCR (Text Recognition)** | `src/offscreen/offscreen.js`, `src/content/hud/quick-bar-hud.js` |
-| **Pin to Screen (Document PiP)** | `src/content/hud/pin-window.js` |
-| **Figma-Style Pixel Ruler** | `src/content/hud/pixel-ruler.js` (<kbd>Alt+Shift+R</kbd>) |
-| **3D Isometric Tilt Mockups** | `src/pages/image-studio/export/mockup-beautifier.js` |
-| **Device Frames (iPhone 16 Pro / Safari)** | `src/pages/image-studio/export/mockup-beautifier.js` |
-| **Akıllı Otomatik Sansür (DLP / Auto-Censor)** | `src/pages/image-studio/engine/auto-censor-engine.js` (<kbd>Shift+B</kbd>) |
-| **Spotlight Odak Vurgusu** | `src/pages/image-studio/tools/spotlight.js` (<kbd>F</kbd>) |
-| **Cam Büyüteç Merceği** | `src/pages/image-studio/tools/magnifier.js` (<kbd>Z</kbd>) |
-| **QA Damgaları & 3D Tuşlar** | `src/pages/image-studio/tools/stamp.js` (<kbd>E</kbd>) |
-| **Webcam Baloncuğu & Audio Halo** | `src/content/hud/camera-bubble.js` |
-| **Fare Tıklama Dalgaları & Spot** | `src/content/hud/cursor-effects.js` (<kbd>Alt+Shift+S</kbd>) |
-| **Animasyonlu GIF İhracı** | `src/pages/video-studio/export/gif-exporter.js` |
-| **DSP Gürültü Filtreleri (High-Pass/Notch)** | `src/offscreen/offscreen.js` (85Hz High-Pass + 50Hz/60Hz Notch) |
-| **IndexedDB Depolama** | `src/shared/db.js` (`FullShotMediaDB` v2) |
-| **Service Worker Keep-Alive** | `src/background/background.js` (Port: `keepAlive-recording`) |
+| Feature / Capability | Primary Source Files | Global Namespace / API |
+|---|---|---|
+| **Full Page Stitching** | `src/content/capture/scroll-stitcher.js`, `src/content/capture/dom-measurer.js` | `window.FullShotCapture.ScrollStitcher` |
+| **8x Loupe & Color Picker** | `src/content/hud/area-selector.js` (<kbd>C</kbd> copies HEX color) | `window.FullShotHUD.AreaSelector` |
+| **Native EyeDropper API** | `src/pages/image-studio/tools/color-picker.js` (<kbd>I</kbd>) | `window.FullShotCanvas.ColorPicker` |
+| **Tarayıcı İçi OCR (Text Recognition)** | `src/offscreen/offscreen.js`, `src/content/hud/quick-bar-hud.js` | `window.FullShotHUD.QuickBar` |
+| **Pin to Screen (Document PiP)** | `src/content/hud/pin-window.js` | `window.FullShotHUD.PinWindow` |
+| **Figma-Style Pixel Ruler** | `src/content/hud/pixel-ruler.js` (<kbd>Alt+Shift+R</kbd>) | `window.FullShotHUD.PixelRuler` |
+| **3D Isometric Tilt Mockups** | `src/pages/image-studio/export/mockup-beautifier.js` | `window.FullShotMockup` |
+| **Device Frames (iPhone 16 Pro / Safari)** | `src/pages/image-studio/export/mockup-beautifier.js` | `window.FullShotMockup` |
+| **Akıllı Otomatik Sansür (DLP / Auto-Censor)** | `src/pages/image-studio/engine/auto-censor-engine.js` (<kbd>Shift+B</kbd>) | `window.FullShotAutoCensor` |
+| **Spotlight Odak Vurgusu** | `src/pages/image-studio/tools/spotlight.js` (<kbd>F</kbd>) | `window.FullShotCanvas.Spotlight` |
+| **Cam Büyüteç Merceği** | `src/pages/image-studio/tools/magnifier.js` (<kbd>Z</kbd>) | `window.FullShotCanvas.Magnifier` |
+| **QA Damgaları & 3D Tuşlar** | `src/pages/image-studio/tools/stamp.js` (<kbd>E</kbd> / <kbd>K</kbd>) | `window.FullShotCanvas.Stamp` |
+| **Webcam Baloncuğu & Audio Halo** | `src/content/hud/camera-bubble.js` | `window.FullShotHUD.CameraBubble` |
+| **Fare Tıklama Dalgaları & Spot** | `src/content/hud/cursor-effects.js` (<kbd>Alt+Shift+S</kbd>) | `window.FullShotHUD.CursorEffects` |
+| **Animasyonlu GIF İhracı** | `src/pages/video-studio/export/gif-exporter.js` | `window.FullShotGifExporter` |
+| **DSP Gürültü Filtreleri (High-Pass/Notch)** | `src/offscreen/offscreen.js` (85Hz High-Pass + 50Hz/60Hz Notch) | `AudioContext` DSP Chain |
+| **IndexedDB Depolama** | `src/shared/db.js` (`FullShotMediaDB` v2) | `window.FullShotDB` |
+| **Service Worker Keep-Alive & State Recovery** | `src/background/background.js` (Port: `keepAlive-recording`) | Service Worker background |
 
 ---
 
-## 🎨 3. Design System & Styling Rules
+## ⌨️ 3. Chrome Commands & Global Keyboard Shortcuts
+
+| Command / Shortcut | Action / Trigger | Handler Location |
+|---|---|---|
+| <kbd>Alt+Shift+F</kbd> | `capture-fullpage` (Full Page Scroll Capture) | `src/background/background.js` |
+| <kbd>Alt+Shift+V</kbd> | `capture-visible` (Visible Viewport Capture) | `src/background/background.js` |
+| <kbd>Alt+Shift+S</kbd> | `capture-selected` / `capture-area` (Crop Box) | `src/background/background.js` |
+| <kbd>Alt+Shift+E</kbd> | `capture-element` (DOM Element Picker) | `src/background/background.js` |
+| <kbd>Alt+Shift+R</kbd> | `toggle-record` (Video Recording Toggle) | `src/background/background.js` |
+| <kbd>I</kbd> | Native EyeDropper / 8x Loupe Color Picker | `src/pages/image-studio/image-studio.js` |
+| <kbd>Shift+B</kbd> | DLP Auto-Censor (Emails, CC, TCKN, IBAN, API Keys) | `src/pages/image-studio/image-studio.js` |
+
+---
+
+## 🎨 4. Design System & Styling Rules
 
 When creating or modifying UI elements in Popup, Content Scripts, or Studios, **ALWAYS** follow these rules:
 
@@ -143,28 +158,29 @@ When creating or modifying UI elements in Popup, Content Scripts, or Studios, **
 - **`#6D8196`** (Slate Blue): Primary interactive accent, active/hover states (`--primary`)
 
 ### B. Geometry & Feel:
-- **Rounded Corners**: Use `border-radius: 12px` for cards/buttons, `16px` for outer window cards.
+- **Rounded Corners**: Use `border-radius: 12px` for cards/buttons, `16px` for outer window cards, `6px` for canvas stage.
 - **Scrollbars**: Universal zero-scrollbar styling (`scrollbar-width: none !important; ::-webkit-scrollbar { display: none !important; }`).
 - **Typography**: Clean modern sans-serif (`-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Roboto`, `sans-serif`).
 
 ---
 
-## 🛡️ 4. Critical Engineering Guardrails
+## 🛡️ 5. Critical Engineering Guardrails
 
 1. **GPU Reflow & Double rAF for Captures**:
    - Before taking any `captureVisibleTab` screenshot where an in-page element was just hidden, **ALWAYS** enforce a reflow (`void el.offsetHeight`) followed by `await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))` plus a short `50ms` delay. This prevents Chromium's compositor from capturing ghost UI elements.
 2. **Canvas Dimension Limits (Blink Safety)**:
    - Max single dimension: `16384px`. Max total canvas area: `16384 * 8192 (~134M pixels)`.
-   - If a webpage exceeds this, content.js safely scales down slices to prevent browser tab crashes.
+   - If a webpage exceeds this, `calculateCanvasDimensions` safely scales down slices to prevent browser tab crashes (OOM / context lost).
 3. **Shadow DOM Isolation**:
-   - In-page tools (`#__fullshot_hud_host__`, `#__fullshot_pin_host__`, `#__fullshot_ruler_host__`, `#__fullshot_camera_host__`, `#__fullshot_cursor_host__`, etc.) **MUST** use `attachShadow({ mode: 'open' })` with `all: initial !important` to ensure host page CSS never corrupts the extension UI.
+   - In-page tools (`#__fullshot_hud_host__`, `#__fullshot_pin_host__`, `#__fullshot_ruler_host__`, `#__fullshot_camera_host__`, `#__fullshot_cursor_host__`, etc.) **MUST** use `attachShadow({ mode: 'open' })` with `:host { all: initial !important; }` to ensure host page CSS never corrupts the extension UI.
 4. **Offscreen Lifecycle & Keep-Alive**:
    - Offscreen documents in MV3 are created on demand via `chrome.offscreen.createDocument` with reason `USER_MEDIA` or `DISPLAY_MEDIA` and closed when idle.
    - Long recordings use `chrome.runtime.connect({ name: 'keepAlive-recording' })` with 12s heartbeat pings to prevent the MV3 30s Service Worker idle shutdown.
+   - `initServiceWorkerState()` performs state recovery on worker wakeup.
 
 ---
 
-## 🧪 5. Automated Validation & Packaging
+## 🧪 6. Automated Validation & Packaging
 
 Whenever you make any changes to JavaScript, HTML, CSS, or manifest files, **ALWAYS** run:
 
@@ -173,7 +189,7 @@ npm test
 # or
 node scripts/validate.js
 ```
-All 126+ checks must output green `✔` before considering any task complete.
+All **144+ checks** must output green `✔` before considering any task complete.
 
 To compile the release distribution zip:
 ```bash
