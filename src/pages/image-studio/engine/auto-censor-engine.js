@@ -273,16 +273,23 @@
         }
       }
 
-      // 5. Intelligent DLP Classification: ONLY Enclosed Form Input Containers & Credential Boxes
-      // Plain text labels, section titles, headers, and buttons are NOT enclosed input boxes and are ignored.
+      // 5. Intelligent DLP Classification: ONLY Enclosed Form Input Containers, Credential Boxes & Table Data Cells
+      // Plain text labels, section titles, headers, and action buttons are NOT blurred.
       candidateBoxes.forEach(box => {
         const { x1, y1, x2, y2, w, h } = box;
 
-        // Skip navigation headers, page wrappers, or sidebar items
-        if (w > canvasW * 0.75 || (y1 < 60 && w > canvasW * 0.5) || x1 < 100) return;
-        if (w < 130 || h < 20 || h > 65) return;
+        // Skip navigation headers, page wrappers, sidebar items, and very top navigation bar
+        if (w > canvasW * 0.75 || y1 < 55 || x1 < 100) return;
 
-        // Verify that this candidate box is a true ENCLOSED input container (has continuous top and bottom borders)
+        // Sample middle pixel color to detect saturated primary buttons (e.g. Blue '+ Developer settings' button)
+        const midIdx = (Math.round(y1 + h * 0.5) * canvasW + Math.round(x1 + w * 0.5)) * 4;
+        const r = data[midIdx];
+        const g = data[midIdx + 1];
+        const b = data[midIdx + 2];
+        const isSaturatedButton = (b > 110 && b - r > 35) || (r > 160 && r - b > 40); // Blue or Red primary buttons
+        if (isSaturatedButton) return;
+
+        // Check border enclosure (top and bottom border continuity)
         let topBorder = 0, botBorder = 0;
         for (let x = x1; x <= x2; x++) {
           if (isEdge[y1 * canvasW + x] === 1 || (y1 < canvasH - 1 && isEdge[(y1 + 1) * canvasW + x] === 1)) topBorder++;
@@ -291,10 +298,15 @@
 
         const topRatio = topBorder / w;
         const botRatio = botBorder / w;
-        const isEnclosed = (topRatio > 0.42 && botRatio > 0.42);
+        
+        // A. True Enclosed Input Containers & Token Boxes (API Key, Email, Password, Card)
+        const isEnclosedInput = (topRatio > 0.26 || botRatio > 0.26) && (w >= 120 && w <= 650 && h >= 20 && h <= 65);
 
-        // Only redact true enclosed form input containers
-        if (isEnclosed) {
+        // B. Table Data Cells (e.g. Server Host IP, Ports, Table Values in lower panels)
+        const isTableCell = (w >= 50 && w <= 260 && h >= 10 && h <= 35 && y1 > canvasH * 0.5 && x1 > 180);
+
+        // Only redact true enclosed form input containers or table data cells
+        if (isEnclosedInput || isTableCell) {
           // Deduplicate overlapping or fully contained regions
           const overlaps = regions.some(r => 
             (Math.abs(r.x1 - x1) < 25 && Math.abs(r.y1 - y1) < 18) ||
@@ -307,8 +319,8 @@
               y1: Math.max(0, y1 - 2),
               x2: Math.min(canvasW, x2 + 3),
               y2: Math.min(canvasH, y2 + 2),
-              reason: w >= 220 ? 'API Anahtarı / Şifre / Form Giriş Alanı' : 'Hassas Veri Alanı',
-              category: 'secret'
+              reason: isTableCell ? 'IP Adresi / Ağ Verisi' : (w >= 220 ? 'API Anahtarı / Şifre / Form Giriş Alanı' : 'Hassas Değer Alanı'),
+              category: isTableCell ? 'network' : 'secret'
             });
           }
         }
