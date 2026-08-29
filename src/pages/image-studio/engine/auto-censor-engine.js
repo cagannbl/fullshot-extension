@@ -273,67 +273,43 @@
         }
       }
 
-      // 5. Intelligent DLP Classification & Form Credential Recognition
-      // Analyze internal pixel statistics for each candidate box
+      // 5. Intelligent DLP Classification: ONLY Enclosed Form Input Containers & Credential Boxes
+      // Plain text labels, section titles, headers, and buttons are NOT enclosed input boxes and are ignored.
       candidateBoxes.forEach(box => {
         const { x1, y1, x2, y2, w, h } = box;
 
-        // Skip navigation headers or fullscreen wrappers
-        if (w > canvasW * 0.85 || (y1 < 50 && w > canvasW * 0.6)) return;
+        // Skip navigation headers, page wrappers, or sidebar items
+        if (w > canvasW * 0.75 || (y1 < 60 && w > canvasW * 0.5) || x1 < 100) return;
+        if (w < 130 || h < 20 || h > 65) return;
 
-        // Calculate aspect ratio and edge density inside box
-        const aspect = w / h;
-        const area = w * h;
-
-        // Sample horizontal transition count across the middle line of the box (character frequency)
-        const midY = Math.round(y1 + h * 0.5);
-        let transitions = 0;
-        let prevLum = gray[midY * canvasW + x1];
-
-        for (let x = x1; x <= x2; x += 2) {
-          const curLum = gray[midY * canvasW + x];
-          if (Math.abs(curLum - prevLum) > 22) {
-            transitions++;
-          }
-          prevLum = curLum;
+        // Verify that this candidate box is a true ENCLOSED input container (has continuous top and bottom borders)
+        let topBorder = 0, botBorder = 0;
+        for (let x = x1; x <= x2; x++) {
+          if (isEdge[y1 * canvasW + x] === 1 || (y1 < canvasH - 1 && isEdge[(y1 + 1) * canvasW + x] === 1)) topBorder++;
+          if (isEdge[y2 * canvasW + x] === 1 || (y2 > 0 && isEdge[(y2 - 1) * canvasW + x] === 1)) botBorder++;
         }
 
-        // A. Form Input & Value Containers (Input fields, token cards, payment boxes, API key rows)
-        const isInputFormContainer = (w >= 140 && w <= 650 && h >= 22 && h <= 60 && aspect >= 2.5);
-        const isDenseTokenString = (w >= 110 && transitions >= 8 && aspect >= 3.0);
-        const isDataCell = (w >= 60 && w <= 220 && h >= 14 && h <= 45 && transitions >= 4);
+        const topRatio = topBorder / w;
+        const botRatio = botBorder / w;
+        const isEnclosed = (topRatio > 0.42 && botRatio > 0.42);
 
-        if (isInputFormContainer || isDenseTokenString || isDataCell) {
-          // Check if box is in the content area (not standard sidebar or main title)
-          if (x1 > 120 || y1 > 100) {
-            // Determine probable sensitive category
-            let reason = 'Hassas Giriş / Değer Alanı';
-            let category = 'secret';
+        // Only redact true enclosed form input containers
+        if (isEnclosed) {
+          // Deduplicate overlapping or fully contained regions
+          const overlaps = regions.some(r => 
+            (Math.abs(r.x1 - x1) < 25 && Math.abs(r.y1 - y1) < 18) ||
+            (x1 >= r.x1 - 5 && x2 <= r.x2 + 5 && y1 >= r.y1 - 5 && y2 <= r.y2 + 5)
+          );
 
-            if (transitions >= 14 || w >= 220) {
-              reason = 'API Anahtarı / Token / Şifre Alanı';
-              category = 'secret';
-            } else if (w <= 160 && transitions >= 6) {
-              reason = 'IP Adresi / Ağ Verisi';
-              category = 'network';
-            }
-
-            // Deduplicate overlapping or fully contained regions
-            const overlaps = regions.some(r => 
-              (Math.abs(r.x1 - x1) < 25 && Math.abs(r.y1 - y1) < 18) ||
-              (x1 >= r.x1 - 5 && x2 <= r.x2 + 5 && y1 >= r.y1 - 5 && y2 <= r.y2 + 5)
-            );
-
-            if (!overlaps) {
-              regions.push({
-                x1: Math.max(0, x1 - 3),
-                y1: Math.max(0, y1 - 2),
-                x2: Math.min(canvasW, x2 + 3),
-                y2: Math.min(canvasH, y2 + 2),
-                reason,
-                category
-              });
-            }
+          if (!overlaps) {
+            regions.push({
+              x1: Math.max(0, x1 - 3),
+              y1: Math.max(0, y1 - 2),
+              x2: Math.min(canvasW, x2 + 3),
+              y2: Math.min(canvasH, y2 + 2),
+              reason: w >= 220 ? 'API Anahtarı / Şifre / Form Giriş Alanı' : 'Hassas Veri Alanı',
+              category: 'secret'
+            });
           }
         }
       });
