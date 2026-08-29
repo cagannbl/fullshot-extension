@@ -19,11 +19,12 @@
 </p>
 
 <p align="center">
-  <a href="#-english"><b>🇬🇧 English Docs</b></a> • <a href="#-t%C3%BCrk%C3%A7e"><b>🇹🇷 Türkçe Dokümantasyon</b></a>
+  <a href="#english"><b>🇬🇧 English Docs</b></a> • <a href="#turkish"><b>🇹🇷 Türkçe Dokümantasyon</b></a>
 </p>
 
 ---
 
+<a id="english"></a>
 # 🇬🇧 English
 
 ## 💡 Why FullShot Pro?
@@ -181,6 +182,7 @@ npm run build:zip
 ---
 ---
 
+<a id="turkish"></a>
 # 🇹🇷 Türkçe
 
 ## 💡 Neden FullShot Pro?
