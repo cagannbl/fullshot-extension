@@ -293,7 +293,7 @@
     // 5. Phone Numbers (+90, +1, EU, International E.164)
     phone: {
       name: 'Telefon Numarası',
-      regex: /\b(?:\+90[\s.-]?(?:\(0?\d{3}\)|0?\d{3})|0\s?\(?\d{3}\)?)\s?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b|\b5\d{2}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b|\b(?:\+1[\s.-]?)?(?:\([2-9]\d{2}\)|[2-9]\d{2})[\s.-]?[2-9]\d{2}[\s.-]?\d{4}\b|\b\+(?:[1-9]\d{0,2})[\s.-]?(?:\(?\d{1,4}\)?[\s.-]?)?\d{2,4}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/g,
+      regex: /(?:(?:\+90|0090)[\s.-]?(?:\(0?\d{3}\)|0?\d{3})|0\s?\(?\d{3}\)?)\s?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b|\b5\d{2}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b|(?:\+1|001)[\s.-]?(?:\([2-9]\d{2}\)|[2-9]\d{2})[\s.-]?[2-9]\d{2}[\s.-]?\d{4}\b|\([2-9]\d{2}\)[\s.-]?[2-9]\d{2}[\s.-]?\d{4}\b|\b[2-9]\d{2}[\s.-][2-9]\d{2}[\s.-]\d{4}\b|\+(?:[1-9]\d{0,2})[\s.-]?(?:\(?\d{1,4}\)?[\s.-]?)?\d{2,4}[\s.-]?\d{2,4}(?:[\s.-]?\d{2,4})?\b/g,
       validator: validatePhone,
       category: 'pii',
       confidence: 0.90
@@ -319,7 +319,7 @@
     // 8. Google Cloud / Firebase API Keys
     apiKeyGoogle: {
       name: 'Google API Anahtarı',
-      regex: /\bAIza[0-9A-Za-z-_]{35}\b/g,
+      regex: /\bAIza[0-9A-Za-z-_]{30,40}\b/g,
       category: 'secret',
       confidence: 0.99
     },
@@ -388,7 +388,7 @@
     // 16. IPv6 Addresses
     ipv6: {
       name: 'IPv6 Adresi',
-      regex: /\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b|\b(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}\b|\b::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}\b/g,
+      regex: /\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b|\b(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}\b|::(?:[0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4}\b/g,
       validator: validateIPv6,
       category: 'network',
       confidence: 0.95

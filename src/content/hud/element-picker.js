@@ -97,8 +97,8 @@
           text-align: left !important;
           color: #FFFFE3 !important;
           -webkit-font-smoothing: antialiased !important;
-          -moz-osx-font-smoothing: grayscale !important;
           direction: ltr !important;
+          box-sizing: border-box !important;
         }
         *, *::before, *::after {
           box-sizing: border-box !important;
@@ -346,18 +346,23 @@
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
         cleanup();
         if (typeof options.onCancel === 'function') {
           options.onCancel();
         }
       } else if (isFrozen && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
         e.preventDefault();
+        e.stopPropagation();
         if (qbCopyBtn) qbCopyBtn.click();
       } else if (isFrozen && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
+        e.stopPropagation();
         if (qbDownloadBtn) qbDownloadBtn.click();
       } else if (isFrozen && e.key === 'Enter') {
         e.preventDefault();
+        e.stopPropagation();
         if (qbStudioBtn) qbStudioBtn.click();
       }
     };
@@ -587,6 +592,14 @@
       quickBar.style.top = `${Math.round(barTop)}px`;
     }
 
+    if (quickBar) {
+      ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu', 'wheel'].forEach((evt) => {
+        quickBar.addEventListener(evt, (e) => {
+          e.stopPropagation();
+        });
+      });
+    }
+
     const onResize = () => {
       if (isFrozen && selectedElement && box && quickBar) {
         selectedRect = selectedElement.getBoundingClientRect();
@@ -709,6 +722,7 @@
     start,
     cancel: cleanup,
     cleanup,
+    destroy: cleanup,
     isActive,
     getHost,
     hideForCapture,

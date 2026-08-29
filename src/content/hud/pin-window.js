@@ -70,6 +70,7 @@
           color: #FFFFE3 !important;
           direction: ltr !important;
           -webkit-font-smoothing: antialiased !important;
+          box-sizing: border-box !important;
         }
         *, *::before, *::after {
           box-sizing: border-box !important;
@@ -420,17 +421,30 @@
       container.querySelectorAll('.pin-window').forEach((w) => w.classList.remove('active-focus'));
       winEl.classList.add('active-focus');
     };
-    winEl.addEventListener('mousedown', focusWin);
+
+    // Isolate winEl events from host page
+    ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu'].forEach((evt) => {
+      winEl.addEventListener(evt, (e) => {
+        e.stopPropagation();
+      });
+    });
+
+    winEl.addEventListener('mousedown', (e) => {
+      focusWin();
+    });
 
     // 1. Dragging Implementation
     let isDragging = false;
     let dragStartX = 0, dragStartY = 0;
     let winStartX = 0, winStartY = 0;
+    let activeDragMove = null;
+    let activeDragUp = null;
 
     const onHeaderMouseDown = (e) => {
       if (e.target.closest('.pin-btn') || e.target.closest('input')) return;
       if (e.button !== 0) return;
       e.preventDefault();
+      e.stopPropagation();
       focusWin();
 
       isDragging = true;
@@ -440,35 +454,42 @@
       winStartX = rect.left;
       winStartY = rect.top;
 
-      window.addEventListener('mousemove', onDragMouseMove, true);
-      window.addEventListener('mouseup', onDragMouseUp, true);
-    };
+      activeDragMove = (ev) => {
+        if (!isDragging) return;
+        ev.stopPropagation();
+        const dx = ev.clientX - dragStartX;
+        const dy = ev.clientY - dragStartY;
 
-    const onDragMouseMove = (e) => {
-      if (!isDragging) return;
-      const dx = e.clientX - dragStartX;
-      const dy = e.clientY - dragStartY;
+        let newLeft = winStartX + dx;
+        let newTop = winStartY + dy;
 
-      let newLeft = winStartX + dx;
-      let newTop = winStartY + dy;
+        // Clamp inside viewport
+        newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - winEl.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, window.innerHeight - 30));
 
-      // Clamp inside viewport
-      newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - winEl.offsetWidth));
-      newTop = Math.max(0, Math.min(newTop, window.innerHeight - 30));
+        winEl.style.left = `${Math.round(newLeft)}px`;
+        winEl.style.top = `${Math.round(newTop)}px`;
+      };
 
-      winEl.style.left = `${Math.round(newLeft)}px`;
-      winEl.style.top = `${Math.round(newTop)}px`;
-    };
+      activeDragUp = (ev) => {
+        if (ev) ev.stopPropagation();
+        isDragging = false;
+        if (activeDragMove) window.removeEventListener('mousemove', activeDragMove, true);
+        if (activeDragUp) window.removeEventListener('mouseup', activeDragUp, true);
+        activeDragMove = null;
+        activeDragUp = null;
+      };
 
-    const onDragMouseUp = () => {
-      isDragging = false;
-      window.removeEventListener('mousemove', onDragMouseMove, true);
-      window.removeEventListener('mouseup', onDragMouseUp, true);
+      window.addEventListener('mousemove', activeDragMove, true);
+      window.addEventListener('mouseup', activeDragUp, true);
     };
 
     header.addEventListener('mousedown', onHeaderMouseDown);
 
     // 2. Resizing Implementation
+    let activeResizeMove = null;
+    let activeResizeUp = null;
+
     const resizers = winEl.querySelectorAll('.resizer');
     resizers.forEach((r) => {
       r.addEventListener('mousedown', (e) => {
@@ -483,7 +504,8 @@
         const startY = e.clientY;
         const startRect = winEl.getBoundingClientRect();
 
-        const onResizeMove = (ev) => {
+        activeResizeMove = (ev) => {
+          ev.stopPropagation();
           const dx = ev.clientX - startX;
           const dy = ev.clientY - startY;
 
@@ -515,13 +537,16 @@
           winEl.style.top = `${Math.round(newT)}px`;
         };
 
-        const onResizeUp = () => {
-          window.removeEventListener('mousemove', onResizeMove, true);
-          window.removeEventListener('mouseup', onResizeUp, true);
+        activeResizeUp = (ev) => {
+          if (ev) ev.stopPropagation();
+          if (activeResizeMove) window.removeEventListener('mousemove', activeResizeMove, true);
+          if (activeResizeUp) window.removeEventListener('mouseup', activeResizeUp, true);
+          activeResizeMove = null;
+          activeResizeUp = null;
         };
 
-        window.addEventListener('mousemove', onResizeMove, true);
-        window.addEventListener('mouseup', onResizeUp, true);
+        window.addEventListener('mousemove', activeResizeMove, true);
+        window.addEventListener('mouseup', activeResizeUp, true);
       });
     });
 
@@ -668,6 +693,10 @@
     }
 
     const removeInstance = () => {
+      if (activeDragMove) window.removeEventListener('mousemove', activeDragMove, true);
+      if (activeDragUp) window.removeEventListener('mouseup', activeDragUp, true);
+      if (activeResizeMove) window.removeEventListener('mousemove', activeResizeMove, true);
+      if (activeResizeUp) window.removeEventListener('mouseup', activeResizeUp, true);
       winEl.remove();
       activePinInstances.delete(pinId);
       if (activePinInstances.size === 0 && pinHost) {
@@ -745,6 +774,8 @@
   window.FullShotHUD.pinWindow = {
     pin,
     removeAll,
+    remove: removeAll,
+    destroy: removeAll,
     hideForCapture,
     restoreAfterCapture,
     getActiveCount: () => activePinInstances.size

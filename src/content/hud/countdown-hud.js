@@ -125,6 +125,7 @@
             -webkit-font-smoothing: antialiased !important;
             -moz-osx-font-smoothing: grayscale !important;
             direction: ltr !important;
+            box-sizing: border-box !important;
           }
           *, *::before, *::after {
             box-sizing: border-box !important;
@@ -317,8 +318,21 @@
 
       updateTick(currentSec);
 
+      const backdrop = countdownShadow.getElementById('backdrop');
+      if (backdrop) {
+        ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu', 'wheel'].forEach((evt) => {
+          backdrop.addEventListener(evt, (e) => {
+            if (!e.target.closest('#btnCancel')) {
+              e.stopPropagation();
+            }
+          });
+        });
+      }
+
       const onKeyDown = (e) => {
         if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopPropagation();
           window.removeEventListener('keydown', onKeyDown, true);
           cancel();
         }
@@ -408,6 +422,7 @@
     show,
     cancel,
     remove,
+    destroy: remove,
     isVisible,
     getHost,
     hideForCapture,

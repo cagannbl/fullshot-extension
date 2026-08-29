@@ -52,16 +52,23 @@
     shadowRoot.innerHTML = `
       <style>
         :host {
-          all: initial;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100vw;
-          height: 100vh;
-          pointer-events: none;
-          z-index: 2147483644;
-          display: block;
-          overflow: hidden;
+          all: initial !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          pointer-events: none !important;
+          z-index: 2147483644 !important;
+          display: block !important;
+          overflow: hidden !important;
+          box-sizing: border-box !important;
+        }
+
+        *, *::before, *::after {
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
         }
 
         .ripple-container {
