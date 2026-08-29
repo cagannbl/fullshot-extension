@@ -344,6 +344,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // --- 3. TOOL SELECTION & OPTIONS DOCK ROUTING ---
   function setActiveTool(toolName) {
     activeTool = toolName;
+    if (renderer) renderer.clearOverlay();
 
     // Update Toolbar Button States
     toolButtons.forEach(btn => {
@@ -764,6 +765,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       stepCounter++;
       updateStepBadgePreview();
+
+      // Immediately refresh live preview for next step number
+      renderer.clearOverlay();
+      renderer.overlayCtx.save();
+      renderer.overlayCtx.globalAlpha = 0.75;
+      if (Badge && Badge.drawStepBadge) {
+        Badge.drawStepBadge(renderer.overlayCtx, coords.x, coords.y, stepCounter, activeColor, badgeRadius);
+      }
+      renderer.overlayCtx.restore();
       return;
     }
 
@@ -776,6 +786,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         stampId: activeStampId,
         scale: 1.0
       });
+
+      // Immediately refresh live hover preview at current position
+      if (Stamp && Stamp.drawStampPreview) {
+        renderer.clearOverlay();
+        Stamp.drawStampPreview(renderer.overlayCtx, coords.x, coords.y, activeStampId, 1.0);
+      }
       return;
     }
 
@@ -792,6 +808,44 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (activeTool === 'pen' || activeTool === 'highlighter') {
       penPath = [coords];
+    }
+  });
+
+  // --- Dynamic Live Hover Previews for Stamp, Step Badge & Eraser ---
+  overlayCanvas.addEventListener('mousemove', (e) => {
+    if (isDrawing) return;
+    const isSpace = zoomPan ? zoomPan.isSpaceActive() : false;
+    if (isSpace || activeTool === 'pan' || activeTool === 'select') return;
+
+    const coords = renderer.getCanvasCoordinates(e);
+
+    if (activeTool === 'stamp' && Stamp && Stamp.drawStampPreview) {
+      renderer.clearOverlay();
+      Stamp.drawStampPreview(renderer.overlayCtx, coords.x, coords.y, activeStampId, 1.0);
+    } else if (activeTool === 'step') {
+      renderer.clearOverlay();
+      const badgeRadius = Math.max(14, Math.min(26, Math.round(activeStrokeWidth * 3.5)));
+      renderer.overlayCtx.save();
+      renderer.overlayCtx.globalAlpha = 0.75;
+      if (Badge && Badge.drawStepBadge) {
+        Badge.drawStepBadge(renderer.overlayCtx, coords.x, coords.y, stepCounter, activeColor, badgeRadius);
+      }
+      renderer.overlayCtx.restore();
+    } else if (activeTool === 'eraser') {
+      renderer.clearOverlay();
+      renderer.overlayCtx.save();
+      renderer.overlayCtx.strokeStyle = 'rgba(239, 68, 68, 0.85)';
+      renderer.overlayCtx.lineWidth = 2;
+      renderer.overlayCtx.beginPath();
+      renderer.overlayCtx.arc(coords.x, coords.y, 14, 0, Math.PI * 2);
+      renderer.overlayCtx.stroke();
+      renderer.overlayCtx.restore();
+    }
+  });
+
+  overlayCanvas.addEventListener('mouseleave', () => {
+    if (!isDrawing && (activeTool === 'stamp' || activeTool === 'step' || activeTool === 'eraser')) {
+      renderer.clearOverlay();
     }
   });
 

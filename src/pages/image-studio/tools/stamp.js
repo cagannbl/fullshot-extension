@@ -430,12 +430,19 @@
   }
 
   /**
-   * Draw interactive stamp preview hovering under cursor.
+   * Draw interactive live stamp preview hovering under cursor before placement.
+   * Renders a smooth semi-transparent ghost with a subtle placement glow.
+   * 
+   * @param {CanvasRenderingContext2D} ctx 
+   * @param {number} x Center X
+   * @param {number} y Center Y
+   * @param {string} stampId Preset ID (e.g. 'approved', 'bug', 'key-ctrl', 'emoji-rocket')
+   * @param {number} [scale=1.0]
    */
   function drawStampPreview(ctx, x, y, stampId = 'approved', scale = 1.0) {
     if (!ctx) return;
     ctx.save();
-    ctx.globalAlpha = 0.85;
+    ctx.globalAlpha = 0.80; // Sleek semi-transparent preview ghost
     drawStamp(ctx, x, y, stampId, scale);
     ctx.restore();
   }
