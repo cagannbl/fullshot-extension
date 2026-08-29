@@ -544,24 +544,59 @@
           </div>
         </div>
 
-        <!-- Blur Mode -->
+        <!-- Blur / Redaction Suite Options -->
         <div class="option-card hidden" id="blurOptionGroup">
-          <span class="option-card-label">Sansür Modu:</span>
+          <span class="option-card-label">Sansür Modu & Tarzı:</span>
           <div class="blur-type-selector" role="radiogroup" aria-label="Sansürleme Modu">
-            <button class="blur-type-btn active" data-blur="pixelate" id="blurPixelateBtn" role="radio" aria-checked="true" aria-label="Mozaik / Pikselleme">
+            <button class="blur-type-btn active" data-blur="pixelate" id="blurPixelateBtn" role="radio" aria-checked="true" title="Mozaik / Blok Pikselleme">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
                 <rect x="14" y="14" width="7" height="7"></rect>
                 <rect x="3" y="14" width="7" height="7"></rect>
               </svg>
-              <span>Mozaik / Piksel</span>
+              <span>Mozaik</span>
             </button>
-            <button class="blur-type-btn" data-blur="blackout" id="blurBlackoutBtn" role="radio" aria-checked="false" aria-label="Karartma / Maskeleme">
+            <button class="blur-type-btn" data-blur="gaussian" id="blurGaussianBtn" role="radio" aria-checked="false" title="Yumuşak Gauss / Buzlu Cam Bulanıklığı">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9" stroke-dasharray="3 3"></circle>
+                <circle cx="12" cy="12" r="4"></circle>
+              </svg>
+              <span>Bulanık</span>
+            </button>
+            <button class="blur-type-btn" data-blur="blackout" id="blurBlackoutBtn" role="radio" aria-checked="false" title="Siyah Güvenlik Bandı / Karartma">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
                 <rect x="3" y="3" width="18" height="18" rx="2"></rect>
               </svg>
-              <span>Karartma / Maske</span>
+              <span>Siyah Maske</span>
+            </button>
+            <button class="blur-type-btn" data-blur="tape" id="blurTapeBtn" role="radio" aria-checked="false" title="Çizgili Güvenlik / Sansür Şeridi">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="6" width="18" height="12" rx="1"></rect>
+                <line x1="7" y1="18" x2="13" y2="6"></line>
+                <line x1="12" y1="18" x2="18" y2="6"></line>
+              </svg>
+              <span>Güvenlik Şeridi</span>
+            </button>
+          </div>
+
+          <!-- Blur Intensity Level -->
+          <div class="blur-intensity-wrap" style="margin-top: 8px;">
+            <span class="option-card-label" style="font-size: 11px; margin-bottom: 4px;">Yoğunluk Seviyesi:</span>
+            <div class="blur-intensity-selector" role="radiogroup" aria-label="Sansür Yoğunluğu">
+              <button class="blur-intensity-btn" data-intensity="light" role="radio" aria-checked="false" title="Hafif Sansür">Hafif</button>
+              <button class="blur-intensity-btn active" data-intensity="medium" role="radio" aria-checked="true" title="Standart / Dengeli Sansür">Orta</button>
+              <button class="blur-intensity-btn" data-intensity="strong" role="radio" aria-checked="false" title="Güçlü / Ultra Güvenli Sansür">Güçlü</button>
+            </div>
+          </div>
+
+          <!-- Quick Auto Censor Action Button in Dock -->
+          <div class="blur-quick-action-wrap" style="margin-top: 10px;">
+            <button class="blur-dock-autocensor-btn" id="blurDockAutoCensorBtn" type="button" title="Görseldeki tüm şifre, email, API key ve kartları otomatik sansürle (Shift+B)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+              </svg>
+              <span>⚡ Otomatik Sansürle (Shift+B)</span>
             </button>
           </div>
         </div>

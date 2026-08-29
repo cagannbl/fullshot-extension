@@ -365,11 +365,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Microphone Permission Verification Helper
+  async function ensureMicrophonePermission() {
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(t => t.stop());
+        return true;
+      }
+    } catch (err) {
+      console.warn('[Popup] Mikrofon izni kontrolü:', err);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        showError('🎙️ Mikrofon İzni Gerekli: Lütfen tarayıcının izin penceresinde mikrofon erişimine izin verin.');
+        return false;
+      }
+    }
+    return true;
+  }
+
   if (videoMicAudioToggle) {
     videoMicAudioToggle.checked = currentMicAudio;
-    videoMicAudioToggle.addEventListener('change', () => {
+    videoMicAudioToggle.addEventListener('change', async () => {
       currentMicAudio = videoMicAudioToggle.checked;
       chrome.storage.sync.set({ videoMicAudio: currentMicAudio });
+      if (currentMicAudio) {
+        await ensureMicrophonePermission();
+      }
     });
   }
 
@@ -619,6 +640,16 @@ document.addEventListener('DOMContentLoaded', async () => {
           resolution: currentResolution,
           fps: currentFps
         };
+
+        if (config.micAudio) {
+          const micAllowed = await ensureMicrophonePermission();
+          if (!micAllowed) {
+            startRecordingBtn.disabled = false;
+            startRecordingBtn.style.opacity = '1';
+            if (label) label.textContent = 'Kaydı Başlat';
+            return;
+          }
+        }
 
         // If tab scope, verify active tab validity
         if (config.scope === 'tab') {

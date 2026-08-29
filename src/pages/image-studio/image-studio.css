@@ -1044,6 +1044,82 @@ html, body {
   color: #FFFFE3;
 }
 
+/* 4-Mode 2x2 Grid for Blur Suite */
+.blur-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  width: 100%;
+}
+
+.blur-type-btn {
+  padding: 6px 4px;
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+/* Blur Intensity Selector */
+.blur-intensity-selector {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+}
+
+.blur-intensity-btn {
+  flex: 1;
+  padding: 4px 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: center;
+}
+
+.blur-intensity-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+}
+
+.blur-intensity-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #FFFFE3;
+}
+
+/* Dock Auto-Censor Quick Trigger Button */
+.blur-dock-autocensor-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(109, 129, 150, 0.35) 0%, rgba(109, 129, 150, 0.15) 100%);
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  color: #FFFFE3;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.blur-dock-autocensor-btn:hover {
+  background: var(--primary);
+  color: #FFFFE3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(109, 129, 150, 0.4);
+}
+
+.blur-dock-autocensor-btn:active {
+  transform: translateY(0);
+}
+
 .stroke-dot {
   border-radius: 50%;
   background-color: var(--text-secondary);

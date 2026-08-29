@@ -206,12 +206,90 @@
           font-family: monospace;
           pointer-events: none;
         }
+
+        /* Permission Prompt / Error Overlay */
+        .perm-card {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          background: rgba(36, 38, 43, 0.96);
+          color: #FFFFE3;
+          padding: 12px;
+          text-align: center;
+          z-index: 5;
+          border-radius: 50%;
+          box-sizing: border-box;
+          backdrop-filter: blur(8px);
+        }
+
+        .perm-card.hidden {
+          display: none !important;
+        }
+
+        .perm-icon {
+          color: #6D8196;
+        }
+
+        .perm-title {
+          font-size: 11px;
+          font-weight: 700;
+          color: #FFFFE3;
+          line-height: 1.2;
+        }
+
+        .perm-desc {
+          font-size: 8.5px;
+          color: #CBCBCB;
+          line-height: 1.15;
+          max-width: 110px;
+        }
+
+        .perm-btn {
+          margin-top: 2px;
+          padding: 4px 10px;
+          background: #6D8196;
+          color: #FFFFE3;
+          border: 1px solid rgba(255, 255, 227, 0.2);
+          border-radius: 12px;
+          font-size: 9px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          outline: none;
+        }
+
+        .perm-btn:hover {
+          background: #5d6f82;
+          transform: scale(1.05);
+        }
+
+        .perm-btn:active {
+          transform: scale(0.95);
+        }
       </style>
 
       <div class="bubble-container" id="bubbleContainer">
         <div class="audio-halo" id="audioHalo"></div>
         <div class="video-wrapper">
           <video id="cameraVideo" autoplay playsinline muted></video>
+          <div class="perm-card hidden" id="permCard">
+            <div class="perm-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
+            <span class="perm-title">Kamera İzni</span>
+            <span class="perm-desc">Kamera erişimine izin verin veya kilit 🔒 simgesini kontrol edin.</span>
+            <button class="perm-btn" id="btnPermRetry">İzin İste / Başlat</button>
+          </div>
         </div>
 
         <div class="action-toolbar" id="actionToolbar">
@@ -251,6 +329,29 @@
     haloEl = shadowRoot.getElementById('audioHalo');
 
     // 3. Acquire Webcam & Mic MediaStream
+    await acquireCameraStream();
+
+    // 4. Setup Drag and Drop & Control Event Listeners
+    setupDragEvents();
+    setupControls();
+    isInitialized = true;
+  }
+
+  /**
+   * Requests media permissions and connects webcam/mic stream to video and audio halo
+   */
+  async function acquireCameraStream() {
+    const permCard = shadowRoot?.getElementById('permCard');
+    const permBtn = shadowRoot?.getElementById('btnPermRetry');
+
+    if (permBtn) {
+      permBtn.onclick = async (e) => {
+        e.stopPropagation();
+        permBtn.textContent = 'İsteniyor...';
+        await acquireCameraStream();
+      };
+    }
+
     try {
       mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -270,27 +371,28 @@
         await videoEl.play().catch(() => {});
       }
 
-      // 4. Setup Web Audio API Analyser for Audio Halo Meter
+      if (permCard) permCard.classList.add('hidden');
       setupAudioHalo(mediaStream);
+      return true;
     } catch (err) {
-      console.warn('[CameraBubble] Kamera akışı alınamadı:', err);
+      console.warn('[CameraBubble] Kamera+mikrofon akışı alınamadı, video deneniyor:', err);
       try {
         mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         if (videoEl) {
           videoEl.srcObject = mediaStream;
           await videoEl.play().catch(() => {});
         }
+        if (permCard) permCard.classList.add('hidden');
+        return true;
       } catch (videoOnlyErr) {
-        console.error('[CameraBubble] Video başlatılamadı:', videoOnlyErr);
-        hide();
-        throw new Error('Kamera izni verilmedi veya cihaz bulunamadı.');
+        console.warn('[CameraBubble] Kamera izni gerekiyor veya reddedildi:', videoOnlyErr);
+        if (permCard) {
+          permCard.classList.remove('hidden');
+          if (permBtn) permBtn.textContent = 'İzin İste / Tekrar Dene';
+        }
+        return false;
       }
     }
-
-    // 5. Setup Drag and Drop & Control Event Listeners
-    setupDragEvents();
-    setupControls();
-    isInitialized = true;
   }
 
   /**
