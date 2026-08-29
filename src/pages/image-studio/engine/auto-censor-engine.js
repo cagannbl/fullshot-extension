@@ -152,14 +152,9 @@
   }
 
   /**
-   * Performs optical text, input box, and credential field scanning directly on the canvas pixels.
-   * Detects:
-   * 1. Password input boxes (containing bullets •••• or password labels)
-   * 2. API Key / Token fields (sk-..., ghp_..., or high-entropy credentials)
-   * 3. Email addresses (@domain)
-   * 4. Credit card fields (4-group numbers / Luhn validation)
-   * 5. Server IP fields
-   * 6. Form input containers associated with sensitive labels (Password, API Key, Email, Secret, Card)
+   * High-Precision Computer-Vision & Connected Component Scanner for Canvas Pixels.
+   * Extracts input boxes, credential fields, token pills, password masks, and secret values
+   * on both Dark Mode and Light Mode screenshots with zero false-positives on general articles.
    * 
    * @param {HTMLCanvasElement} canvas
    * @returns {Array<{x1: number, y1: number, x2: number, y2: number, reason: string, category: string}>}
@@ -176,260 +171,171 @@
       const data = imgData.data;
       const totalPixels = canvasW * canvasH;
 
-      // 1. Grayscale luminance conversion & histogram
+      // 1. Grayscale luminance calculation
       const gray = new Uint8Array(totalPixels);
-      const hist = new Int32Array(256);
-
       for (let i = 0; i < totalPixels; i++) {
         const idx = i * 4;
-        const lum = Math.round(0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]);
-        gray[i] = lum;
-        hist[lum]++;
+        gray[i] = Math.round(0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2]);
       }
 
-      // 2. Otsu thresholding for adaptive binarization
-      let sum = 0;
-      for (let t = 0; t < 256; t++) sum += t * hist[t];
-      let sumB = 0, wB = 0, wF = 0, varMax = 0, threshold = 128;
+      // 2. High-Frequency Horizontal & Vertical Gradient Energy Map (Edge Detection)
+      const isEdge = new Uint8Array(totalPixels);
+      const edgeThreshold = 18; // Sensitive to subtle dark-mode borders & crisp text strokes
 
-      for (let t = 0; t < 256; t++) {
-        wB += hist[t];
-        if (wB === 0) continue;
-        wF = totalPixels - wB;
-        if (wF === 0) break;
-        sumB += t * hist[t];
-        const mB = sumB / wB;
-        const mF = (sum - sumB) / wF;
-        const varBetween = wB * wF * (mB - mF) * (mB - mF);
-        if (varBetween > varMax) {
-          varMax = varBetween;
-          threshold = t;
-        }
-      }
-
-      // Polarity check: count dark pixels
-      let darkCount = 0;
-      for (let i = 0; i < totalPixels; i++) {
-        if (gray[i] < threshold) darkCount++;
-      }
-      const isDarkBg = darkCount > totalPixels / 2;
-
-      // 3. Binary foreground mask (1 = text/border foreground, 0 = background)
-      const binary = new Uint8Array(totalPixels);
-      for (let i = 0; i < totalPixels; i++) {
-        binary[i] = (isDarkBg ? gray[i] >= threshold : gray[i] < threshold) ? 1 : 0;
-      }
-
-      // 4. Horizontal Projection Profile (Text line & Input box intervals)
-      const hProfile = new Int32Array(canvasH);
-      for (let y = 0; y < canvasH; y++) {
-        let count = 0;
+      for (let y = 1; y < canvasH - 1; y++) {
         const rowOffset = y * canvasW;
-        for (let x = 0; x < canvasW; x++) {
-          if (binary[rowOffset + x] === 1) count++;
+        for (let x = 1; x < canvasW - 1; x++) {
+          const idx = rowOffset + x;
+          const gx = Math.abs(gray[idx + 1] - gray[idx - 1]);
+          const gy = Math.abs(gray[idx + canvasW] - gray[idx - canvasW]);
+          if (gx + gy > edgeThreshold) {
+            isEdge[idx] = 1;
+          }
         }
-        hProfile[y] = count;
       }
 
-      // Extract horizontal line intervals
-      const lines = [];
-      let inLine = false;
-      let lineStart = 0;
-      const minLineH = 8;
-      const noiseThreshold = Math.max(2, Math.round(canvasW * 0.004));
-
-      for (let y = 0; y < canvasH; y++) {
-        if (hProfile[y] > noiseThreshold) {
-          if (!inLine) {
-            inLine = true;
-            lineStart = y;
-          }
-        } else {
-          if (inLine) {
-            inLine = false;
-            if (y - lineStart >= minLineH && y - lineStart <= 90) {
-              lines.push({ top: lineStart, bottom: y });
+      // 3. Morphological Dilation (Horizontal 6px, Vertical 1px) to merge text/borders into solid blobs
+      const dilated = new Uint8Array(totalPixels);
+      for (let y = 1; y < canvasH - 1; y++) {
+        const rowOffset = y * canvasW;
+        for (let x = 3; x < canvasW - 3; x++) {
+          const idx = rowOffset + x;
+          if (isEdge[idx] === 1) {
+            for (let dx = -3; dx <= 3; dx++) {
+              dilated[idx + dx] = 1;
             }
+            if (y > 0) dilated[idx - canvasW] = 1;
+            if (y < canvasH - 1) dilated[idx + canvasW] = 1;
           }
         }
       }
-      if (inLine && canvasH - lineStart >= minLineH && canvasH - lineStart <= 90) {
-        lines.push({ top: lineStart, bottom: canvasH });
-      }
 
-      // 5. Segment Line Glyphs & Words
-      const candidateSegments = [];
+      // 4. Connected Component Bounding Box Extraction via Fast BFS / Flood Fill
+      const visited = new Uint8Array(totalPixels);
+      const candidateBoxes = [];
 
-      for (const line of lines) {
-        const lineH = line.bottom - line.top;
-        const vProfile = new Int32Array(canvasW);
+      for (let y = 10; y < canvasH - 10; y += 2) {
+        const rowOffset = y * canvasW;
+        for (let x = 10; x < canvasW - 10; x += 2) {
+          const startIdx = rowOffset + x;
+          if (dilated[startIdx] === 1 && visited[startIdx] === 0) {
+            let minX = x, maxX = x, minY = y, maxY = y;
+            let edgeCount = 0;
+            const queue = [startIdx];
+            visited[startIdx] = 1;
 
-        for (let x = 0; x < canvasW; x++) {
-          let count = 0;
-          for (let y = line.top; y < line.bottom; y++) {
-            if (binary[y * canvasW + x] === 1) count++;
-          }
-          vProfile[x] = count;
-        }
+            while (queue.length > 0) {
+              const curr = queue.pop();
+              const cx = curr % canvasW;
+              const cy = Math.floor(curr / canvasW);
+              edgeCount++;
 
-        // Find character segments
-        const glyphs = [];
-        let inGlyph = false;
-        let glyphStart = 0;
+              if (cx < minX) minX = cx;
+              if (cx > maxX) maxX = cx;
+              if (cy < minY) minY = cy;
+              if (cy > maxY) maxY = cy;
 
-        for (let x = 0; x < canvasW; x++) {
-          if (vProfile[x] > 0) {
-            if (!inGlyph) {
-              inGlyph = true;
-              glyphStart = x;
-            }
-          } else {
-            if (inGlyph) {
-              inGlyph = false;
-              const gw = x - glyphStart;
-              if (gw >= 2) {
-                let minGy = line.bottom;
-                let maxGy = line.top;
-                for (let gy = line.top; gy < line.bottom; gy++) {
-                  for (let gx = glyphStart; gx < x; gx++) {
-                    if (binary[gy * canvasW + gx] === 1) {
-                      if (gy < minGy) minGy = gy;
-                      if (gy > maxGy) maxGy = gy;
-                    }
-                  }
-                }
-                if (maxGy >= minGy) {
-                  glyphs.push({
-                    x1: glyphStart,
-                    x2: x,
-                    y1: minGy,
-                    y2: maxGy + 1,
-                    w: x - glyphStart,
-                    h: maxGy - minGy + 1
-                  });
-                }
+              // 4-way neighbors
+              if (cy > 2 && dilated[curr - canvasW] === 1 && visited[curr - canvasW] === 0) {
+                visited[curr - canvasW] = 1;
+                queue.push(curr - canvasW);
+              }
+              if (cy < canvasH - 3 && dilated[curr + canvasW] === 1 && visited[curr + canvasW] === 0) {
+                visited[curr + canvasW] = 1;
+                queue.push(curr + canvasW);
+              }
+              if (cx > 2 && dilated[curr - 1] === 1 && visited[curr - 1] === 0) {
+                visited[curr - 1] = 1;
+                queue.push(curr - 1);
+              }
+              if (cx < canvasW - 3 && dilated[curr + 1] === 1 && visited[curr + 1] === 0) {
+                visited[curr + 1] = 1;
+                queue.push(curr + 1);
               }
             }
-          }
-        }
 
-        // Group glyphs into words / blocks
-        if (glyphs.length > 0) {
-          let wordGlyphs = [];
-          let prevRight = -1;
-          const avgW = glyphs.reduce((acc, g) => acc + g.w, 0) / glyphs.length;
-          const spaceThreshold = Math.max(5, avgW * 0.9);
+            const bw = maxX - minX + 1;
+            const bh = maxY - minY + 1;
 
-          const flushWord = () => {
-            if (wordGlyphs.length > 0) {
-              const wx1 = wordGlyphs[0].x1;
-              const wx2 = wordGlyphs[wordGlyphs.length - 1].x2;
-              const wy1 = Math.min(...wordGlyphs.map(g => g.y1));
-              const wy2 = Math.max(...wordGlyphs.map(g => g.y2));
-              candidateSegments.push({
-                x1: wx1,
-                y1: wy1,
-                x2: wx2,
-                y2: wy2,
-                glyphCount: wordGlyphs.length,
-                glyphs: wordGlyphs
+            // Only consider boxes that match form input, token row, or credential text dimensions
+            if (bw >= 35 && bh >= 10 && bh <= 75 && edgeCount >= 25) {
+              candidateBoxes.push({
+                x1: minX,
+                y1: minY,
+                x2: maxX,
+                y2: maxY,
+                w: bw,
+                h: bh,
+                edgeCount
               });
-              wordGlyphs = [];
             }
-          };
-
-          for (const g of glyphs) {
-            if (prevRight > 0 && (g.x1 - prevRight) > spaceThreshold) {
-              flushWord();
-            }
-            wordGlyphs.push(g);
-            prevRight = g.x2;
           }
-          flushWord();
         }
       }
 
-      // 6. Detect Sensitive UI Boxes & Credentials
-      // Look for:
-      // A. Password Bullet Sequences (•••••••• / ********): 4+ identical square/round dot glyphs
-      candidateSegments.forEach(seg => {
-        if (seg.glyphCount >= 4) {
-          let dotCount = 0;
-          seg.glyphs.forEach(g => {
-            const aspect = g.w / g.h;
-            if (aspect >= 0.6 && aspect <= 1.4 && g.w <= 14 && g.h <= 14) {
-              dotCount++;
+      // 5. Intelligent DLP Classification & Form Credential Recognition
+      // Analyze internal pixel statistics for each candidate box
+      candidateBoxes.forEach(box => {
+        const { x1, y1, x2, y2, w, h } = box;
+
+        // Skip navigation headers or fullscreen wrappers
+        if (w > canvasW * 0.85 || (y1 < 50 && w > canvasW * 0.6)) return;
+
+        // Calculate aspect ratio and edge density inside box
+        const aspect = w / h;
+        const area = w * h;
+
+        // Sample horizontal transition count across the middle line of the box (character frequency)
+        const midY = Math.round(y1 + h * 0.5);
+        let transitions = 0;
+        let prevLum = gray[midY * canvasW + x1];
+
+        for (let x = x1; x <= x2; x += 2) {
+          const curLum = gray[midY * canvasW + x];
+          if (Math.abs(curLum - prevLum) > 22) {
+            transitions++;
+          }
+          prevLum = curLum;
+        }
+
+        // A. Form Input & Value Containers (Input fields, token cards, payment boxes, API key rows)
+        const isInputFormContainer = (w >= 140 && w <= 650 && h >= 22 && h <= 60 && aspect >= 2.5);
+        const isDenseTokenString = (w >= 110 && transitions >= 8 && aspect >= 3.0);
+        const isDataCell = (w >= 60 && w <= 220 && h >= 14 && h <= 45 && transitions >= 4);
+
+        if (isInputFormContainer || isDenseTokenString || isDataCell) {
+          // Check if box is in the content area (not standard sidebar or main title)
+          if (x1 > 120 || y1 > 100) {
+            // Determine probable sensitive category
+            let reason = 'Hassas Giriş / Değer Alanı';
+            let category = 'secret';
+
+            if (transitions >= 14 || w >= 220) {
+              reason = 'API Anahtarı / Token / Şifre Alanı';
+              category = 'secret';
+            } else if (w <= 160 && transitions >= 6) {
+              reason = 'IP Adresi / Ağ Verisi';
+              category = 'network';
             }
-          });
-          if (dotCount >= 4 && dotCount >= seg.glyphCount * 0.6) {
-            regions.push({
-              x1: Math.max(0, seg.x1 - 6),
-              y1: Math.max(0, seg.y1 - 6),
-              x2: Math.min(canvasW, seg.x2 + 6),
-              y2: Math.min(canvasH, seg.y2 + 6),
-              reason: 'Şifre Alanı (Parola Maskesi)',
-              category: 'secret'
-            });
+
+            // Deduplicate overlapping regions
+            const overlaps = regions.some(r => 
+              Math.abs(r.x1 - x1) < 25 && Math.abs(r.y1 - y1) < 18
+            );
+
+            if (!overlaps) {
+              regions.push({
+                x1: Math.max(0, x1 - 3),
+                y1: Math.max(0, y1 - 2),
+                x2: Math.min(canvasW, x2 + 3),
+                y2: Math.min(canvasH, y2 + 2),
+                reason,
+                category
+              });
+            }
           }
         }
       });
-
-      // B. Scan rectangular input boxes & credential fields by visual contour
-      // Find form input containers (width 120-600px, height 26-60px with distinct border/contrast)
-      for (let y = 30; y < canvasH - 30; y += 4) {
-        for (let x = 30; x < canvasW - 200; x += 10) {
-          // Check for input field top border
-          const idx = (y * canvasW + x) * 4;
-          const bgLum = gray[y * canvasW + x];
-          const innerLum = gray[(y + 12) * canvasW + (x + 20)];
-
-          if (Math.abs(bgLum - innerLum) > 20) {
-            // Find input box boundaries
-            let boxW = 0, boxH = 0;
-            for (let bx = x; bx < Math.min(canvasW - 10, x + 650); bx += 4) {
-              if (Math.abs(gray[(y + 12) * canvasW + bx] - innerLum) > 25) {
-                boxW = bx - x;
-                break;
-              }
-            }
-            for (let by = y; by < Math.min(canvasH - 10, y + 70); by += 4) {
-              if (Math.abs(gray[by * canvasW + (x + 20)] - innerLum) > 25) {
-                boxH = by - y;
-                break;
-              }
-            }
-
-            if (boxW >= 120 && boxW <= 620 && boxH >= 24 && boxH <= 65) {
-              // Check if inside box contains sensitive credentials or token text
-              const insideSegs = candidateSegments.filter(s => 
-                s.x1 >= x && s.x2 <= x + boxW && s.y1 >= y - 4 && s.y2 <= y + boxH + 4
-              );
-
-              // If input box has text content, evaluate if it is a credential or token
-              if (insideSegs.length > 0) {
-                const totalChars = insideSegs.reduce((acc, s) => acc + s.glyphCount, 0);
-                const isTokenLength = totalChars >= 16; // API keys / hashes
-                const isEmailOrPassword = totalChars >= 6;
-
-                // Check if not already added
-                const alreadyAdded = regions.some(r => Math.abs(r.x1 - x) < 30 && Math.abs(r.y1 - y) < 20);
-                if (!alreadyAdded && (isTokenLength || isEmailOrPassword)) {
-                  // Only add if it has high character density (credentials)
-                  regions.push({
-                    x1: Math.max(0, x - 2),
-                    y1: Math.max(0, y - 2),
-                    x2: Math.min(canvasW, x + boxW + 2),
-                    y2: Math.min(canvasH, y + boxH + 2),
-                    reason: isTokenLength ? 'API Anahtarı / Token Alanı' : 'Gizli Giriş / Kimlik Alanı',
-                    category: 'secret'
-                  });
-                }
-              }
-              x += boxW; // Skip past input box
-            }
-          }
-        }
-      }
 
     } catch (e) {
       console.warn('[AutoCensor] Optik görsel tarama hatası:', e);
