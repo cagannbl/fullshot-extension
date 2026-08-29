@@ -75,15 +75,6 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "src/content/*",
-        "src/content/capture/*",
-        "src/content/hud/*",
-        "src/pages/*",
-        "src/pages/image-studio/*",
-        "src/pages/video-studio/*",
-        "src/offscreen/*",
-        "src/shared/*",
-        "assets/*",
         "assets/icons/*",
         "assets/branding/*"
       ],
