@@ -161,12 +161,23 @@
   /**
    * Helper to draw a unified continuous path for Speech Bubble (no inner borders).
    */
-  function drawUnifiedCalloutPath(ctx, bx, by, boxW, boxH, radius, tailX, tailY) {
+  function drawUnifiedCalloutPath(ctx, bx, by, boxW, boxH, radius, targetX, targetY) {
     const cx = bx + boxW / 2;
     const cy = by + boxH / 2;
+    const rawDx = targetX - cx;
+    const rawDy = targetY - cy;
+    const r = Math.min(radius, boxW / 2, boxH / 2);
+
+    // Limit maximum tail length so it never turns into an unnatural giant needle (CleanShot X standard)
+    const maxTailLen = Math.max(32, Math.min(85, boxH * 1.1));
+    const dist = Math.hypot(rawDx, rawDy);
+    const scale = dist > 0 ? Math.min(1, maxTailLen / Math.max(1, dist - boxH * 0.4)) : 1;
+
+    let tailX = cx + rawDx * (dist > maxTailLen + 20 ? (maxTailLen / dist) * 1.2 : 1);
+    let tailY = cy + rawDy * (dist > maxTailLen + 20 ? (maxTailLen / dist) * 1.2 : 1);
+
     const dx = tailX - cx;
     const dy = tailY - cy;
-    const r = Math.min(radius, boxW / 2, boxH / 2);
 
     ctx.beginPath();
 
@@ -178,11 +189,15 @@
       // Tail is on Top or Bottom
       if (dy >= 0) {
         // --- BOTTOM TAIL ---
-        const tailBaseW = Math.min(28, Math.max(16, boxW * 0.22));
-        const tx = Math.max(bx + r + tailBaseW / 2 + 2, Math.min(bx + boxW - r - tailBaseW / 2 - 2, cx + dx * 0.7));
+        const tailBaseW = Math.min(32, Math.max(20, boxW * 0.28));
+        const tx = Math.max(bx + r + tailBaseW / 2 + 4, Math.min(bx + boxW - r - tailBaseW / 2 - 4, cx + dx * 0.55));
         const t1x = tx - tailBaseW / 2;
         const t2x = tx + tailBaseW / 2;
         const ty = by + boxH;
+
+        // Ensure tail tip extends below bottom
+        const actualTipY = Math.max(ty + 18, Math.min(ty + maxTailLen, tailY));
+        const actualTipX = tx + (tailX - tx) * 0.85;
 
         ctx.moveTo(bx + r, by);
         ctx.lineTo(bx + boxW - r, by);
@@ -191,10 +206,9 @@
         ctx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - r, by + boxH);
         
         ctx.lineTo(t2x, ty);
-        // Curve smoothly to tail tip and back
-        const midY = (ty + tailY) / 2;
-        ctx.quadraticCurveTo(t2x + (tailX - t2x) * 0.4, midY, tailX, tailY);
-        ctx.quadraticCurveTo(t1x + (tailX - t1x) * 0.4, midY, t1x, ty);
+        // Organic curve to tail tip and back
+        ctx.quadraticCurveTo(t2x, (ty + actualTipY) / 2, actualTipX, actualTipY);
+        ctx.quadraticCurveTo(t1x, (ty + actualTipY) / 2 + 4, t1x, ty);
         
         ctx.lineTo(bx + r, by + boxH);
         ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
@@ -202,17 +216,19 @@
         ctx.quadraticCurveTo(bx, by, bx + r, by);
       } else {
         // --- TOP TAIL ---
-        const tailBaseW = Math.min(28, Math.max(16, boxW * 0.22));
-        const tx = Math.max(bx + r + tailBaseW / 2 + 2, Math.min(bx + boxW - r - tailBaseW / 2 - 2, cx + dx * 0.7));
+        const tailBaseW = Math.min(32, Math.max(20, boxW * 0.28));
+        const tx = Math.max(bx + r + tailBaseW / 2 + 4, Math.min(bx + boxW - r - tailBaseW / 2 - 4, cx + dx * 0.55));
         const t1x = tx - tailBaseW / 2;
         const t2x = tx + tailBaseW / 2;
         const ty = by;
 
+        const actualTipY = Math.min(ty - 18, Math.max(ty - maxTailLen, tailY));
+        const actualTipX = tx + (tailX - tx) * 0.85;
+
         ctx.moveTo(bx + r, by);
         ctx.lineTo(t1x, ty);
-        const midY = (ty + tailY) / 2;
-        ctx.quadraticCurveTo(t1x + (tailX - t1x) * 0.4, midY, tailX, tailY);
-        ctx.quadraticCurveTo(t2x + (tailX - t2x) * 0.4, midY, t2x, ty);
+        ctx.quadraticCurveTo(t1x, (ty + actualTipY) / 2 - 4, actualTipX, actualTipY);
+        ctx.quadraticCurveTo(t2x, (ty + actualTipY) / 2, t2x, ty);
         ctx.lineTo(bx + boxW - r, by);
         ctx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + r);
         ctx.lineTo(bx + boxW, by + boxH - r);
@@ -226,19 +242,21 @@
       // Tail is on Left or Right
       if (dx >= 0) {
         // --- RIGHT TAIL ---
-        const tailBaseH = Math.min(28, Math.max(16, boxH * 0.3));
-        const ty = Math.max(by + r + tailBaseH / 2 + 2, Math.min(by + boxH - r - tailBaseH / 2 - 2, cy + dy * 0.7));
+        const tailBaseH = Math.min(32, Math.max(20, boxH * 0.35));
+        const ty = Math.max(by + r + tailBaseH / 2 + 4, Math.min(by + boxH - r - tailBaseH / 2 - 4, cy + dy * 0.55));
         const t1y = ty - tailBaseH / 2;
         const t2y = ty + tailBaseH / 2;
         const tx = bx + boxW;
+
+        const actualTipX = Math.max(tx + 18, Math.min(tx + maxTailLen, tailX));
+        const actualTipY = ty + (tailY - ty) * 0.85;
 
         ctx.moveTo(bx + r, by);
         ctx.lineTo(bx + boxW - r, by);
         ctx.quadraticCurveTo(bx + boxW, by, bx + boxW, by + r);
         ctx.lineTo(tx, t1y);
-        const midX = (tx + tailX) / 2;
-        ctx.quadraticCurveTo(midX, t1y + (tailY - t1y) * 0.4, tailX, tailY);
-        ctx.quadraticCurveTo(midX, t2y + (tailY - t2y) * 0.4, tx, t2y);
+        ctx.quadraticCurveTo((tx + actualTipX) / 2, t1y, actualTipX, actualTipY);
+        ctx.quadraticCurveTo((tx + actualTipX) / 2, t2y, tx, t2y);
         ctx.lineTo(bx + boxW, by + boxH - r);
         ctx.quadraticCurveTo(bx + boxW, by + boxH, bx + boxW - r, by + boxH);
         ctx.lineTo(bx + r, by + boxH);
@@ -247,11 +265,14 @@
         ctx.quadraticCurveTo(bx, by, bx + r, by);
       } else {
         // --- LEFT TAIL ---
-        const tailBaseH = Math.min(28, Math.max(16, boxH * 0.3));
-        const ty = Math.max(by + r + tailBaseH / 2 + 2, Math.min(by + boxH - r - tailBaseH / 2 - 2, cy + dy * 0.7));
+        const tailBaseH = Math.min(32, Math.max(20, boxH * 0.35));
+        const ty = Math.max(by + r + tailBaseH / 2 + 4, Math.min(by + boxH - r - tailBaseH / 2 - 4, cy + dy * 0.55));
         const t1y = ty - tailBaseH / 2;
         const t2y = ty + tailBaseH / 2;
         const tx = bx;
+
+        const actualTipX = Math.min(tx - 18, Math.max(tx - maxTailLen, tailX));
+        const actualTipY = ty + (tailY - ty) * 0.85;
 
         ctx.moveTo(bx + r, by);
         ctx.lineTo(bx + boxW - r, by);
@@ -261,9 +282,8 @@
         ctx.lineTo(bx + r, by + boxH);
         ctx.quadraticCurveTo(bx, by + boxH, bx, by + boxH - r);
         ctx.lineTo(tx, t2y);
-        const midX = (tx + tailX) / 2;
-        ctx.quadraticCurveTo(midX, t2y + (tailY - t2y) * 0.4, tailX, tailY);
-        ctx.quadraticCurveTo(midX, t1y + (tailY - t1y) * 0.4, tx, t1y);
+        ctx.quadraticCurveTo((tx + actualTipX) / 2, t2y, actualTipX, actualTipY);
+        ctx.quadraticCurveTo((tx + actualTipX) / 2, t1y, tx, t1y);
         ctx.lineTo(bx, by + r);
         ctx.quadraticCurveTo(bx, by, bx + r, by);
       }

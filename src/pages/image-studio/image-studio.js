@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   let baseImage = null;
 
   let activeTool = 'select'; // 'select' | 'pan' | 'pen' | 'line' | 'highlighter' | 'arrow' | 'rect' | 'circle' | 'step' | 'callout' | 'blur' | 'text' | 'spotlight' | 'magnifier' | 'stamp'
-  let activeColor = '#ff3366';
+  let activeColor = '#000000';
   let activeStrokeWidth = 4;
   let activeLineDashed = false;
   let activeArrowMode = 'single'; // 'single' | 'double'

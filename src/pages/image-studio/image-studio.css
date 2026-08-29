@@ -571,35 +571,55 @@ html, body {
 /* Color Swatches */
 .color-palette {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 4px;
 }
 
 .color-swatch {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 2px solid transparent;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
   background-color: var(--c);
   cursor: pointer;
   transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.color-swatch[data-color="#000000"] {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.color-swatch[data-color="#ffffff"] {
+  border-color: rgba(0, 0, 0, 0.35);
 }
 
 .color-swatch:hover {
   transform: scale(1.18);
+  border-color: #ffffff;
 }
 
 .color-swatch.active {
   border-color: #ffffff;
   box-shadow: 0 0 0 2px var(--primary);
-  transform: scale(1.08);
+  transform: scale(1.12);
+}
+
+.color-swatch.active[data-color="#ffffff"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
+.color-swatch.active[data-color="#000000"] {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 2px var(--primary);
 }
 
 .custom-color-picker {
   position: relative;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   cursor: pointer;
   border: 1px solid var(--border-medium);
@@ -608,6 +628,13 @@ html, body {
   justify-content: center;
   overflow: hidden;
   background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+  flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.custom-color-picker:hover {
+  transform: scale(1.18);
+  border-color: #ffffff;
 }
 
 .custom-color-picker input[type="color"] {
