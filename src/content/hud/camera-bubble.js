@@ -38,6 +38,8 @@
   let initialLeft = 0;
   let initialTop = 0;
   let isInitialized = false;
+  let pointerMoveHandler = null;
+  let pointerUpHandler = null;
 
   /**
    * Initializes and injects the Camera Bubble into the page
@@ -71,16 +73,19 @@
     shadowRoot.innerHTML = `
       <style>
         :host {
-          all: initial;
-          display: block;
-          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          -webkit-font-smoothing: antialiased;
+          all: initial !important;
+          display: block !important;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+          -webkit-font-smoothing: antialiased !important;
+          direction: ltr !important;
+          box-sizing: border-box !important;
         }
 
         *, *::before, *::after {
-          box-sizing: border-box;
-          margin: 0;
-          padding: 0;
+          box-sizing: border-box !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          scrollbar-width: none !important;
         }
 
         .bubble-container {
@@ -351,29 +356,21 @@
    * Sets up drag and drop movement with viewport boundary clamping
    */
   function setupDragEvents() {
-    const container = shadowRoot.getElementById('bubbleContainer');
+    const container = shadowRoot?.getElementById('bubbleContainer');
     if (!container) return;
 
-    container.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('.tool-btn')) return;
-      isDragging = true;
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
-
-      const rect = hostEl.getBoundingClientRect();
-      initialLeft = rect.left;
-      initialTop = rect.top;
-
-      hostEl.style.bottom = 'auto';
-      hostEl.style.right = 'auto';
-      hostEl.style.left = `${initialLeft}px`;
-      hostEl.style.top = `${initialTop}px`;
-
-      e.preventDefault();
+    // Prevent container clicks, context menu, and wheel from bleeding into host page
+    ['click', 'dblclick', 'contextmenu', 'wheel'].forEach((evt) => {
+      container.addEventListener(evt, (e) => {
+        if (!e.target.closest('.tool-btn')) {
+          e.stopPropagation();
+        }
+      });
     });
 
-    window.addEventListener('pointermove', (e) => {
+    pointerMoveHandler = (e) => {
       if (!isDragging || !hostEl) return;
+      e.stopPropagation();
 
       const deltaX = e.clientX - dragStartX;
       const deltaY = e.clientY - dragStartY;
@@ -390,10 +387,37 @@
 
       hostEl.style.left = `${newLeft}px`;
       hostEl.style.top = `${newTop}px`;
-    });
+    };
 
-    window.addEventListener('pointerup', () => {
-      isDragging = false;
+    pointerUpHandler = (e) => {
+      if (isDragging) {
+        if (e) e.stopPropagation();
+        isDragging = false;
+        if (pointerMoveHandler) window.removeEventListener('pointermove', pointerMoveHandler, true);
+        if (pointerUpHandler) window.removeEventListener('pointerup', pointerUpHandler, true);
+      }
+    };
+
+    container.addEventListener('pointerdown', (e) => {
+      if (e.target.closest('.tool-btn')) return;
+      e.stopPropagation();
+      e.preventDefault();
+
+      isDragging = true;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+
+      const rect = hostEl.getBoundingClientRect();
+      initialLeft = rect.left;
+      initialTop = rect.top;
+
+      hostEl.style.bottom = 'auto';
+      hostEl.style.right = 'auto';
+      hostEl.style.left = `${initialLeft}px`;
+      hostEl.style.top = `${initialTop}px`;
+
+      window.addEventListener('pointermove', pointerMoveHandler, true);
+      window.addEventListener('pointerup', pointerUpHandler, true);
     });
   }
 
@@ -452,6 +476,14 @@
   }
 
   function hide() {
+    isDragging = false;
+    if (pointerMoveHandler) {
+      window.removeEventListener('pointermove', pointerMoveHandler, true);
+    }
+    if (pointerUpHandler) {
+      window.removeEventListener('pointerup', pointerUpHandler, true);
+    }
+
     if (haloAnimFrameId) {
       cancelAnimationFrame(haloAnimFrameId);
       haloAnimFrameId = null;
@@ -503,12 +535,39 @@
     return Boolean(hostEl && hostEl.parentNode && isInitialized);
   }
 
+  /**
+   * Hides camera overlay with complete ghosting protection before screenshot capture.
+   */
+  async function hideForCapture() {
+    if (hostEl) {
+      hostEl.style.setProperty('display', 'none', 'important');
+      void document.documentElement.offsetHeight;
+      if (document.body) {
+        void document.body.offsetHeight;
+      }
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      await new Promise((r) => setTimeout(r, 50));
+    }
+  }
+
+  /**
+   * Restores visibility after screenshot capture.
+   */
+  function restoreAfterCapture() {
+    if (hostEl) {
+      hostEl.style.removeProperty('display');
+    }
+  }
+
   window.FullShotHUD.cameraBubble = {
     show,
     hide,
+    destroy: hide,
     toggle,
     setSize,
     toggleMirror,
-    isVisible
+    isVisible,
+    hideForCapture,
+    restoreAfterCapture
   };
 })();

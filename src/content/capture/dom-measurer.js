@@ -57,7 +57,7 @@
       winHeight
     );
 
-    // Scan common SPA root and layout containers, infinite feeds (React, Next.js, Nuxt, Vue, YouTube, Twitter/X, Reddit, Sahibinden, etc.)
+    // Scan common SPA root and layout containers, infinite feeds (React, Next.js, Nuxt, Vue, YouTube, Twitter/X, Reddit, etc.)
     const rootContainers = document.querySelectorAll(
       'main, #root, #app, #__next, #__nuxt, [role="main"], #content, #page, .page-wrapper, .main-container, ytd-app, [data-reactroot], shreddit-app, shreddit-feed, #react-root, [data-testid="primaryColumn"], div[data-testid="cellInnerDiv"], .infinite-scroll-component, [data-infinite-scroll], article, section, .feed-container'
     );
@@ -77,13 +77,13 @@
       try {
         const children = body.children;
         const currentScroll = window.scrollY || window.pageYOffset || 0;
-        const scanStart = Math.max(0, children.length - 20);
+        const scanStart = Math.max(0, children.length - 30);
         for (let j = scanStart; j < children.length; j++) {
           const child = children[j];
           if (child instanceof HTMLElement && !child.id?.startsWith('__fullshot_')) {
             const rect = child.getBoundingClientRect();
             const elementBottom = Math.ceil(rect.bottom + currentScroll);
-            if (elementBottom > maxHeight && elementBottom < maxHeight * 1.8) {
+            if (elementBottom > maxHeight && elementBottom < maxHeight * 2.0) {
               maxHeight = elementBottom;
             }
           }
@@ -93,7 +93,7 @@
       }
     }
 
-    return Math.ceil(maxHeight);
+    return Math.max(1, Math.ceil(maxHeight));
   }
 
   /**
@@ -113,7 +113,7 @@
     const bodyOffset = body ? body.offsetWidth : 0;
     const bodyClient = body ? body.clientWidth : 0;
 
-    return Math.ceil(Math.max(
+    const maxWidth = Math.max(
       docElScroll,
       docElOffset,
       docElClient,
@@ -121,7 +121,9 @@
       bodyOffset,
       bodyClient,
       winWidth
-    ));
+    );
+
+    return Math.max(1, Math.ceil(maxWidth));
   }
 
   /**
@@ -131,12 +133,17 @@
    * @param {number} fullWidth Page width
    * @param {number} fullHeight Page height
    * @param {number} [customDpr] Device pixel ratio
-   * @returns {{ targetWidth: number, targetHeight: number, dpr: number, scaleFactor: number, maxCanvasDimension: number, maxCanvasArea: number }}
+   * @returns {{ targetWidth: number, targetHeight: number, dpr: number, originalDpr: number, scaleFactor: number, maxCanvasDimension: number, maxCanvasArea: number }}
    */
   function calculateCanvasDimensions(fullWidth, fullHeight, customDpr) {
-    let dpr = typeof customDpr === 'number' ? customDpr : (window.devicePixelRatio || 1);
-    let rawTargetWidth = Math.round(fullWidth * dpr);
-    let rawTargetHeight = Math.round(fullHeight * dpr);
+    const safeW = Math.max(1, typeof fullWidth === 'number' && !isNaN(fullWidth) ? fullWidth : 1);
+    const safeH = Math.max(1, typeof fullHeight === 'number' && !isNaN(fullHeight) ? fullHeight : 1);
+    const baseDpr = typeof customDpr === 'number' && !isNaN(customDpr) && customDpr > 0
+      ? customDpr
+      : (typeof window !== 'undefined' && window.devicePixelRatio ? window.devicePixelRatio : 1);
+
+    let rawTargetWidth = Math.round(safeW * baseDpr);
+    let rawTargetHeight = Math.round(safeH * baseDpr);
     let scaleFactor = 1.0;
 
     if (
@@ -144,27 +151,27 @@
       rawTargetHeight > MAX_CANVAS_DIMENSION ||
       (rawTargetWidth * rawTargetHeight) > MAX_CANVAS_AREA
     ) {
-      const scaleW = MAX_CANVAS_DIMENSION / rawTargetWidth;
-      const scaleH = MAX_CANVAS_DIMENSION / rawTargetHeight;
-      const scaleArea = Math.sqrt(MAX_CANVAS_AREA / (rawTargetWidth * rawTargetHeight));
+      const scaleW = MAX_CANVAS_DIMENSION / Math.max(1, rawTargetWidth);
+      const scaleH = MAX_CANVAS_DIMENSION / Math.max(1, rawTargetHeight);
+      const scaleArea = Math.sqrt(MAX_CANVAS_AREA / Math.max(1, rawTargetWidth * rawTargetHeight));
       scaleFactor = Math.min(1.0, scaleW, scaleH, scaleArea);
-      dpr = dpr * scaleFactor;
     }
 
-    let targetWidth = Math.min(MAX_CANVAS_DIMENSION, Math.floor(fullWidth * dpr));
-    let targetHeight = Math.min(MAX_CANVAS_DIMENSION, Math.floor(fullHeight * dpr));
+    let effectiveDpr = baseDpr * scaleFactor;
+    let targetWidth = Math.min(MAX_CANVAS_DIMENSION, Math.floor(safeW * effectiveDpr));
+    let targetHeight = Math.min(MAX_CANVAS_DIMENSION, Math.floor(safeH * effectiveDpr));
 
     // Secondary strict area constraint guarantee to prevent sub-pixel round-up crashes
     while ((targetWidth * targetHeight) > MAX_CANVAS_AREA || targetWidth > MAX_CANVAS_DIMENSION || targetHeight > MAX_CANVAS_DIMENSION) {
       const areaCorrection = Math.min(
         MAX_CANVAS_DIMENSION / Math.max(targetWidth, 1),
         MAX_CANVAS_DIMENSION / Math.max(targetHeight, 1),
-        Math.sqrt(MAX_CANVAS_AREA / Math.max(targetWidth * targetHeight, 1)) * 0.999
+        Math.sqrt(MAX_CANVAS_AREA / Math.max(targetWidth * targetHeight, 1)) * 0.995
       );
       scaleFactor *= areaCorrection;
-      dpr *= areaCorrection;
-      targetWidth = Math.min(MAX_CANVAS_DIMENSION, Math.floor(fullWidth * dpr));
-      targetHeight = Math.min(MAX_CANVAS_DIMENSION, Math.floor(fullHeight * dpr));
+      effectiveDpr *= areaCorrection;
+      targetWidth = Math.min(MAX_CANVAS_DIMENSION, Math.floor(safeW * effectiveDpr));
+      targetHeight = Math.min(MAX_CANVAS_DIMENSION, Math.floor(safeH * effectiveDpr));
     }
 
     targetWidth = Math.max(1, targetWidth);
@@ -173,7 +180,8 @@
     return {
       targetWidth,
       targetHeight,
-      dpr,
+      dpr: effectiveDpr,
+      originalDpr: baseDpr,
       scaleFactor,
       maxCanvasDimension: MAX_CANVAS_DIMENSION,
       maxCanvasArea: MAX_CANVAS_AREA
@@ -187,13 +195,15 @@
    * @returns {number[]} Array of Y-scroll positions
    */
   function calculateScrollSteps(fullHeight, viewportHeight) {
-    const maxScrollY = Math.max(0, fullHeight - viewportHeight);
+    const safeFullH = Math.max(1, fullHeight || 1);
+    const safeViewH = Math.max(1, viewportHeight || window.innerHeight || 800);
+    const maxScrollY = Math.max(0, safeFullH - safeViewH);
     const steps = [];
     let currentY = 0;
 
     while (currentY < maxScrollY) {
       steps.push(currentY);
-      currentY += viewportHeight;
+      currentY += safeViewH;
     }
     if (!steps.includes(maxScrollY)) {
       steps.push(maxScrollY);
@@ -219,3 +229,4 @@
     module.exports = DOMMeasurer;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
+

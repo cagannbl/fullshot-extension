@@ -15,6 +15,7 @@
   let activeCallback = null;
   let activeCancelCallback = null;
   let resizeListener = null;
+  let keyDownListener = null;
 
   /**
    * Helper: Double rAF layout sync
@@ -245,6 +246,15 @@
     const qbStudioBtn = shadow.getElementById('qbStudioBtn');
     const qbCancelBtn = shadow.getElementById('qbCancelBtn');
 
+    // Isolate all wrapper events from host page
+    if (wrapper) {
+      ['pointerdown', 'mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu', 'wheel'].forEach((evtName) => {
+        wrapper.addEventListener(evtName, (e) => {
+          e.stopPropagation();
+        });
+      });
+    }
+
     // Smart Boundary-Aware Placement
     const barWidth = 470;
     const barHeight = 44;
@@ -318,33 +328,39 @@
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
-        window.removeEventListener('keydown', onKeyDown);
+        e.preventDefault();
+        e.stopPropagation();
         hide();
         if (typeof activeCancelCallback === 'function') {
           activeCancelCallback();
         }
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c') {
         e.preventDefault();
-        window.removeEventListener('keydown', onKeyDown);
+        e.stopPropagation();
         triggerAction('copy');
       } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        window.removeEventListener('keydown', onKeyDown);
+        e.stopPropagation();
         triggerAction('download');
       } else if (e.key === 'Enter') {
         e.preventDefault();
-        window.removeEventListener('keydown', onKeyDown);
+        e.stopPropagation();
         triggerAction('studio');
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
+    keyDownListener = onKeyDown;
+    window.addEventListener('keydown', keyDownListener, true);
   }
 
   /**
    * Hides and removes the Quick Action Bar
    */
   function hide() {
+    if (keyDownListener) {
+      window.removeEventListener('keydown', keyDownListener, true);
+      keyDownListener = null;
+    }
     if (resizeListener) {
       window.removeEventListener('resize', resizeListener);
       resizeListener = null;

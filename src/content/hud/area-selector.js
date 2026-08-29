@@ -157,6 +157,7 @@
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
           direction: ltr !important;
+          box-sizing: border-box !important;
         }
         *, *::before, *::after {
           box-sizing: border-box !important;

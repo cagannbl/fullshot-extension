@@ -15,17 +15,57 @@ const FullShotDB = {
     CAPTURES: 'captures'
   },
 
+  _cachedDB: null,
+  _openPromise: null,
+
+  /**
+   * Checks if an error is a QuotaExceededError / Storage Full error.
+   * @param {Error|DOMException} err
+   * @returns {boolean}
+   */
+  isQuotaExceeded(err) {
+    if (!err) return false;
+    const name = err.name || '';
+    const msg = err.message || '';
+    const code = err.code;
+    return (
+      name === 'QuotaExceededError' ||
+      name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+      code === 22 ||
+      code === 1014 ||
+      msg.includes('quota') ||
+      msg.includes('storage full') ||
+      msg.includes('exceeded')
+    );
+  },
+
   /**
    * Open or initialize the IndexedDB database with schema versioning and index creation.
+   * Caches database instance and cleanly recovers on close/versionchange.
    * @returns {Promise<IDBDatabase>}
    */
   open() {
-    return new Promise((resolve, reject) => {
+    if (this._cachedDB) {
+      try {
+        if (this._cachedDB.objectStoreNames) {
+          return Promise.resolve(this._cachedDB);
+        }
+      } catch (e) {
+        this._cachedDB = null;
+      }
+    }
+
+    if (this._openPromise) {
+      return this._openPromise;
+    }
+
+    this._openPromise = new Promise((resolve, reject) => {
       const idb = typeof indexedDB !== 'undefined'
         ? indexedDB
         : (typeof self !== 'undefined' ? self.indexedDB : null);
 
       if (!idb) {
+        this._openPromise = null;
         reject(new Error('IndexedDB bu ortamda desteklenmiyor.'));
         return;
       }
@@ -65,18 +105,46 @@ const FullShotDB = {
         }
       };
 
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error || new Error('IndexedDB açılamadı.'));
-      request.onblocked = () => console.warn('[FullShotDB] Veritabanı açılışı başka bir sekme tarafından bloke edildi.');
+      request.onsuccess = () => {
+        this._cachedDB = request.result;
+        this._openPromise = null;
+
+        // Handle external version change or close cleanly
+        this._cachedDB.onversionchange = () => {
+          try {
+            this._cachedDB?.close();
+          } catch (e) {}
+          this._cachedDB = null;
+        };
+
+        this._cachedDB.onclose = () => {
+          this._cachedDB = null;
+        };
+
+        resolve(this._cachedDB);
+      };
+
+      request.onerror = () => {
+        this._openPromise = null;
+        this._cachedDB = null;
+        reject(request.error || new Error('IndexedDB açılamadı.'));
+      };
+
+      request.onblocked = () => {
+        console.warn('[FullShotDB] Veritabanı açılışı başka bir sekme tarafından bloke edildi.');
+      };
     });
+
+    return this._openPromise;
   },
 
   /**
-   * Saves a unified recording entry to IndexedDB.
+   * Saves a unified recording entry to IndexedDB with automatic QuotaExceededError recovery.
    * @param {Object} item { id, blob, dataUrl, mimeType, size, duration, timestamp, title, url, metadata }
+   * @param {boolean} [retryOnQuota=true] Whether to attempt eviction on quota error
    * @returns {Promise<string>} Recording ID
    */
-  async saveRecording(item) {
+  async saveRecording(item, retryOnQuota = true) {
     if (!item) throw new Error('Kaydedilecek video verisi bulunamadı.');
     const db = await this.open();
 
@@ -95,16 +163,38 @@ const FullShotDB = {
     };
 
     return new Promise((resolve, reject) => {
-      const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readwrite');
-      const recStore = tx.objectStore(this.STORES.RECORDINGS);
-      const vidStore = tx.objectStore(this.STORES.VIDEOS);
+      try {
+        const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readwrite');
+        const recStore = tx.objectStore(this.STORES.RECORDINGS);
+        const vidStore = tx.objectStore(this.STORES.VIDEOS);
 
-      recStore.put(record);
-      vidStore.put(record); // mirror for backwards compatibility
+        recStore.put(record);
+        vidStore.put(record); // mirror for backwards compatibility
 
-      tx.oncomplete = () => resolve(recordId);
-      tx.onerror = () => reject(tx.error || new Error('Kayıt IndexedDB\'ye yazılamadı.'));
-      tx.onabort = () => reject(tx.error || new Error('Kayıt yazma işlemi iptal edildi.'));
+        tx.oncomplete = () => resolve(recordId);
+
+        tx.onerror = async () => {
+          const err = tx.error || new Error('Kayıt IndexedDB\'ye yazılamadı.');
+          if (retryOnQuota && this.isQuotaExceeded(err)) {
+            console.warn('[FullShotDB] Depolama kotası aşıldı! Eski yakalama ve kayıtlar temizleniyor...');
+            try {
+              await this.cleanupOldEntries({ maxAgeMs: 12 * 60 * 60 * 1000, maxItems: 5 });
+              const retryId = await this.saveRecording(item, false);
+              resolve(retryId);
+              return;
+            } catch (cleanupErr) {
+              console.error('[FullShotDB] Kota temizliği sonrası kayıt başarısız:', cleanupErr);
+            }
+          }
+          reject(err);
+        };
+
+        tx.onabort = () => {
+          reject(tx.error || new Error('Kayıt yazma işlemi iptal edildi.'));
+        };
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -116,23 +206,27 @@ const FullShotDB = {
   async getRecording(id = 'current_video') {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readonly');
-      const recStore = tx.objectStore(this.STORES.RECORDINGS);
-      const req = recStore.get(id);
+      try {
+        const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readonly');
+        const recStore = tx.objectStore(this.STORES.RECORDINGS);
+        const req = recStore.get(id);
 
-      req.onsuccess = () => {
-        if (req.result) {
-          resolve(req.result);
-          return;
-        }
-        // Fallback check in legacy videos store
-        const vidStore = tx.objectStore(this.STORES.VIDEOS);
-        const vidReq = vidStore.get(id);
-        vidReq.onsuccess = () => resolve(vidReq.result || null);
-        vidReq.onerror = () => resolve(null);
-      };
+        req.onsuccess = () => {
+          if (req.result) {
+            resolve(req.result);
+            return;
+          }
+          // Fallback check in legacy videos store
+          const vidStore = tx.objectStore(this.STORES.VIDEOS);
+          const vidReq = vidStore.get(id);
+          vidReq.onsuccess = () => resolve(vidReq.result || null);
+          vidReq.onerror = () => resolve(null);
+        };
 
-      req.onerror = () => reject(req.error || new Error('Kayıt IndexedDB\'den okunamadı.'));
+        req.onerror = () => reject(req.error || new Error('Kayıt IndexedDB\'den okunamadı.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -143,16 +237,20 @@ const FullShotDB = {
   async getAllRecordings() {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.STORES.RECORDINGS, 'readonly');
-      const store = tx.objectStore(this.STORES.RECORDINGS);
-      const req = store.getAll();
+      try {
+        const tx = db.transaction(this.STORES.RECORDINGS, 'readonly');
+        const store = tx.objectStore(this.STORES.RECORDINGS);
+        const req = store.getAll();
 
-      req.onsuccess = () => {
-        const results = req.result || [];
-        results.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        resolve(results);
-      };
-      req.onerror = () => reject(req.error || new Error('Kayıtlar listelenemedi.'));
+        req.onsuccess = () => {
+          const results = req.result || [];
+          results.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          resolve(results);
+        };
+        req.onerror = () => reject(req.error || new Error('Kayıtlar listelenemedi.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -164,12 +262,16 @@ const FullShotDB = {
   async deleteRecording(id = 'current_video') {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readwrite');
-      tx.objectStore(this.STORES.RECORDINGS).delete(id);
-      tx.objectStore(this.STORES.VIDEOS).delete(id);
+      try {
+        const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readwrite');
+        tx.objectStore(this.STORES.RECORDINGS).delete(id);
+        tx.objectStore(this.STORES.VIDEOS).delete(id);
 
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error || new Error('Kayıt silinemedi.'));
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('Kayıt silinemedi.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -180,23 +282,28 @@ const FullShotDB = {
   async clearAllRecordings() {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readwrite');
-      tx.objectStore(this.STORES.RECORDINGS).clear();
-      tx.objectStore(this.STORES.VIDEOS).clear();
+      try {
+        const tx = db.transaction([this.STORES.RECORDINGS, this.STORES.VIDEOS], 'readwrite');
+        tx.objectStore(this.STORES.RECORDINGS).clear();
+        tx.objectStore(this.STORES.VIDEOS).clear();
 
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error || new Error('Kayıtlar temizlenemedi.'));
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('Kayıtlar temizlenemedi.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
   /**
-   * Saves a screenshot/capture entry to IndexedDB.
+   * Saves a screenshot/capture entry to IndexedDB with QuotaExceededError protection and retry.
    * @param {string|Object} id Capture ID or capture item object
    * @param {Blob|string} [data] Base64 dataUrl or Image Blob
    * @param {Object} [metadata={}] Title, URL, dimensions, format, etc.
+   * @param {boolean} [retryOnQuota=true] Whether to attempt eviction on quota error
    * @returns {Promise<string>} Capture ID
    */
-  async saveCapture(id, data, metadata = {}) {
+  async saveCapture(id, data, metadata = {}, retryOnQuota = true) {
     let targetId = id;
     let targetData = data;
     let targetMeta = metadata;
@@ -228,12 +335,35 @@ const FullShotDB = {
     };
 
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.STORES.CAPTURES, 'readwrite');
-      const store = tx.objectStore(this.STORES.CAPTURES);
-      const req = store.put(record);
+      try {
+        const tx = db.transaction(this.STORES.CAPTURES, 'readwrite');
+        const store = tx.objectStore(this.STORES.CAPTURES);
+        store.put(record);
 
-      req.onsuccess = () => resolve(recordId);
-      req.onerror = () => reject(req.error || new Error('Ekran görüntüsü kaydedilemedi.'));
+        tx.oncomplete = () => resolve(recordId);
+
+        tx.onerror = async () => {
+          const err = tx.error || new Error('Ekran görüntüsü kaydedilemedi.');
+          if (retryOnQuota && this.isQuotaExceeded(err)) {
+            console.warn('[FullShotDB] Capture kaydı sırasında depolama kotası aşıldı! Eski yakalamalar temizleniyor...');
+            try {
+              await this.cleanupOldEntries({ maxAgeMs: 6 * 60 * 60 * 1000, maxItems: 8 });
+              const retryId = await this.saveCapture(id, data, metadata, false);
+              resolve(retryId);
+              return;
+            } catch (cleanupErr) {
+              console.error('[FullShotDB] Kota temizliği sonrası capture kaydı başarısız:', cleanupErr);
+            }
+          }
+          reject(err);
+        };
+
+        tx.onabort = () => {
+          reject(tx.error || new Error('Ekran görüntüsü işlemi iptal edildi.'));
+        };
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -245,12 +375,16 @@ const FullShotDB = {
   async getCapture(id = 'current_capture') {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.STORES.CAPTURES, 'readonly');
-      const store = tx.objectStore(this.STORES.CAPTURES);
-      const req = store.get(id);
+      try {
+        const tx = db.transaction(this.STORES.CAPTURES, 'readonly');
+        const store = tx.objectStore(this.STORES.CAPTURES);
+        const req = store.get(id);
 
-      req.onsuccess = () => resolve(req.result || null);
-      req.onerror = () => reject(req.error || new Error('Ekran görüntüsü okunamadı.'));
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => reject(req.error || new Error('Ekran görüntüsü okunamadı.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -261,16 +395,20 @@ const FullShotDB = {
   async getAllCaptures() {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.STORES.CAPTURES, 'readonly');
-      const store = tx.objectStore(this.STORES.CAPTURES);
-      const req = store.getAll();
+      try {
+        const tx = db.transaction(this.STORES.CAPTURES, 'readonly');
+        const store = tx.objectStore(this.STORES.CAPTURES);
+        const req = store.getAll();
 
-      req.onsuccess = () => {
-        const results = req.result || [];
-        results.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-        resolve(results);
-      };
-      req.onerror = () => reject(req.error || new Error('Ekran görüntüleri listelenemedi.'));
+        req.onsuccess = () => {
+          const results = req.result || [];
+          results.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+          resolve(results);
+        };
+        req.onerror = () => reject(req.error || new Error('Ekran görüntüleri listelenemedi.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -282,12 +420,16 @@ const FullShotDB = {
   async deleteCapture(id = 'current_capture') {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.STORES.CAPTURES, 'readwrite');
-      const store = tx.objectStore(this.STORES.CAPTURES);
-      store.delete(id);
+      try {
+        const tx = db.transaction(this.STORES.CAPTURES, 'readwrite');
+        const store = tx.objectStore(this.STORES.CAPTURES);
+        store.delete(id);
 
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error || new Error('Ekran görüntüsü silinemedi.'));
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('Ekran görüntüsü silinemedi.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -298,12 +440,16 @@ const FullShotDB = {
   async clearAllCaptures() {
     const db = await this.open();
     return new Promise((resolve, reject) => {
-      const tx = db.transaction(this.STORES.CAPTURES, 'readwrite');
-      const store = tx.objectStore(this.STORES.CAPTURES);
-      store.clear();
+      try {
+        const tx = db.transaction(this.STORES.CAPTURES, 'readwrite');
+        const store = tx.objectStore(this.STORES.CAPTURES);
+        store.clear();
 
-      tx.oncomplete = () => resolve(true);
-      tx.onerror = () => reject(tx.error || new Error('Ekran görüntüleri temizlenemedi.'));
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error || new Error('Ekran görüntüleri temizlenemedi.'));
+      } catch (err) {
+        reject(err);
+      }
     });
   },
 
@@ -318,14 +464,102 @@ const FullShotDB = {
   },
 
   /**
+   * Safely prunes old entries from captures and recordings to prevent QuotaExceededError.
+   * Preserves 'current_capture' and 'current_video'.
+   * @param {Object} options { maxAgeMs: number, maxItems: number, storeName: string }
+   * @returns {Promise<number>} Number of deleted items
+   */
+  async cleanupOldEntries({ maxAgeMs = 24 * 60 * 60 * 1000, maxItems = 10, storeName = null } = {}) {
+    let deletedCount = 0;
+    const now = Date.now();
+    const cutoff = now - maxAgeMs;
+
+    const pruneStore = async (targetStore) => {
+      const db = await this.open();
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction(targetStore, 'readwrite');
+          const store = tx.objectStore(targetStore);
+          const req = store.getAll();
+
+          req.onsuccess = () => {
+            const items = req.result || [];
+            items.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+            let toDelete = [];
+            items.forEach((item) => {
+              if (item.id === 'current_capture' || item.id === 'current_video') return;
+              if ((item.timestamp || 0) < cutoff) {
+                toDelete.push(item.id);
+              }
+            });
+
+            if (items.length - toDelete.length > maxItems) {
+              const surplus = (items.length - toDelete.length) - maxItems;
+              const remaining = items.filter((i) => !toDelete.includes(i.id) && i.id !== 'current_capture' && i.id !== 'current_video');
+              for (let i = 0; i < Math.min(surplus, remaining.length); i++) {
+                toDelete.push(remaining[i].id);
+              }
+            }
+
+            toDelete.forEach((id) => store.delete(id));
+            deletedCount += toDelete.length;
+            tx.oncomplete = () => resolve(toDelete.length);
+            tx.onerror = () => resolve(0);
+          };
+          req.onerror = () => resolve(0);
+        } catch (e) {
+          resolve(0);
+        }
+      });
+    };
+
+    if (!storeName || storeName === this.STORES.CAPTURES) {
+      await pruneStore(this.STORES.CAPTURES);
+    }
+    if (!storeName || storeName === this.STORES.RECORDINGS) {
+      await pruneStore(this.STORES.RECORDINGS);
+    }
+
+    return deletedCount;
+  },
+
+  /**
    * Estimates total storage usage in bytes.
    * @returns {Promise<{ usage: number, quota: number }>}
    */
   async getStorageUsage() {
     if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
-      return await navigator.storage.estimate();
+      try {
+        const estimate = await navigator.storage.estimate();
+        return {
+          usage: estimate.usage || 0,
+          quota: estimate.quota || 0
+        };
+      } catch (e) {
+        // Fallback
+      }
     }
     return { usage: 0, quota: 0 };
+  },
+
+  /**
+   * Returns detailed quota diagnostic information.
+   * @returns {Promise<{ usage: number, quota: number, percentUsed: number, isNearQuota: boolean, remainingBytes: number }>}
+   */
+  async getStorageQuotaInfo() {
+    const { usage, quota } = await this.getStorageUsage();
+    const percentUsed = quota > 0 ? (usage / quota) * 100 : 0;
+    const remainingBytes = Math.max(0, quota - usage);
+    const isNearQuota = percentUsed > 85 || (quota > 0 && remainingBytes < 50 * 1024 * 1024);
+
+    return {
+      usage,
+      quota,
+      percentUsed: Math.round(percentUsed * 10) / 10,
+      isNearQuota,
+      remainingBytes
+    };
   },
 
   // ==========================================

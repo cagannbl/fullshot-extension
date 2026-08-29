@@ -2,7 +2,7 @@
  * FullShot Pro - Sticky & Fixed Elements Filter
  * Module for smart detection, hiding, and restoring of sticky/fixed elements
  * during vertical scroll stitching. Only hides elements docked at top (rect.top <= 2)
- * on subsequent steps while preserving first slice and below-the-fold content.
+ * on subsequent steps while preserving first slice, SPA scroll containers, and below-the-fold content.
  */
 
 (function(global) {
@@ -17,7 +17,7 @@
 
     /**
      * Safety check preventing accidental hiding of SPA root containers,
-     * document bodies, or extension UI hosts.
+     * document bodies, nested scrollable views, or extension UI hosts.
      * @param {HTMLElement} el
      * @param {number} viewportW
      * @param {number} viewportH
@@ -41,7 +41,7 @@
         'root', '__next', 'app', '__nuxt', 'main-content', 'layout-root',
         '__layout', 'app-root', 'main', 'react-root', 'shreddit-app',
         'shreddit-feed', 'primarycolumn', 'contents', 'page-container',
-        'content', 'page'
+        'content', 'page', 'site-wrapper', 'wrapper', 'main-wrapper', 'app-shell'
       ];
       if (spaRoots.includes(id)) return false;
 
@@ -49,12 +49,21 @@
       const role = (el.getAttribute('role') || '').toLowerCase();
       if (role === 'main' || role === 'application' || role === 'article' || role === 'feed') return false;
 
-      // 5. Layout elements covering >= 90% of viewport
-      const rect = el.getBoundingClientRect();
-      if (rect.width >= viewportW * 0.90 && rect.height >= viewportH * 0.90) return false;
+      // 5. Scrollable inner container check (SPA nested scroll feeds)
+      try {
+        const computed = window.getComputedStyle(el);
+        const overflowY = computed.overflowY;
+        if ((overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 15) {
+          return false;
+        }
+      } catch (e) {}
 
-      // 6. Zero dimension elements
-      if (rect.width === 0 || rect.height === 0) return false;
+      // 6. Layout elements covering >= 85% of viewport
+      const rect = el.getBoundingClientRect();
+      if (rect.width >= viewportW * 0.85 && rect.height >= viewportH * 0.85) return false;
+
+      // 7. Zero dimension elements
+      if (rect.width <= 0 || rect.height <= 0) return false;
 
       return true;
     }
@@ -206,3 +215,4 @@
     module.exports = StickyFilter;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
+

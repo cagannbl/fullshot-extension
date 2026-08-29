@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // WEBM DURATION METADATA PATCHER (Fixes Chrome "Infinity" Duration Bug)
   // ============================================================
   async function fixWebmDuration(webmBlob, durationMs) {
-    if (!webmBlob || durationMs <= 0) return webmBlob;
+    if (!webmBlob || durationMs <= 0 || webmBlob.size === 0) return webmBlob;
 
     try {
       const buffer = await webmBlob.arrayBuffer();
@@ -229,7 +229,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         for (let i = 1; i < length; i++) {
           val = (val * 256) + uint8[offset + i];
         }
-        return { length, value: val };
+        const isUnknown = (length <= 7 && val === Math.pow(2, 7 * length) - 1) || (length === 8 && val >= 0x00FFFFFFFFFFFFFF);
+        return { length, value: val, isUnknown };
       }
 
       // Helper to encode variable-size integer with minimum byte length
@@ -244,9 +245,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return bytes;
       }
 
-      // Search for Info Element: 0x15, 0x49, 0xA9, 0x66
+      // Search for Info Element: 0x15, 0x49, 0xA9, 0x66 within first 64KB
       let infoPos = -1;
-      for (let i = 0; i < Math.min(uint8.length - 4, 8192); i++) {
+      const maxSearch = Math.min(uint8.length - 4, 65536);
+      for (let i = 0; i < maxSearch; i++) {
         if (uint8[i] === 0x15 && uint8[i + 1] === 0x49 && uint8[i + 2] === 0xA9 && uint8[i + 3] === 0x66) {
           infoPos = i;
           break;
@@ -259,8 +261,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!infoVint) return webmBlob;
 
       const infoContentStart = infoPos + 4 + infoVint.length;
-      const infoContentEnd = (infoVint.value <= 0 || infoVint.value > 1000000)
-        ? infoContentStart + 1024
+      const infoContentEnd = (infoVint.isUnknown || infoVint.value <= 0 || infoVint.value > 1000000)
+        ? Math.min(uint8.length, infoContentStart + 2048)
         : Math.min(uint8.length, infoContentStart + infoVint.value);
 
       let timecodeScale = 1000000; // default 1,000,000 ns = 1ms
@@ -312,14 +314,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       new DataView(durationHeader.buffer).setFloat64(3, durationInScale, false);
 
       const insertPos = infoContentStart;
-      const newInfoSize = infoVint.value + 11;
-      const newVintBytes = encodeVint(newInfoSize, infoVint.length);
-
       const newBuf = new Uint8Array(buffer.byteLength + 11);
-      newBuf.set(uint8.subarray(0, infoPos + 4), 0);
-      newBuf.set(newVintBytes, infoPos + 4);
-      newBuf.set(durationHeader, insertPos);
-      newBuf.set(uint8.subarray(insertPos), insertPos + 11);
+
+      if (infoVint.isUnknown) {
+        newBuf.set(uint8.subarray(0, insertPos), 0);
+        newBuf.set(durationHeader, insertPos);
+        newBuf.set(uint8.subarray(insertPos), insertPos + 11);
+      } else {
+        const newInfoSize = infoVint.value + 11;
+        const newVintBytes = encodeVint(newInfoSize, infoVint.length);
+        newBuf.set(uint8.subarray(0, infoPos + 4), 0);
+        newBuf.set(newVintBytes, infoPos + 4);
+        newBuf.set(durationHeader, insertPos);
+        newBuf.set(uint8.subarray(insertPos), insertPos + 11);
+      }
 
       return new Blob([newBuf.buffer], { type: webmBlob.type });
     } catch (err) {

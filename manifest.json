@@ -45,6 +45,13 @@
         "mac": "Alt+Shift+E"
       },
       "description": "Öğe / Bölüm Yakala"
+    },
+    "toggle-record": {
+      "suggested_key": {
+        "default": "Alt+Shift+R",
+        "mac": "Alt+Shift+R"
+      },
+      "description": "Ekran / Sekme Video Kaydını Başlat veya Durdur"
     }
   },
   "action": {

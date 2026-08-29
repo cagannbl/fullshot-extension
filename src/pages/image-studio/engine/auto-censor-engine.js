@@ -302,10 +302,11 @@
         // A. True Enclosed Input Containers & Token Boxes (API Key, Email, Password, Card)
         const isEnclosedInput = (topRatio > 0.26 || botRatio > 0.26) && (w >= 120 && w <= 650 && h >= 20 && h <= 65);
 
-        // B. Table Data Cells (e.g. Server Host IP, Ports, Table Values in lower panels)
-        const isTableCell = (w >= 50 && w <= 260 && h >= 10 && h <= 35 && y1 > canvasH * 0.5 && x1 > 180);
+        // B. Table Data Cells (e.g. Server Host IP, Ports, Database IPs in table rows)
+        // Must be a compact data cell (h <= 26, w <= 210) strictly located inside table data rows
+        const isTableCell = (w >= 50 && w <= 210 && h >= 10 && h <= 26 && y1 > canvasH * 0.68 && x1 > 240 && !isEnclosedInput);
 
-        // Only redact true enclosed form input containers or table data cells
+        // Only redact true enclosed form input containers or compact table data cells
         if (isEnclosedInput || isTableCell) {
           // Deduplicate overlapping or fully contained regions
           const overlaps = regions.some(r => 

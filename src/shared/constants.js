@@ -74,6 +74,13 @@ const ACTIONS = {
   PING: 'ping',
   PONG: 'pong',
   
+  // State Recovery & Capture Session Actions
+  GET_CAPTURE_STATE: 'getCaptureState',
+  SET_CAPTURE_STATE: 'setCaptureState',
+  CLEAR_CAPTURE_STATE: 'clearCaptureState',
+  UPDATE_CAPTURE_PROGRESS: 'updateCaptureProgress',
+  RECOVER_STATE: 'recoverState',
+
   // Offscreen Lifecycle
   OFFSCREEN_READY: 'OFFSCREEN_READY',
   CREATE_OFFSCREEN: 'createOffscreenDocument',
@@ -88,7 +95,10 @@ const PORTS = {
   KEEPALIVE_RECORDING: 'keepAlive-recording',
   KEEPALIVE: 'keepAlive',
   OFFSCREEN: 'offscreen',
-  RECORDING: 'recording'
+  RECORDING: 'recording',
+  POPUP: 'popup',
+  CONTENT: 'content',
+  HUD: 'fullshot-hud'
 };
 
 // ==========================================
@@ -112,6 +122,8 @@ const STORAGE_KEYS = {
   CURRENT_CAPTURE: 'fullshot_current_capture',
   CURRENT_VIDEO: 'fullshot_current_video',
   RECORDING_STATE: 'fullshot_recording_state',
+  CAPTURE_STATE: 'fullshot_capture_state',
+  SESSION_RECOVERY: 'fullshot_session_recovery',
   VIDEO_RECORDINGS: 'fullshot_recordings',
   USER_PREFERENCES: 'fullshot_preferences',
   CAPTURE_BEHAVIOR: 'fullshot_capture_behavior'
@@ -127,7 +139,19 @@ const RECORDING_STATE = {
 };
 
 // ==========================================
-// 6. Default Settings & Thresholds
+// 6. Error Codes & Diagnostics
+// ==========================================
+const ERROR_CODES = {
+  QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
+  IDB_ERROR: 'IDB_ERROR',
+  TIMEOUT: 'TIMEOUT',
+  RESTRICTED_URL: 'RESTRICTED_URL',
+  OFFSCREEN_FAILED: 'OFFSCREEN_FAILED',
+  CAPTURE_FAILED: 'CAPTURE_FAILED'
+};
+
+// ==========================================
+// 7. Default Settings & Thresholds
 // ==========================================
 const DEFAULTS = {
   FORMAT: 'png',           // 'png' | 'jpeg'
@@ -136,11 +160,13 @@ const DEFAULTS = {
   HIDE_FIXED_ELEMENTS: true,
   COUNTDOWN_SECONDS: 0,    // 0, 3, 5, 10
   MAX_CANVAS_DIMENSION: 16384, // Blink safe canvas boundary
-  MAX_CANVAS_AREA: 134217728   // 16384 * 8192 (~134M pixels)
+  MAX_CANVAS_AREA: 134217728,  // 16384 * 8192 (~134M pixels)
+  MAX_IDB_CAP_RETRY: 2,
+  KEEP_ALIVE_INTERVAL_MS: 12000
 };
 
 // ==========================================
-// 7. Design System Tokens (4-Color Palette)
+// 8. Design System Tokens (4-Color Palette)
 // ==========================================
 const THEME_TOKENS = {
   BG_CARD: '#4A4A4A',       // Koyu Kömür / Antrasit Kart Zemini
@@ -157,6 +183,7 @@ const FullShotConstants = {
   PROTECTED_URL_PREFIXES,
   STORAGE_KEYS,
   RECORDING_STATE,
+  ERROR_CODES,
   DEFAULTS,
   THEME_TOKENS
 };

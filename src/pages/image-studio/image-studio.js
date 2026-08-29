@@ -451,6 +451,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     colorPicker = new window.FullShotCanvas.ColorPicker({
       container: document.body,
       initialColor: activeColor,
+      canvasTarget: mainCanvas,
       onColorChange: (hex) => {
         activeColor = hex;
         if (activeColorBadge) activeColorBadge.textContent = hex;
@@ -463,6 +464,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         updateStepBadgePreview();
+      },
+      onColorPicked: (hex) => {
+        showToast('Renk Seçildi 🎨', `${hex} palete ve araca uygulandı.`);
       }
     });
   }
@@ -1944,6 +1948,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       setActiveTool('blur');
     } else if (e.key === 't' || e.key === 'T') {
       setActiveTool('text');
+    } else if (e.key === 'i' || e.key === 'I') {
+      if (colorPicker) {
+        colorPicker.activateEyeDropper(mainCanvas);
+      }
     } else if (e.key === '+' || e.key === '=') {
       if (zoomPan) zoomPan.zoomTo(zoomPan.getScale() + 0.25);
     } else if (e.key === '-') {

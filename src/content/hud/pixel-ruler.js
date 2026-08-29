@@ -206,6 +206,7 @@
           color: #FFFFE3 !important;
           direction: ltr !important;
           -webkit-font-smoothing: antialiased !important;
+          box-sizing: border-box !important;
         }
         *, *::before, *::after {
           box-sizing: border-box !important;
@@ -602,6 +603,7 @@
     // --- MOUSE & KEYBOARD EVENT LISTENERS ---
 
     const onMouseMove = (e) => {
+      e.stopPropagation();
       if (isDragging) {
         dragCurrentX = e.clientX;
         dragCurrentY = e.clientY;
@@ -624,6 +626,7 @@
     };
 
     const onMouseDown = (e) => {
+      e.stopPropagation();
       if (e.button !== 0) return;
       e.preventDefault();
 
@@ -653,6 +656,7 @@
     };
 
     const onMouseUp = (e) => {
+      e.stopPropagation();
       if (isDragging) {
         isDragging = false;
         render();
@@ -661,17 +665,22 @@
 
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
         stop();
         if (typeof options.onCancel === 'function') {
           options.onCancel();
         }
       } else if (e.key === ' ') {
         e.preventDefault();
+        e.stopPropagation();
         // Space clears reference
         referenceElement = null;
         referenceRect = null;
         render();
       } else if (e.key.toLowerCase() === 'c' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        e.stopPropagation();
         // Copy computed CSS details to clipboard
         if (hoveredElement && hoveredRect) {
           try {
@@ -689,6 +698,13 @@
     overlay.addEventListener('mousemove', onMouseMove);
     overlay.addEventListener('mousedown', onMouseDown);
     overlay.addEventListener('mouseup', onMouseUp);
+    overlay.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+    overlay.addEventListener('wheel', (e) => {
+      e.stopPropagation();
+    }, { passive: true });
     window.addEventListener('keydown', onKeyDown, true);
 
     activeCleanup = () => {
@@ -767,6 +783,7 @@
   window.FullShotHUD.pixelRuler = {
     start,
     stop,
+    destroy: stop,
     toggle,
     isActive,
     hideForCapture,

@@ -31,6 +31,11 @@ let channelMergerNode = null;
 let dynamicsCompressorNode = null;
 let destinationNode = null;
 
+let lastTabVolume = 1.0;
+let lastMicVolume = 1.0;
+let isTabMuted = false;
+let isMicMuted = false;
+
 let recordingStartTime = 0;
 let totalPausedDuration = 0;
 let pauseStartTime = 0;
@@ -266,7 +271,7 @@ async function deleteRecordingFromDB(id) {
  * @returns {Promise<Blob>}
  */
 async function fixWebmDuration(webmBlob, durationMs) {
-  if (!webmBlob || durationMs <= 0) return webmBlob;
+  if (!webmBlob || durationMs <= 0 || webmBlob.size === 0) return webmBlob;
 
   try {
     const buffer = await webmBlob.arrayBuffer();
@@ -289,7 +294,8 @@ async function fixWebmDuration(webmBlob, durationMs) {
       for (let i = 1; i < length; i++) {
         val = (val * 256) + uint8[offset + i];
       }
-      return { length, value: val };
+      const isUnknown = (length <= 7 && val === Math.pow(2, 7 * length) - 1) || (length === 8 && val >= 0x00FFFFFFFFFFFFFF);
+      return { length, value: val, isUnknown };
     }
 
     // Helper to encode variable-size integer with minimum byte length
@@ -304,9 +310,10 @@ async function fixWebmDuration(webmBlob, durationMs) {
       return bytes;
     }
 
-    // Search for Info Element: 0x15, 0x49, 0xA9, 0x66
+    // Search for Info Element: 0x15, 0x49, 0xA9, 0x66 within the first 64KB
     let infoPos = -1;
-    for (let i = 0; i < Math.min(uint8.length - 4, 8192); i++) {
+    const maxSearch = Math.min(uint8.length - 4, 65536);
+    for (let i = 0; i < maxSearch; i++) {
       if (uint8[i] === 0x15 && uint8[i + 1] === 0x49 && uint8[i + 2] === 0xA9 && uint8[i + 3] === 0x66) {
         infoPos = i;
         break;
@@ -321,8 +328,8 @@ async function fixWebmDuration(webmBlob, durationMs) {
     if (!infoVint) return webmBlob;
 
     const infoContentStart = infoPos + 4 + infoVint.length;
-    const infoContentEnd = (infoVint.value <= 0 || infoVint.value > 1000000)
-      ? infoContentStart + 1024
+    const infoContentEnd = (infoVint.isUnknown || infoVint.value <= 0 || infoVint.value > 1000000)
+      ? Math.min(uint8.length, infoContentStart + 2048)
       : Math.min(uint8.length, infoContentStart + infoVint.value);
 
     // Look for TimecodeScale (0x2A, 0xD7, 0xB1) and Duration (0x44, 0x89) inside Info
@@ -380,14 +387,22 @@ async function fixWebmDuration(webmBlob, durationMs) {
 
     // Create new buffer with inserted duration element
     const insertPos = infoContentStart;
-    const newInfoSize = infoVint.value + 11;
-    const newVintBytes = encodeVint(newInfoSize, infoVint.length);
-
     const newBuf = new Uint8Array(buffer.byteLength + 11);
-    newBuf.set(uint8.subarray(0, infoPos + 4), 0);
-    newBuf.set(newVintBytes, infoPos + 4);
-    newBuf.set(durationHeader, insertPos);
-    newBuf.set(uint8.subarray(insertPos), insertPos + 11);
+
+    if (infoVint.isUnknown) {
+      // Retain indefinite length without modification
+      newBuf.set(uint8.subarray(0, insertPos), 0);
+      newBuf.set(durationHeader, insertPos);
+      newBuf.set(uint8.subarray(insertPos), insertPos + 11);
+    } else {
+      // Re-encode modified Info size VINT
+      const newInfoSize = infoVint.value + 11;
+      const newVintBytes = encodeVint(newInfoSize, infoVint.length);
+      newBuf.set(uint8.subarray(0, infoPos + 4), 0);
+      newBuf.set(newVintBytes, infoPos + 4);
+      newBuf.set(durationHeader, insertPos);
+      newBuf.set(uint8.subarray(insertPos), insertPos + 11);
+    }
 
     return new Blob([newBuf.buffer], { type: webmBlob.type });
   } catch (err) {
@@ -898,27 +913,75 @@ function cancelRecording() {
 }
 
 /**
- * Dynamically updates audio gain values for Tab or Microphone with smooth ramping.
- * @param {Object} gains { systemVolume?: number, micVolume?: number }
+ * Dynamically updates audio gain values for Tab or Microphone with smooth de-zippering ramping.
+ * @param {Object} gains
+ * @param {number} [gains.systemVolume] - System/Tab Volume (0.0 to 2.0)
+ * @param {number} [gains.tabVolume] - Alias for systemVolume
+ * @param {number} [gains.micVolume] - Microphone Volume (0.0 to 2.0)
+ * @param {boolean} [gains.muteTab] - Mute System/Tab Audio
+ * @param {boolean} [gains.muteSystem] - Alias for muteTab
+ * @param {boolean} [gains.muteMic] - Mute Microphone
+ * @param {boolean} [gains.micMuted] - Alias for muteMic
  */
-function updateAudioGains({ systemVolume, micVolume }) {
-  if (tabGainNode && typeof systemVolume === 'number') {
-    const v = Math.max(0, Math.min(2, systemVolume));
-    if (audioContext && audioContext.currentTime) {
-      tabGainNode.gain.setTargetAtTime(v, audioContext.currentTime, 0.05);
+function updateAudioGains(gains = {}) {
+  // Tab / System Audio Volume & Muting
+  const sysVol = typeof gains.systemVolume === 'number' ? gains.systemVolume : (typeof gains.tabVolume === 'number' ? gains.tabVolume : undefined);
+  if (sysVol !== undefined) {
+    lastTabVolume = Math.max(0, Math.min(2, sysVol));
+  }
+  if (typeof gains.muteTab === 'boolean' || typeof gains.muteSystem === 'boolean' || typeof gains.tabMuted === 'boolean') {
+    isTabMuted = Boolean(gains.muteTab || gains.muteSystem || gains.tabMuted);
+  }
+
+  if (tabGainNode) {
+    const targetTabGain = isTabMuted ? 0 : lastTabVolume;
+    if (audioContext && audioContext.currentTime && audioContext.state !== 'closed') {
+      tabGainNode.gain.setTargetAtTime(targetTabGain, audioContext.currentTime, 0.03);
     } else {
-      tabGainNode.gain.value = v;
+      tabGainNode.gain.value = targetTabGain;
     }
   }
-  if (micGainNode && typeof micVolume === 'number') {
-    const v = Math.max(0, Math.min(2, micVolume));
-    if (audioContext && audioContext.currentTime) {
-      micGainNode.gain.setTargetAtTime(v, audioContext.currentTime, 0.05);
+
+  // Microphone Audio Volume & Muting
+  if (typeof gains.micVolume === 'number') {
+    lastMicVolume = Math.max(0, Math.min(2, gains.micVolume));
+  }
+  if (typeof gains.muteMic === 'boolean' || typeof gains.micMuted === 'boolean' || typeof gains.isMicMuted === 'boolean') {
+    isMicMuted = Boolean(gains.muteMic || gains.micMuted || gains.isMicMuted);
+  }
+
+  if (micGainNode) {
+    const targetMicGain = isMicMuted ? 0 : lastMicVolume;
+    if (audioContext && audioContext.currentTime && audioContext.state !== 'closed') {
+      micGainNode.gain.setTargetAtTime(targetMicGain, audioContext.currentTime, 0.03);
     } else {
-      micGainNode.gain.value = v;
+      micGainNode.gain.value = targetMicGain;
     }
   }
-  return { success: true };
+
+  return {
+    success: true,
+    systemVolume: lastTabVolume,
+    micVolume: lastMicVolume,
+    isTabMuted,
+    isMicMuted
+  };
+}
+
+/**
+ * Toggles microphone mute state dynamically.
+ */
+function toggleMicMute() {
+  isMicMuted = !isMicMuted;
+  return updateAudioGains({ muteMic: isMicMuted });
+}
+
+/**
+ * Sets microphone mute state explicitly.
+ */
+function setMicMuted(muted) {
+  isMicMuted = Boolean(muted);
+  return updateAudioGains({ muteMic: isMicMuted });
 }
 
 /**
@@ -1434,6 +1497,31 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     case 'UPDATE_AUDIO_GAINS':
     case 'updateAudioGains':
       sendResponse(updateAudioGains(message.gains || message));
+      return false;
+
+    case 'MUTE_MIC':
+    case 'muteMic':
+      sendResponse(setMicMuted(true));
+      return false;
+
+    case 'UNMUTE_MIC':
+    case 'unmuteMic':
+      sendResponse(setMicMuted(false));
+      return false;
+
+    case 'TOGGLE_MIC':
+    case 'toggleMic':
+      sendResponse(toggleMicMute());
+      return false;
+
+    case 'SET_MIC_VOLUME':
+    case 'setMicVolume':
+      sendResponse(updateAudioGains({ micVolume: message.volume ?? message.micVolume }));
+      return false;
+
+    case 'SET_SYSTEM_VOLUME':
+    case 'setSystemVolume':
+      sendResponse(updateAudioGains({ systemVolume: message.volume ?? message.systemVolume ?? message.tabVolume }));
       return false;
 
     case 'GET_RECORDING_STATUS':

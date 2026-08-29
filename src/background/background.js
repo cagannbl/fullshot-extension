@@ -31,14 +31,17 @@ const PREVIEW_VIDEO_PATH = 'src/pages/video-studio/video-studio.html';
 const PREVIEW_IMAGE_PATH = 'src/pages/image-studio/image-studio.html';
 
 // ==========================================
-// 2. Global State & Keep-Alive Connection Pool
+// 2. Global State & Storage Helpers (Idle Termination Safety)
 // ==========================================
 let recordingState = RECORDING_STATE.IDLE;
 let recordingStartTime = 0;
 let recordingElapsedSeconds = 0;
+let recordingTotalPausedMs = 0;
+let recordingPauseStartTime = 0;
 let recordingTimerInterval = null;
 let recordingConfig = null;
 let activeRecordingId = null;
+let activeCaptureSession = null;
 
 // Keep-Alive connection pool for persistent Service Worker wake-lock
 const keepAlivePorts = new Set();
@@ -46,12 +49,69 @@ let keepAliveHeartbeatInterval = null;
 let creatingOffscreenPromise = null;
 
 /**
- * Triggers a lightweight Chrome API call to touch the Service Worker idle timer.
+ * Storage session get helper with chrome.storage.local fallback
+ */
+async function storageSessionGet(key) {
+  try {
+    if (chrome.storage?.session) {
+      const res = await chrome.storage.session.get(key);
+      if (res && res[key] !== undefined) return res[key];
+    }
+  } catch (e) {}
+  try {
+    if (chrome.storage?.local) {
+      const res = await chrome.storage.local.get(key);
+      if (res && res[key] !== undefined) return res[key];
+    }
+  } catch (e) {}
+  return null;
+}
+
+/**
+ * Storage session set helper with chrome.storage.local fallback
+ */
+async function storageSessionSet(keyOrObj, val) {
+  const payload = typeof keyOrObj === 'string' ? { [keyOrObj]: val } : keyOrObj;
+  try {
+    if (chrome.storage?.session) {
+      await chrome.storage.session.set(payload);
+    }
+  } catch (e) {}
+  try {
+    if (chrome.storage?.local) {
+      await chrome.storage.local.set(payload);
+    }
+  } catch (e) {}
+}
+
+/**
+ * Storage session remove helper with chrome.storage.local fallback
+ */
+async function storageSessionRemove(keyOrKeys) {
+  try {
+    if (chrome.storage?.session) {
+      await chrome.storage.session.remove(keyOrKeys);
+    }
+  } catch (e) {}
+  try {
+    if (chrome.storage?.local) {
+      await chrome.storage.local.remove(keyOrKeys);
+    }
+  } catch (e) {}
+}
+
+/**
+ * Triggers lightweight Chrome API calls to reset the Service Worker idle timer.
  */
 function resetSWKeepAlive() {
   try {
     if (chrome.runtime && typeof chrome.runtime.getPlatformInfo === 'function') {
       chrome.runtime.getPlatformInfo().catch(() => {});
+    }
+  } catch (e) {}
+  try {
+    if (chrome.storage?.session) {
+      chrome.storage.session.get('__sw_keepalive__').catch(() => {});
     }
   } catch (e) {}
 }
@@ -191,7 +251,8 @@ chrome.runtime.onConnect.addListener((port) => {
     port.name.startsWith('offscreen') ||
     port.name.startsWith('fullshot') ||
     port.name.startsWith('recording') ||
-    port.name.startsWith('content')
+    port.name.startsWith('content') ||
+    port.name.startsWith('popup')
   ) {
     keepAlivePorts.add(port);
     resetSWKeepAlive();
@@ -274,7 +335,7 @@ function stopKeepAliveHeartbeat() {
 }
 
 // ==========================================
-// 5. Badge & Timer State Management
+// 5. Badge, Timer & State Persistence Management
 // ==========================================
 
 /**
@@ -324,6 +385,7 @@ function pauseRecordingTimer() {
     clearInterval(recordingTimerInterval);
     recordingTimerInterval = null;
   }
+  recordingPauseStartTime = Date.now();
   updateActionBadge();
   persistRecordingState();
 }
@@ -338,6 +400,8 @@ function resetRecordingTimer() {
   }
   recordingElapsedSeconds = 0;
   recordingStartTime = 0;
+  recordingTotalPausedMs = 0;
+  recordingPauseStartTime = 0;
   activeRecordingId = null;
   updateActionBadge();
   stopKeepAliveHeartbeat();
@@ -353,20 +417,14 @@ async function persistRecordingState() {
     status: recordingState.toLowerCase(),
     startTime: recordingStartTime,
     elapsedSeconds: recordingElapsedSeconds,
+    totalPausedDuration: recordingTotalPausedMs,
+    pauseStartTime: recordingPauseStartTime,
     recordingId: activeRecordingId,
     config: recordingConfig,
     updatedAt: Date.now()
   };
 
-  try {
-    if (chrome.storage?.session) {
-      await chrome.storage.session.set({ fullshot_recording_state: statePayload });
-    } else {
-      await chrome.storage.local.set({ fullshot_recording_state: statePayload });
-    }
-  } catch (e) {
-    // Storage sync warning ignored
-  }
+  await storageSessionSet('fullshot_recording_state', statePayload);
 
   // Broadcast state change across extension components (both action keys for maximum compatibility)
   try {
@@ -384,34 +442,79 @@ async function persistRecordingState() {
   } catch (e) {}
 }
 
-// Restore state on Service Worker startup
+/**
+ * Persists ongoing capture/stitch session state for SW state recovery.
+ */
+async function persistCaptureState(capturePayload) {
+  activeCaptureSession = {
+    ...capturePayload,
+    updatedAt: Date.now()
+  };
+  await storageSessionSet('fullshot_capture_state', activeCaptureSession);
+}
+
+/**
+ * Clears capture session state.
+ */
+async function clearCaptureState() {
+  activeCaptureSession = null;
+  await storageSessionRemove('fullshot_capture_state');
+}
+
+/**
+ * Retrieves saved capture session state.
+ */
+async function getCaptureState() {
+  if (activeCaptureSession) return activeCaptureSession;
+  return await storageSessionGet('fullshot_capture_state');
+}
+
+// Restore state on Service Worker startup (Idle Termination Recovery)
 (async function initServiceWorkerState() {
   try {
-    let saved = null;
-    if (chrome.storage?.session) {
-      const res = await chrome.storage.session.get('fullshot_recording_state');
-      saved = res?.fullshot_recording_state;
-    }
-    if (!saved && chrome.storage?.local) {
-      const res = await chrome.storage.local.get('fullshot_recording_state');
-      saved = res?.fullshot_recording_state;
-    }
+    const saved = await storageSessionGet('fullshot_recording_state');
 
     if (saved && (saved.state === RECORDING_STATE.RECORDING || saved.state === RECORDING_STATE.PAUSED || saved.status === 'recording' || saved.status === 'paused')) {
-      recordingState = saved.state || (saved.status === 'recording' ? RECORDING_STATE.RECORDING : RECORDING_STATE.PAUSED);
-      recordingStartTime = saved.startTime || Date.now();
-      recordingElapsedSeconds = saved.elapsedSeconds || 0;
-      activeRecordingId = saved.recordingId || null;
-      recordingConfig = saved.config || null;
+      const timeSinceUpdate = Date.now() - (saved.updatedAt || 0);
 
-      if (recordingState === RECORDING_STATE.RECORDING) {
-        startRecordingTimer();
+      // If state was recording/paused and update was reasonably recent (< 10 minutes)
+      if (timeSinceUpdate < 10 * 60 * 1000) {
+        recordingState = saved.state || (saved.status === 'recording' ? RECORDING_STATE.RECORDING : RECORDING_STATE.PAUSED);
+        recordingStartTime = saved.startTime || Date.now();
+        recordingTotalPausedMs = saved.totalPausedDuration || 0;
+        recordingPauseStartTime = saved.pauseStartTime || 0;
+        activeRecordingId = saved.recordingId || null;
+        recordingConfig = saved.config || null;
+
+        if (recordingState === RECORDING_STATE.RECORDING) {
+          // Calculate true elapsed time from real timestamps
+          const calculatedElapsed = Math.max(0, Math.floor((Date.now() - recordingStartTime - recordingTotalPausedMs) / 1000));
+          recordingElapsedSeconds = calculatedElapsed || saved.elapsedSeconds || 0;
+          startRecordingTimer();
+        } else {
+          recordingElapsedSeconds = saved.elapsedSeconds || 0;
+          updateActionBadge();
+        }
       } else {
-        updateActionBadge();
+        // Stale state, reset
+        recordingState = RECORDING_STATE.IDLE;
+        resetRecordingTimer();
       }
     } else {
       recordingState = RECORDING_STATE.IDLE;
       updateActionBadge();
+    }
+
+    // Check ongoing capture session recovery
+    const savedCapture = await storageSessionGet('fullshot_capture_state');
+    if (savedCapture) {
+      const captureAge = Date.now() - (savedCapture.updatedAt || 0);
+      if (captureAge > 3 * 60 * 1000) {
+        // Older than 3 minutes -> stale capture, clean it
+        await clearCaptureState();
+      } else {
+        activeCaptureSession = savedCapture;
+      }
     }
   } catch (err) {
     console.warn('[Background] SW durum geri yükleme uyarısı:', err);
@@ -565,6 +668,11 @@ async function handleResumeRecording() {
 
   if (!offscreenResponse || !offscreenResponse.success) {
     throw new Error(offscreenResponse?.error || 'Kayıt devam ettirilemedi.');
+  }
+
+  if (recordingPauseStartTime > 0) {
+    recordingTotalPausedMs += (Date.now() - recordingPauseStartTime);
+    recordingPauseStartTime = 0;
   }
 
   recordingState = RECORDING_STATE.RECORDING;
@@ -1028,6 +1136,95 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse({ success: true, timestamp: Date.now() });
     return true;
   }
+
+  // ------------------------------------------
+  // E. STATE RECOVERY & CAPTURE SESSION HANDLERS
+  // ------------------------------------------
+  if (action === 'GET_CAPTURE_STATE' || action === 'getCaptureState') {
+    getCaptureState()
+      .then((state) => sendResponse({ success: true, captureState: state }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
+  if (action === 'SET_CAPTURE_STATE' || action === 'setCaptureState') {
+    const payload = request.state || request.payload || request.captureState || {};
+    persistCaptureState(payload)
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
+  if (action === 'CLEAR_CAPTURE_STATE' || action === 'clearCaptureState') {
+    clearCaptureState()
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
+  if (action === 'UPDATE_CAPTURE_PROGRESS' || action === 'updateCaptureProgress') {
+    if (activeCaptureSession) {
+      activeCaptureSession.progress = request.progress;
+      activeCaptureSession.currentStep = request.currentStep;
+      activeCaptureSession.totalSteps = request.totalSteps;
+      activeCaptureSession.updatedAt = Date.now();
+      persistCaptureState(activeCaptureSession).catch(() => {});
+    }
+    sendResponse({ success: true });
+    return true;
+  }
+
+  if (action === 'RECOVER_STATE' || action === 'recoverState') {
+    (async () => {
+      try {
+        const recState = await storageSessionGet('fullshot_recording_state');
+        const capState = await storageSessionGet('fullshot_capture_state');
+        sendResponse({
+          success: true,
+          recording: recState || { state: RECORDING_STATE.IDLE },
+          capture: capState || null,
+          timestamp: Date.now()
+        });
+      } catch (err) {
+        sendResponse({ success: false, error: err.message });
+      }
+    })();
+    return true;
+  }
+
+  if (action === 'getStorageQuotaInfo' || action === 'GET_STORAGE_QUOTA_INFO') {
+    if (typeof FullShotDB !== 'undefined' && FullShotDB.getStorageQuotaInfo) {
+      FullShotDB.getStorageQuotaInfo()
+        .then((info) => sendResponse({ success: true, quotaInfo: info }))
+        .catch((err) => sendResponse({ success: false, error: err.message }));
+    } else {
+      sendResponse({ success: false, error: 'FullShotDB kullanılamıyor.' });
+    }
+    return true;
+  }
+
+  if (action === 'getStorageUsage' || action === 'GET_STORAGE_USAGE') {
+    if (typeof FullShotDB !== 'undefined' && FullShotDB.getStorageUsage) {
+      FullShotDB.getStorageUsage()
+        .then((usage) => sendResponse({ success: true, usage }))
+        .catch((err) => sendResponse({ success: false, error: err.message }));
+    } else {
+      sendResponse({ success: false, error: 'FullShotDB kullanılamıyor.' });
+    }
+    return true;
+  }
+
+  if (action === 'cleanupStorage' || action === 'CLEANUP_STORAGE') {
+    if (typeof FullShotDB !== 'undefined' && FullShotDB.cleanupOldEntries) {
+      const options = request.options || {};
+      FullShotDB.cleanupOldEntries(options)
+        .then((deletedCount) => sendResponse({ success: true, deletedCount }))
+        .catch((err) => sendResponse({ success: false, error: err.message }));
+    } else {
+      sendResponse({ success: false, error: 'FullShotDB kullanılamıyor.' });
+    }
+    return true;
+  }
 });
 
 // ==========================================
@@ -1153,7 +1350,7 @@ chrome.commands.onCommand.addListener(async (command) => {
         console.error('[Background] Shortcut visible capture error:', err);
       }
     }, 120);
-  } else if (command === 'capture-selected') {
+  } else if (command === 'capture-selected' || command === 'capture-area') {
     chrome.tabs.sendMessage(tab.id, {
       action: 'startSelectedAreaCapture',
       options: { format: settings.format, quality: 95 }
@@ -1163,5 +1360,54 @@ chrome.commands.onCommand.addListener(async (command) => {
       action: 'startElementPicker',
       options: { format: settings.format, quality: 95 }
     });
+  } else if (command === 'toggle-record') {
+    if (recordingState === RECORDING_STATE.RECORDING || recordingState === RECORDING_STATE.PAUSED) {
+      try {
+        await handleStopRecording();
+        try {
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'showHUDToast',
+            message: 'Video Kaydı Tamamlandı!',
+            options: { icon: 'video', duration: 2500 }
+          }).catch(() => {});
+        } catch (e) {}
+      } catch (err) {
+        console.error('[Background] Shortcut toggle-record stop error:', err);
+      }
+    } else {
+      try {
+        const streamId = await getTabMediaStreamId(tab.id);
+        if (streamId) {
+          await handleStartRecording({
+            streamId,
+            tabId: tab.id,
+            captureType: 'tab',
+            includeMic: false,
+            includeTabAudio: true,
+            mimeType: 'video/webm;codecs=vp9,opus',
+            fps: 30
+          }, tab);
+
+          try {
+            chrome.tabs.sendMessage(tab.id, {
+              action: 'showHUDToast',
+              message: 'Video Kaydı Başlatıldı! (Alt+Shift+R ile durdurun)',
+              options: { icon: 'video', duration: 2500 }
+            }).catch(() => {});
+          } catch (e) {}
+        } else {
+          showProtectedUrlBadgeWarning();
+        }
+      } catch (err) {
+        console.error('[Background] Shortcut toggle-record start error:', err);
+        try {
+          chrome.tabs.sendMessage(tab.id, {
+            action: 'showHUDToast',
+            message: `Kayıt Başlatılamadı: ${err.message}`,
+            options: { icon: 'video', duration: 3000 }
+          }).catch(() => {});
+        } catch (e) {}
+      }
+    }
   }
 });

@@ -135,12 +135,21 @@
         getScrollbarWidth: () => Math.max(0, window.innerWidth - document.documentElement.clientWidth),
         getRealDocumentHeight: () => Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0, window.innerHeight),
         getRealDocumentWidth: () => Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0, window.innerWidth),
-        calculateCanvasDimensions: (w, h, d) => ({
-          targetWidth: Math.min(16384, Math.round(w * (d || window.devicePixelRatio || 1))),
-          targetHeight: Math.min(16384, Math.round(h * (d || window.devicePixelRatio || 1))),
-          dpr: d || window.devicePixelRatio || 1,
-          scaleFactor: 1.0
-        }),
+        calculateCanvasDimensions: (w, h, d) => {
+          const maxDim = 16384;
+          const maxArea = 134217728;
+          const baseDpr = typeof d === 'number' && d > 0 ? d : (window.devicePixelRatio || 1);
+          const rawW = Math.round(w * baseDpr);
+          const rawH = Math.round(h * baseDpr);
+          let scale = 1.0;
+          if (rawW > maxDim || rawH > maxDim || (rawW * rawH) > maxArea) {
+            scale = Math.min(1.0, maxDim / Math.max(1, rawW), maxDim / Math.max(1, rawH), Math.sqrt(maxArea / Math.max(1, rawW * rawH)));
+          }
+          const effDpr = baseDpr * scale;
+          const tw = Math.min(maxDim, Math.max(1, Math.floor(w * effDpr)));
+          const th = Math.min(maxDim, Math.max(1, Math.floor(h * effDpr)));
+          return { targetWidth: tw, targetHeight: th, dpr: effDpr, scaleFactor: scale, maxCanvasDimension: maxDim, maxCanvasArea: maxArea };
+        },
         calculateScrollSteps: (h, vh) => {
           const max = Math.max(0, h - vh);
           const s = [];
@@ -202,14 +211,15 @@
       let dpr = dimensions.dpr;
       let targetWidth = dimensions.targetWidth;
       let targetHeight = dimensions.targetHeight;
-      const maxDim = this.domMeasurer.MAX_CANVAS_DIMENSION;
-      const maxArea = this.domMeasurer.MAX_CANVAS_AREA;
 
       // 5. Initialize master canvas
       const masterCanvas = document.createElement('canvas');
       masterCanvas.width = targetWidth;
       masterCanvas.height = targetHeight;
       const ctx = masterCanvas.getContext('2d', { alpha: format === 'png' });
+      if (!ctx) {
+        throw new Error('Canvas 2D context oluşturulamadı. Bellek yetersiz olabilir.');
+      }
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
 
@@ -238,7 +248,7 @@
       }
       document.documentElement.style.setProperty('overflow', 'hidden', 'important');
       if (document.body) {
-        document.body.style.overflow = 'hidden';
+        document.body.style.setProperty('overflow', 'hidden', 'important');
       }
 
       try {
@@ -274,7 +284,9 @@
               tempCanvas.width = masterCanvas.width;
               tempCanvas.height = masterCanvas.height;
               const tempCtx = tempCanvas.getContext('2d');
-              tempCtx.drawImage(masterCanvas, 0, 0);
+              if (tempCtx) {
+                tempCtx.drawImage(masterCanvas, 0, 0);
+              }
 
               masterCanvas.width = newDim.targetWidth;
               masterCanvas.height = newDim.targetHeight;
@@ -288,6 +300,10 @@
               const oldScaledW = Math.round(tempCanvas.width * scaleRatio);
               const oldScaledH = Math.round(tempCanvas.height * scaleRatio);
               ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, oldScaledW, oldScaledH);
+
+              // Garbage collection cleanup of temporary canvas
+              tempCanvas.width = 0;
+              tempCanvas.height = 0;
 
               fullHeight = newFullHeight;
               targetHeight = newDim.targetHeight;
@@ -355,7 +371,7 @@
           }
 
           // G. Stitch slice onto master canvas
-          const sliceImg = await loadImage(response.dataUrl);
+          let sliceImg = await loadImage(response.dataUrl);
           const imgWidth = sliceImg.naturalWidth || sliceImg.width;
           const imgHeight = sliceImg.naturalHeight || sliceImg.height;
           const imgDpr = imgHeight / viewportHeight;
@@ -370,54 +386,46 @@
               0, 0, targetWidth, targetHeight
             );
           } else if (i === totalSteps - 1) {
-            // Last slice: calculate non-overlapping unique height
-            const prevStepY = i > 0 ? ySteps[i - 1] : 0;
-            const uniqueHeight = Math.max(0, fullHeight - (prevStepY + viewportHeight));
+            // Last slice: fills remainder from stepY to fullHeight
+            const segmentH = Math.max(0, fullHeight - stepY);
+            const sw = Math.min(imgWidth, Math.round(fullWidth * imgDpr));
+            const sh = Math.min(imgHeight, Math.round(segmentH * imgDpr));
+            const dy = Math.round(stepY * dpr);
+            const dw = targetWidth;
+            const dh = Math.max(0, targetHeight - dy);
 
-            if (uniqueHeight > 0) {
-              const sh = Math.round(uniqueHeight * imgDpr);
-              const sy = Math.max(0, imgHeight - sh);
-              const sw = Math.min(imgWidth, Math.round(fullWidth * imgDpr));
-              const sx = 0;
-
-              const dy = Math.round((fullHeight - uniqueHeight) * dpr);
-              const dh = Math.max(0, targetHeight - dy);
-              const dx = 0;
-              const dw = targetWidth;
-
-              if (dh > 0 && sh > 0) {
-                ctx.drawImage(
-                  sliceImg,
-                  sx, sy, sw, sh,
-                  dx, dy, dw, dh
-                );
-              }
+            if (dh > 0 && sh > 0 && sw > 0 && dw > 0) {
+              ctx.drawImage(
+                sliceImg,
+                0, 0, sw, sh,
+                0, dy, dw, dh
+              );
             }
           } else {
             // Intermediate slice
             const nextStepY = ySteps[i + 1];
-            const sliceH = Math.min(viewportHeight, nextStepY - stepY);
-
-            const sx = 0;
-            const sy = 0;
+            const segmentH = Math.min(viewportHeight, nextStepY - stepY);
             const sw = Math.min(imgWidth, Math.round(fullWidth * imgDpr));
-            const sh = Math.round(sliceH * imgDpr);
-
-            const dx = 0;
+            const sh = Math.min(imgHeight, Math.round(segmentH * imgDpr));
             const dy = Math.round(stepY * dpr);
+            const nextDy = Math.round(nextStepY * dpr);
             const dw = targetWidth;
-            const dh = Math.min(targetHeight - dy, Math.round(sliceH * dpr));
+            const dh = Math.max(0, Math.min(targetHeight - dy, nextDy - dy));
 
-            if (dh > 0 && sh > 0) {
+            if (dh > 0 && sh > 0 && sw > 0 && dw > 0) {
               ctx.drawImage(
                 sliceImg,
-                sx, sy, sw, sh,
-                dx, dy, dw, dh
+                0, 0, sw, sh,
+                0, dy, dw, dh
               );
             }
           }
 
+          // Garbage Collection: release image reference and decoded texture memory immediately
+          sliceImg.onload = null;
+          sliceImg.onerror = null;
           sliceImg.src = '';
+          sliceImg = null;
         }
 
         // 8. Serialize Canvas & Store
@@ -435,6 +443,14 @@
           type: 'fullpage'
         };
 
+        if (typeof global.FullShotDB !== 'undefined' && global.FullShotDB.saveCapture) {
+          try {
+            await global.FullShotDB.saveCapture('current_capture', captureResult);
+          } catch (dbErr) {
+            console.warn('[ScrollStitcher] FullShotDB saveCapture uyarısı:', dbErr);
+          }
+        }
+
         try {
           await chrome.storage.local.set({ fullshot_current_capture: captureResult });
         } catch (storageErr) {
@@ -443,7 +459,7 @@
           await chrome.storage.local.set({ fullshot_current_capture: captureResult });
         }
 
-        chrome.runtime.sendMessage({ action: 'openPreview' });
+        chrome.runtime.sendMessage({ action: 'openPreview', captureData: captureResult });
 
         return captureResult;
       } finally {
@@ -452,9 +468,18 @@
           this.stickyFilter.restore();
         }
 
-        document.documentElement.style.overflow = originalHtmlOverflow;
+        if (originalHtmlOverflow) {
+          document.documentElement.style.overflow = originalHtmlOverflow;
+        } else {
+          document.documentElement.style.removeProperty('overflow');
+        }
+
         if (document.body) {
-          document.body.style.overflow = originalBodyOverflow;
+          if (originalBodyOverflow) {
+            document.body.style.overflow = originalBodyOverflow;
+          } else {
+            document.body.style.removeProperty('overflow');
+          }
         }
 
         if (originalHtmlPaddingRight) {
@@ -506,3 +531,4 @@
     };
   }
 })(typeof window !== 'undefined' ? window : globalThis);
+
