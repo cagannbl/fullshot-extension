@@ -91,39 +91,126 @@
   };
 
   /**
-   * Render a vector QA Badge stamp.
+   * Draw crisp pure vector icon inside badge circle.
+   */
+  function drawBadgeVectorIcon(ctx, iconType, cx, cy, s) {
+    ctx.save();
+
+    switch (iconType) {
+      case '✓':
+        ctx.beginPath();
+        ctx.moveTo(cx - 4.5 * s, cy - 0.2 * s);
+        ctx.lineTo(cx - 1.2 * s, cy + 3.2 * s);
+        ctx.lineTo(cx + 4.8 * s, cy - 3.8 * s);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1.5, 2.2 * s);
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+        break;
+
+      case '⚡':
+        ctx.beginPath();
+        ctx.moveTo(cx + 0.8 * s, cy - 5.5 * s);
+        ctx.lineTo(cx - 4.2 * s, cy + 0.2 * s);
+        ctx.lineTo(cx - 0.5 * s, cy + 0.2 * s);
+        ctx.lineTo(cx - 1.5 * s, cy + 5.5 * s);
+        ctx.lineTo(cx + 4.2 * s, cy - 0.2 * s);
+        ctx.lineTo(cx + 0.5 * s, cy - 0.2 * s);
+        ctx.closePath();
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        break;
+
+      case '↻':
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4.2 * s, -Math.PI * 0.75, Math.PI * 0.85);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1.4, 2.0 * s);
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        // Arrowhead
+        ctx.beginPath();
+        ctx.moveTo(cx + 5.2 * s, cy + 1.8 * s);
+        ctx.lineTo(cx + 1.8 * s, cy + 5.0 * s);
+        ctx.lineTo(cx + 1.8 * s, cy + 0.2 * s);
+        ctx.closePath();
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        break;
+
+      case '!':
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - 4.8 * s);
+        ctx.lineTo(cx, cy + 0.8 * s);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1.5, 2.2 * s);
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy + 4.2 * s, Math.max(0.8, 1.2 * s), 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        break;
+
+      case '✕':
+      default:
+        ctx.beginPath();
+        ctx.moveTo(cx - 3.5 * s, cy - 3.5 * s);
+        ctx.lineTo(cx + 3.5 * s, cy + 3.5 * s);
+        ctx.moveTo(cx + 3.5 * s, cy - 3.5 * s);
+        ctx.lineTo(cx - 3.5 * s, cy + 3.5 * s);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = Math.max(1.5, 2.2 * s);
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        break;
+    }
+
+    ctx.restore();
+  }
+
+  /**
+   * Render Ultra-High-Definition QA Badge stamp with pure vector icons and resolution scaling.
    */
   function renderQABadge(ctx, x, y, preset, scale = 1.0) {
-    const s = Math.max(0.6, Math.min(2.5, scale));
+    const canvasW = ctx.canvas ? ctx.canvas.width : 1200;
+    const resMultiplier = Math.max(1.15, Math.min(2.4, canvasW / 1100));
+    const s = scale * resMultiplier;
+
     const label = preset.label || 'STATUS';
     const sublabel = preset.sublabel || '';
     const icon = preset.icon || '✓';
 
     ctx.save();
-    ctx.font = `bold ${Math.round(13 * s)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
+    // 1. Calculate typography dimensions
+    const fontStack = 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    ctx.font = `800 ${Math.round(13.5 * s)}px ${fontStack}`;
     const labelMetrics = ctx.measureText(label);
     const labelW = labelMetrics.width;
 
-    ctx.font = `600 ${Math.round(9 * s)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.font = `700 ${Math.round(8.5 * s)}px ${fontStack}`;
     const subMetrics = ctx.measureText(sublabel);
     const textW = Math.max(labelW, subMetrics.width);
 
-    const iconW = Math.round(22 * s);
-    const padX = Math.round(10 * s);
-    const boxW = iconW + textW + padX * 3;
-    const boxH = Math.round(38 * s);
-    const radius = Math.round(8 * s);
+    const iconW = Math.round(24 * s);
+    const padX = Math.round(12 * s);
+    const boxW = Math.round(iconW + textW + padX * 2.8);
+    const boxH = Math.round(44 * s);
+    const radius = Math.round(9 * s);
 
-    const bx = x - boxW / 2;
-    const by = y - boxH / 2;
+    const bx = Math.round(x - boxW / 2);
+    const by = Math.round(y - boxH / 2);
 
-    // 1. Drop Shadow
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
-    ctx.shadowBlur = 10 * s;
-    ctx.shadowOffsetY = 4 * s;
+    // 2. Diffused Glassmorphism Drop Shadow
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.48)';
+    ctx.shadowBlur = Math.round(12 * s);
+    ctx.shadowOffsetY = Math.round(4 * s);
 
-    // 2. Background Pill / Rounded Rect
+    // 3. Background Pill / Rounded Rect with Dual Saturated Gradient
     const shapes = window.FullShotCanvas.Shapes;
     if (shapes && shapes.drawRoundedRectPath) {
       shapes.drawRoundedRectPath(ctx, bx, by, boxW, boxH, radius);
@@ -135,89 +222,111 @@
 
     const grad = ctx.createLinearGradient(bx, by, bx, by + boxH);
     grad.addColorStop(0, preset.bgColor);
-    grad.addColorStop(1, adjustColor(preset.bgColor, -25));
+    grad.addColorStop(1, adjustColor(preset.bgColor, -35));
     ctx.fillStyle = grad;
     ctx.fill();
 
-    // 3. Highlight Top Glare Line
+    // 4. Highlight Top Glare Bevel Stroke
     ctx.shadowColor = 'transparent';
-    ctx.strokeStyle = preset.borderColor || 'rgba(255, 255, 255, 0.4)';
-    ctx.lineWidth = Math.max(1, 1.5 * s);
+    ctx.strokeStyle = preset.borderColor || 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = Math.max(1.2, 1.6 * s);
     if (shapes && shapes.drawRoundedRectPath) {
       shapes.drawRoundedRectPath(ctx, bx, by, boxW, boxH, radius);
     }
     ctx.stroke();
 
-    // 4. Icon Circle Badge (Left Side)
-    const iconCx = bx + padX + iconW / 2;
-    const iconCy = by + boxH / 2;
+    // Inner top glossy white highlight arc
+    ctx.save();
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx + 1, by + 1, boxW - 2, Math.round(boxH * 0.45), radius);
+    ctx.clip();
+    const glossGrad = ctx.createLinearGradient(bx, by, bx, by + boxH * 0.45);
+    glossGrad.addColorStop(0, 'rgba(255, 255, 255, 0.28)');
+    glossGrad.addColorStop(1, 'rgba(255, 255, 255, 0.02)');
+    ctx.fillStyle = glossGrad;
+    ctx.fill();
+    ctx.restore();
+
+    // 5. Left Icon Circle Container
+    const iconCx = Math.round(bx + padX + iconW / 2);
+    const iconCy = Math.round(by + boxH / 2);
     const iconR = Math.round(iconW / 2);
 
     ctx.beginPath();
     ctx.arc(iconCx, iconCy, iconR, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.22)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.lineWidth = 1 * s;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.lineWidth = Math.max(1, 1.2 * s);
     ctx.stroke();
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = `bold ${Math.round(13 * s)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(icon, iconCx, iconCy + 1);
+    // 6. Draw Pure Vector Icon
+    drawBadgeVectorIcon(ctx, icon, iconCx, iconCy, s);
 
-    // 5. Typography (Main label + Sublabel)
-    const textStartX = bx + padX * 2 + iconW;
+    // 7. Typography (Main label + Sublabel)
+    const textStartX = Math.round(bx + padX * 1.8 + iconW);
     ctx.textAlign = 'left';
 
     if (sublabel) {
-      ctx.font = `bold ${Math.round(12 * s)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      // Main Label
+      ctx.font = `800 ${Math.round(13 * s)}px ${fontStack}`;
       ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+      ctx.shadowBlur = 3 * s;
+      ctx.shadowOffsetY = 1;
       ctx.textBaseline = 'bottom';
-      ctx.fillText(label, textStartX, by + boxH * 0.54);
+      ctx.fillText(label, textStartX, Math.round(by + boxH * 0.54));
 
-      ctx.font = `700 ${Math.round(8 * s)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+      // Sublabel
+      ctx.font = `700 ${Math.round(8.5 * s)}px ${fontStack}`;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.shadowColor = 'transparent';
       ctx.textBaseline = 'top';
-      ctx.fillText(sublabel, textStartX, by + boxH * 0.56);
+      ctx.fillText(sublabel, textStartX, Math.round(by + boxH * 0.56));
     } else {
-      ctx.font = `bold ${Math.round(14 * s)}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+      ctx.font = `800 ${Math.round(14.5 * s)}px ${fontStack}`;
       ctx.fillStyle = '#ffffff';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, textStartX, by + boxH / 2 + 0.5);
+      ctx.fillText(label, textStartX, Math.round(by + boxH / 2));
     }
 
     ctx.restore();
   }
 
   /**
-   * Render realistic 3D Keyboard Keycap stamp.
+   * Render Ultra-Crisp 3D Keyboard Keycap stamp.
    */
   function renderKeycap(ctx, x, y, preset, scale = 1.0) {
-    const s = Math.max(0.6, Math.min(2.5, scale));
+    const canvasW = ctx.canvas ? ctx.canvas.width : 1200;
+    const resMultiplier = Math.max(1.15, Math.min(2.4, canvasW / 1100));
+    const s = scale * resMultiplier;
+
     const key = preset.key || 'Ctrl';
+    const fontStack = 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
     ctx.save();
-    const fontSize = Math.round(14 * s);
-    ctx.font = `600 ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const fontSize = Math.round(15 * s);
+    ctx.font = `700 ${fontSize}px ${fontStack}`;
 
     const textMetrics = ctx.measureText(key);
-    const padX = Math.round(14 * s);
-    const boxW = Math.max(Math.round(36 * s), textMetrics.width + padX * 2);
-    const boxH = Math.round(34 * s);
-    const radius = Math.round(6 * s);
+    const padX = Math.round(16 * s);
+    const boxW = Math.max(Math.round(42 * s), Math.round(textMetrics.width + padX * 2));
+    const boxH = Math.round(40 * s);
+    const radius = Math.round(7 * s);
 
-    const bx = x - boxW / 2;
-    const by = y - boxH / 2;
-    const depth = Math.round(4 * s);
+    const bx = Math.round(x - boxW / 2);
+    const by = Math.round(y - boxH / 2);
+    const depth = Math.round(5 * s);
 
-    // 1. Bottom 3D Key Base Shadow & Lip
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-    ctx.shadowBlur = 8 * s;
-    ctx.shadowOffsetY = 4 * s;
+    // 1. Bottom 3D Metallic Base
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = Math.round(10 * s);
+    ctx.shadowOffsetY = Math.round(5 * s);
 
-    ctx.fillStyle = '#181b22';
+    ctx.fillStyle = '#101216';
     const shapes = window.FullShotCanvas.Shapes;
     if (shapes && shapes.drawRoundedRectPath) {
       shapes.drawRoundedRectPath(ctx, bx, by + depth, boxW, boxH, radius);
@@ -228,11 +337,11 @@
     }
     ctx.fill();
 
-    // 2. Top Keycap Surface with subtle gradient
+    // 2. Top Keycap Surface with subtle dark texture
     ctx.shadowColor = 'transparent';
     const keyGrad = ctx.createLinearGradient(bx, by, bx, by + boxH);
-    keyGrad.addColorStop(0, '#383d48');
-    keyGrad.addColorStop(1, '#252932');
+    keyGrad.addColorStop(0, '#3c414c');
+    keyGrad.addColorStop(1, '#22252c');
 
     if (shapes && shapes.drawRoundedRectPath) {
       shapes.drawRoundedRectPath(ctx, bx, by, boxW, boxH, radius);
@@ -244,16 +353,19 @@
     ctx.fillStyle = keyGrad;
     ctx.fill();
 
-    // 3. Top Rim Highlight & Inset Border
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
-    ctx.lineWidth = Math.max(1, 1.2 * s);
+    // 3. Top Rim Bevel Highlight
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.lineWidth = Math.max(1.2, 1.4 * s);
     ctx.stroke();
 
     // 4. Centered White Engraved Key Legend
-    ctx.fillStyle = '#f8fafc';
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = 2 * s;
+    ctx.shadowOffsetY = 1;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(key, bx + boxW / 2, by + boxH / 2);
+    ctx.fillText(key, Math.round(bx + boxW / 2), Math.round(by + boxH / 2 - 0.5));
 
     ctx.restore();
   }
@@ -262,14 +374,17 @@
    * Render high-res emoji sticker stamp.
    */
   function renderEmoji(ctx, x, y, preset, scale = 1.0) {
-    const s = Math.max(0.6, Math.min(2.5, scale));
+    const canvasW = ctx.canvas ? ctx.canvas.width : 1200;
+    const resMultiplier = Math.max(1.15, Math.min(2.4, canvasW / 1100));
+    const s = scale * resMultiplier;
+
     const char = preset.char || '⭐';
-    const fontSize = Math.round(36 * s);
+    const fontSize = Math.round(44 * s);
 
     ctx.save();
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-    ctx.shadowBlur = 8 * s;
-    ctx.shadowOffsetY = 3 * s;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+    ctx.shadowBlur = Math.round(10 * s);
+    ctx.shadowOffsetY = Math.round(4 * s);
 
     ctx.font = `${fontSize}px "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif`;
     ctx.textAlign = 'center';
