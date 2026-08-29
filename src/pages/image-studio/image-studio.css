@@ -1933,8 +1933,7 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
 .spotlight-shape-selector,
 .spotlight-darkness-selector,
 .magnifier-zoom-selector,
-.arrow-curve-selector,
-.callout-style-selector {
+.arrow-curve-selector {
   display: flex;
   align-items: center;
   background: var(--bg-surface);
@@ -1943,6 +1942,19 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   padding: 2px;
   gap: 2px;
   width: 100%;
+  box-sizing: border-box;
+}
+
+.callout-style-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .spotlight-shape-btn,
@@ -1954,7 +1966,7 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   background: transparent;
   border: none;
   color: var(--text-secondary);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 500;
   padding: 5px 6px;
   border-radius: var(--radius-sm);
@@ -1965,6 +1977,7 @@ kbd, .tool-btn-key, .format-pill kbd, .sc-keys kbd, .global-key-item kbd {
   transition: all 0.15s ease;
   white-space: nowrap;
   user-select: none;
+  box-sizing: border-box;
 }
 
 .spotlight-shape-btn:hover,
