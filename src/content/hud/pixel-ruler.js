@@ -324,7 +324,7 @@
       <div class="ruler-overlay" id="overlay">
         <canvas class="ruler-canvas" id="canvas"></canvas>
         <div class="banner" id="banner">
-          <span>🎯 Öğe kilitlemek için <b>Tıklayın</b> | Ölçüm için <b>Sürükleyin</b> | Kopyala <kbd>C</kbd> | Çıkış <kbd>ESC</kbd></span>
+          <span>🎯 Öğeyi seçmek için <b>Tıklayın</b> | Mesafeyi ölçmek için <b>Sürükleyin</b> | Kopyala <kbd>C</kbd> | İptal <kbd>ESC</kbd></span>
         </div>
         <div class="inspector-card" id="inspectorCard">
           <div class="insp-title">
@@ -335,7 +335,7 @@
           <div class="insp-row"><span>margin:</span><span class="insp-val" id="inspMargin">-</span></div>
           <div class="insp-row"><span>color:</span><span class="insp-val" id="inspColor">-</span></div>
           <div class="insp-row"><span>bg:</span><span class="insp-val" id="inspBg">-</span></div>
-          <div class="insp-hint">CSS kopyalamak için <kbd>C</kbd> tuşuna basın</div>
+          <div class="insp-hint">CSS özelliklerini kopyalamak için <kbd>C</kbd> tuşuna basın</div>
         </div>
       </div>
     `;

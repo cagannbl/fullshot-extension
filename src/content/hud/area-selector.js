@@ -402,7 +402,7 @@
         <canvas class="selection-canvas" id="canvas"></canvas>
         <div class="badge" id="badge">0 x 0</div>
         <div class="banner" id="banner">
-          <span>Kırpmak için sürükleyin | Renk Kopyala <kbd>C</kbd> | Çıkış <kbd>ESC</kbd></span>
+          <span>Kırpmak için sürükleyin | Renk Kodu Kopyala <kbd>C</kbd> | İptal <kbd>ESC</kbd></span>
         </div>
 
         <!-- 8x Magnifier Loupe -->
@@ -420,25 +420,25 @@
 
         <!-- Floating Quick Action Bar -->
         <div class="quick-bar" id="quickBar">
-          <button class="qb-btn qb-ocr" id="qbOcrBtn" title="Metni Kopyala (OCR)">
+          <button class="qb-btn qb-ocr" id="qbOcrBtn" title="Görseldeki Yazıları Tanı ve Kopyala (OCR)">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"></path></svg>
-            <span>Metni Kopyala (OCR)</span>
+            <span>Metni Kopyala</span>
           </button>
-          <button class="qb-btn qb-pin" id="qbPinBtn" title="Ekrana Sabitle (Yüzen Referans)">
+          <button class="qb-btn qb-pin" id="qbPinBtn" title="Görseli Ekranda Yüzen Pencere Olarak Sabitle">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M12 19v3M2 12h3M19 12h3"></path></svg>
-            <span>Sabitle (Pin)</span>
+            <span>Ekrana Sabitle</span>
           </button>
           <button class="qb-btn qb-copy" id="qbCopyBtn" title="Panoya Kopyala (Ctrl+C)">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
             <span>Kopyala</span>
           </button>
-          <button class="qb-btn qb-download" id="qbDownloadBtn" title="Doğrudan İndir (PNG)">
+          <button class="qb-btn qb-download" id="qbDownloadBtn" title="PNG Olarak Kaydet">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             <span>İndir</span>
           </button>
-          <button class="qb-btn qb-studio" id="qbStudioBtn" title="Gelişmiş Çizim ve Düzenleme Stüdyosunda Aç">
+          <button class="qb-btn qb-studio" id="qbStudioBtn" title="Çizim ve Düzenleme Stüdyosunda Aç">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            <span>Stüdyo ↗</span>
+            <span>Düzenle ↗</span>
           </button>
           <button class="qb-btn qb-cancel" id="qbCancelBtn" title="İptal Et (ESC)">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
