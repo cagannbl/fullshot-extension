@@ -80,7 +80,7 @@
     // 3. API Keys, Tokens & Passwords
     apiKey: {
       name: 'API Anahtarı & Token',
-      regex: /\b(?:bearer\s+[a-zA-Z0-9._-]{20,}|(?:ghp|gho|ghu|ghs|ghr)_[a-zA-Z0-9]{36}|sk-[a-zA-Z0-9]{20,}|AIza[0-9A-Za-z-_]{35}|(?:xoxb|xoxp)-[0-9]{10,}-[a-zA-Z0-9]+|eyJ[a-zA-Z0-9-_]+\.eyJ[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)\b/gi,
+      regex: /\b(?:bearer\s+[a-zA-Z0-9._-]{20,}|(?:ghp|gho|ghu|ghs|ghr|github_pat)_[a-zA-Z0-9_]{36,}|sk-(?:proj-|ant-)?[a-zA-Z0-9_-]{18,}|(?:sk_live|rk_live|sk_test)_[0-9a-zA-Z]{20,}|(?:AKIA|ASIA)[0-9A-Z]{16}|AIza[0-9A-Za-z-_]{35}|(?:xoxb|xoxp)-[0-9]{10,}-[a-zA-Z0-9-]+|eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)\b/gi,
       category: 'secret'
     },
 
@@ -116,7 +116,7 @@
     // 8. Phone Numbers
     phone: {
       name: 'Telefon Numarası',
-      regex: /(?:\+?90\s*|\b0)?\s*[1-9]\d{2}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b|\b\+?1[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
+      regex: /\b(?:\+90\s*|\b0)[1-9]\d{2}[\s.-]?\d{3}[\s.-]?\d{2}[\s.-]?\d{2}\b|\b\+1[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g,
       category: 'pii'
     }
   };
