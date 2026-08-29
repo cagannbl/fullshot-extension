@@ -39,9 +39,64 @@
     });
   };
 
+  /**
+   * Extracts sensitive DOM elements & credential inputs for DLP Auto-Censoring
+   */
+  function extractSensitivePageMetadata() {
+    const sensitiveInputs = [];
+    const textNodes = [];
+
+    try {
+      // 1. Detect password and financial input fields
+      document.querySelectorAll('input[type="password"], input[name*="pass" i], input[name*="card" i], input[name*="cvv" i], input[name*="ssn" i]').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          sensitiveInputs.push({
+            x: Math.round(rect.left),
+            y: Math.round(rect.top),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+            reason: 'Şifre / Güvenli Giriş Alanı'
+          });
+        }
+      });
+
+      // 2. Scan text nodes with potential DLP patterns
+      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+      let node;
+      let count = 0;
+      while ((node = walker.nextNode()) && count < 300) {
+        const val = node.nodeValue?.trim();
+        if (val && val.length > 5) {
+          const parent = node.parentElement;
+          if (parent && parent.offsetParent !== null && !['SCRIPT', 'STYLE', 'NOSCRIPT'].includes(parent.tagName)) {
+            const rect = parent.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              textNodes.push({
+                x: Math.round(rect.left),
+                y: Math.round(rect.top),
+                width: Math.round(rect.width),
+                height: Math.round(rect.height),
+                text: val
+              });
+              count++;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    return { sensitiveInputs, textNodes, url: window.location.href, title: document.title };
+  }
+
   // --- Runtime Message Dispatcher ---
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const action = request.action || request.type;
+
+    if (action === 'getPageMetadata' || action === 'getCaptureMetadata') {
+      sendResponse({ success: true, metadata: extractSensitivePageMetadata() });
+      return true;
+    }
 
     if (action === 'startFullPageCapture') {
       if (isCapturing) {

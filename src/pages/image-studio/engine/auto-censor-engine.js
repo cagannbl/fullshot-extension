@@ -152,8 +152,10 @@
   }
 
   /**
-   * Detect sensitive regions on canvas using DOM text metadata, heuristic input field detectors,
-   * and visual density layout scanners.
+   * Detect sensitive regions strictly based on DLP rules, verified checksums,
+   * sensitive input fields, and credential/token patterns.
+   * Eliminates false positives on normal paragraphs, titles, and non-sensitive content.
+   * 
    * @param {HTMLCanvasElement} canvas 
    * @param {Object} [captureData] 
    * @returns {Array<{x1: number, y1: number, x2: number, y2: number, reason: string, category: string}>}
@@ -164,16 +166,17 @@
     const canvasW = canvas.width;
     const canvasH = canvas.height;
 
-    // 1. Scan captureData text chunks / DOM nodes if available
+    // 1. Scan captureData text chunks / DOM nodes strictly with DLP regexes & Luhn checks
     if (captureData && captureData.textNodes && Array.isArray(captureData.textNodes)) {
       captureData.textNodes.forEach(node => {
-        const matches = scanText(node.text || '');
+        const text = node.text || '';
+        const matches = scanText(text);
         if (matches.length > 0) {
           regions.push({
             x1: Math.max(0, node.x - 4),
             y1: Math.max(0, node.y - 3),
-            x2: Math.min(canvasW, node.x + (node.width || 120) + 4),
-            y2: Math.min(canvasH, node.y + (node.height || 24) + 3),
+            x2: Math.min(canvasW, node.x + (node.width || 140) + 4),
+            y2: Math.min(canvasH, node.y + (node.height || 26) + 3),
             reason: matches.map(m => m.name).join(', '),
             category: matches[0].category
           });
@@ -181,102 +184,40 @@
       });
     }
 
-    // 2. Scan URL and Title for leakage (e.g. Tokens, emails or passwords in query params)
-    const pageUrl = captureData?.url || '';
-    const urlMatches = scanText(pageUrl);
-    if (urlMatches.length > 0) {
-      // If URL has tokens/keys, censor address bar region at top if full page capture
-      regions.push({
-        x1: Math.round(canvasW * 0.15),
-        y1: 10,
-        x2: Math.round(canvasW * 0.85),
-        y2: 44,
-        reason: `URL Parametresinde Hassas Veri (${urlMatches[0].name})`,
-        category: urlMatches[0].category
+    // 2. Scan sensitive input fields (e.g. password fields, credit card inputs)
+    if (captureData && captureData.sensitiveInputs && Array.isArray(captureData.sensitiveInputs)) {
+      captureData.sensitiveInputs.forEach(input => {
+        regions.push({
+          x1: Math.max(0, input.x - 4),
+          y1: Math.max(0, input.y - 3),
+          x2: Math.min(canvasW, input.x + (input.width || 160) + 4),
+          y2: Math.min(canvasH, input.y + (input.height || 32) + 3),
+          reason: input.reason || 'Şifre & Giriş Alanı',
+          category: 'secret'
+        });
       });
     }
 
-    // 3. Computer-Vision Optical Text & Subtitle Block Scanner
-    try {
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      const sampleW = Math.min(canvasW, 1920);
-      const sampleH = Math.min(canvasH, 1080);
-      const scaleX = canvasW / sampleW;
-      const scaleY = canvasH / sampleH;
-
-      const imgData = ctx.getImageData(0, 0, sampleW, sampleH);
-      const data = imgData.data;
-
-      // Scan for high-contrast horizontal text lines (edge transitions)
-      const rowEdgeDensity = new Float32Array(sampleH);
-      for (let y = 10; y < sampleH - 10; y += 2) {
-        let edgeCount = 0;
-        const rowOffset = y * sampleW * 4;
-        for (let x = 10; x < sampleW - 10; x += 4) {
-          const idx = rowOffset + x * 4;
-          const lum = data[idx] * 0.299 + data[idx + 1] * 0.587 + data[idx + 2] * 0.114;
-          const nextLum = data[idx + 8] * 0.299 + data[idx + 9] * 0.587 + data[idx + 10] * 0.114;
-          if (Math.abs(lum - nextLum) > 38) {
-            edgeCount++;
-          }
-        }
-        rowEdgeDensity[y] = edgeCount / (sampleW / 4);
-      }
-
-      // Group consecutive high-edge rows into text block bounding boxes
-      let blockStartY = -1;
-      for (let y = 10; y < sampleH - 10; y += 2) {
-        if (rowEdgeDensity[y] > 0.14) {
-          if (blockStartY === -1) blockStartY = y;
-        } else {
-          if (blockStartY !== -1) {
-            const blockHeight = y - blockStartY;
-            if (blockHeight >= 10 && blockHeight <= 90) {
-              // Find horizontal bounding extent of text
-              let minX = sampleW, maxX = 0;
-              for (let by = blockStartY; by < y; by += 4) {
-                const rowOffset = by * sampleW * 4;
-                for (let bx = 10; bx < sampleW - 10; bx += 8) {
-                  const idx = rowOffset + bx * 4;
-                  const lum = data[idx] * 0.299 + data[idx + 1] * 0.587 + data[idx + 2] * 0.114;
-                  const nextLum = data[idx + 8] * 0.299 + data[idx + 9] * 0.587 + data[idx + 10] * 0.114;
-                  if (Math.abs(lum - nextLum) > 38) {
-                    if (bx < minX) minX = bx;
-                    if (bx > maxX) maxX = bx;
-                  }
-                }
-              }
-
-              if (maxX - minX > 40) {
-                const boxX1 = Math.max(0, Math.round((minX - 12) * scaleX));
-                const boxY1 = Math.max(0, Math.round((blockStartY - 6) * scaleY));
-                const boxX2 = Math.min(canvasW, Math.round((maxX + 16) * scaleX));
-                const boxY2 = Math.min(canvasH, Math.round((y + 8) * scaleY));
-
-                const isSubtitle = (boxY1 > canvasH * 0.65);
-                regions.push({
-                  x1: boxX1,
-                  y1: boxY1,
-                  x2: boxX2,
-                  y2: boxY2,
-                  reason: isSubtitle ? 'Altyazı / Metin Şeridi' : 'Metin / Veri Alanı',
-                  category: isSubtitle ? 'subtitle' : 'text'
-                });
-              }
-            }
-            blockStartY = -1;
-          }
-        }
-      }
-    } catch (e) {
-      console.warn('[AutoCensor] Optik tarama hatası:', e);
+    // 3. Scan URL query parameters for leaked keys, tokens, or emails
+    const pageUrl = captureData?.url || '';
+    const urlMatches = scanText(pageUrl);
+    if (urlMatches.length > 0) {
+      // If URL has tokens/keys in query params, censor address bar region if full page capture
+      regions.push({
+        x1: Math.round(canvasW * 0.15),
+        y1: 8,
+        x2: Math.round(canvasW * 0.85),
+        y2: 46,
+        reason: `URL Parametresinde Hassas Veri (${urlMatches[0].name})`,
+        category: urlMatches[0].category
+      });
     }
 
     return regions;
   }
 
   /**
-   * Main Dispatcher: Scan and auto-apply redaction blurs to all detected sensitive areas.
+   * Main Dispatcher: Scan and auto-apply redaction blurs to detected sensitive areas only.
    * @param {Object} params
    * @param {CanvasRenderingContext2D} params.ctx
    * @param {Function} params.pushAction
@@ -295,7 +236,7 @@
     if (regions.length === 0) {
       return {
         count: 0,
-        summary: 'Otomatik sansürlenecek metin alanı tespit edilmedi. Manuel sansür aracı aktif edildi.',
+        summary: 'Sayfada hassas veri (Kredi kartı, şifre, e-posta, API anahtarı) bulunamadı.',
         regions: []
       };
     }
@@ -316,7 +257,7 @@
     const categorySummary = [...new Set(regions.map(r => r.reason))].join(', ');
     return {
       count: appliedCount,
-      summary: `${appliedCount} adet metin/hassas alan (${categorySummary}) otomatik mozaiklendi.`,
+      summary: `${appliedCount} adet hassas veri alanı (${categorySummary}) otomatik sansürlendi.`,
       regions
     };
   }
