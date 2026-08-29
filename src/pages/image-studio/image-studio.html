@@ -199,8 +199,8 @@
         <div class="tools-grid" role="toolbar" aria-label="Çizim ve Vektör Araçları">
           <!-- Select / Move -->
           <button class="tool-icon-btn active" data-tool="select" id="toolSelect" role="button" aria-pressed="true" title="Seçim / Gezin ( V )" aria-label="Seçim Aracı (V)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 3l7 18 3-7 7-3L3 3z"></path>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4l7.07 17 2.51-7.39L21 11.07 4 4z"></path>
             </svg>
             <span class="tool-btn-label">Seçim</span>
             <kbd class="tool-btn-key">V</kbd>
@@ -208,23 +208,21 @@
 
           <!-- Pan / Hand -->
           <button class="tool-icon-btn" data-tool="pan" id="toolPan" role="button" aria-pressed="false" title="El / Tuvali Kaydır ( Space )" aria-label="El / Tuval Kaydırma Aracı (Space)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3"></path>
-              <path d="M14 9V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6"></path>
-              <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"></path>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v3"></path>
+              <path d="M14 9V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v6"></path>
+              <path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8"></path>
               <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"></path>
             </svg>
             <span class="tool-btn-label">El</span>
-            <kbd class="tool-btn-key">Space</kbd>
+            <kbd class="tool-btn-key">␣</kbd>
           </button>
 
           <!-- Pen -->
           <button class="tool-icon-btn" data-tool="pen" id="toolPen" role="button" aria-pressed="false" title="Serbest Çizim / Kalem ( P )" aria-label="Serbest Kalem Çizimi (P)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-              <path d="M2 2l7.586 7.586"></path>
-              <circle cx="11" cy="11" r="2"></circle>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+              <path d="M15 5l4 4"></path>
             </svg>
             <span class="tool-btn-label">Kalem</span>
             <kbd class="tool-btn-key">P</kbd>
@@ -232,9 +230,9 @@
 
           <!-- Highlighter -->
           <button class="tool-icon-btn" data-tool="highlighter" id="toolHighlighter" role="button" aria-pressed="false" title="Vurgulayıcı / Fosforlu ( H )" aria-label="Fosforlu Vurgulayıcı (H)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2l4 4L7 17H3v-4L14 2z"></path>
-              <path d="M3 22h18"></path>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m9 11-6 6v3h3l6-6"></path>
+              <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"></path>
             </svg>
             <span class="tool-btn-label">Vurgu</span>
             <kbd class="tool-btn-key">H</kbd>
@@ -242,8 +240,10 @@
 
           <!-- Line -->
           <button class="tool-icon-btn" data-tool="line" id="toolLine" role="button" aria-pressed="false" title="Düz Çizgi ( L )" aria-label="Düz Çizgi (L)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="4" y1="20" x2="20" y2="4"></line>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="5" y1="19" x2="19" y2="5"></line>
+              <circle cx="5" cy="19" r="1.5" fill="currentColor"></circle>
+              <circle cx="19" cy="5" r="1.5" fill="currentColor"></circle>
             </svg>
             <span class="tool-btn-label">Çizgi</span>
             <kbd class="tool-btn-key">L</kbd>
@@ -251,7 +251,7 @@
 
           <!-- Arrow -->
           <button class="tool-icon-btn" data-tool="arrow" id="toolArrow" role="button" aria-pressed="false" title="Ok Çiz ( A )" aria-label="Ok Çizimi (A)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="19" x2="19" y2="5"></line>
               <polyline points="10 5 19 5 19 14"></polyline>
             </svg>
@@ -261,8 +261,8 @@
 
           <!-- Rectangle -->
           <button class="tool-icon-btn" data-tool="rect" id="toolRect" role="button" aria-pressed="false" title="Dikdörtgen Çerçeve ( R )" aria-label="Dikdörtgen Kutu (R)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="3.5"></rect>
             </svg>
             <span class="tool-btn-label">Kutu</span>
             <kbd class="tool-btn-key">R</kbd>
@@ -270,7 +270,7 @@
 
           <!-- Circle -->
           <button class="tool-icon-btn" data-tool="circle" id="toolCircle" role="button" aria-pressed="false" title="Daire / Elips ( C )" aria-label="Daire / Elips (C)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="9"></circle>
             </svg>
             <span class="tool-btn-label">Daire</span>
@@ -279,9 +279,10 @@
 
           <!-- Step Badge -->
           <button class="tool-icon-btn" data-tool="step" id="toolStep" role="button" aria-pressed="false" title="Numaralı Adım Rozeti ( S )" aria-label="Numaralı Adım Rozeti (S)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="9"></circle>
-              <text x="12" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor" stroke="none">1</text>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="9.5"></circle>
+              <circle cx="12" cy="12" r="5" fill="currentColor"></circle>
+              <text x="12" y="15" text-anchor="middle" font-size="8.5" font-weight="900" fill="var(--bg-card)" stroke="none">1</text>
             </svg>
             <span class="tool-btn-label">Adım</span>
             <kbd class="tool-btn-key">S</kbd>
@@ -289,7 +290,7 @@
 
           <!-- Text -->
           <button class="tool-icon-btn" data-tool="text" id="toolText" role="button" aria-pressed="false" title="Metin Ekle ( T )" aria-label="Metin Ekle (T)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="4 7 4 4 20 4 20 7"></polyline>
               <line x1="9" y1="20" x2="15" y2="20"></line>
               <line x1="12" y1="4" x2="12" y2="20"></line>
@@ -300,7 +301,7 @@
 
           <!-- Callout -->
           <button class="tool-icon-btn" data-tool="callout" id="toolCallout" role="button" aria-pressed="false" title="Konuşma Balonu ( Q )" aria-label="Konuşma Balonu (Q)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
             </svg>
             <span class="tool-btn-label">Balon</span>
@@ -309,11 +310,11 @@
 
           <!-- Blur / Redact -->
           <button class="tool-icon-btn highlight-blur" data-tool="blur" id="toolBlur" role="button" aria-pressed="false" title="Sansürle / Bulanıklaştır ( B )" aria-label="Sansürleme ve Bulanıklaştırma (B)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+              <rect x="14" y="3" width="7" height="7" rx="1.5" fill="currentColor"></rect>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
+              <rect x="3" y="14" width="7" height="7" rx="1.5" fill="currentColor"></rect>
             </svg>
             <span class="tool-btn-label">Sansür</span>
             <kbd class="tool-btn-key">B</kbd>
@@ -321,9 +322,10 @@
 
           <!-- Spotlight / Focus -->
           <button class="tool-icon-btn highlight-spotlight" data-tool="spotlight" id="toolSpotlight" role="button" aria-pressed="false" title="Spotlight / Odak Vurgusu ( F )" aria-label="Spotlight Odak Vurgusu (F)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <circle cx="12" cy="12" r="9"></circle>
-              <circle cx="12" cy="12" r="4" fill="currentColor"></circle>
+              <circle cx="12" cy="12" r="3.5" fill="currentColor"></circle>
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke-linecap="round"></path>
             </svg>
             <span class="tool-btn-label">Odak</span>
             <kbd class="tool-btn-key">F</kbd>
@@ -331,9 +333,9 @@
 
           <!-- Magnifier / Loupe -->
           <button class="tool-icon-btn highlight-magnifier" data-tool="magnifier" id="toolMagnifier" role="button" aria-pressed="false" title="Büyüteç Merceği ( Z )" aria-label="Büyüteç Merceği (Z)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16" y2="16"></line>
               <line x1="11" y1="8" x2="11" y2="14"></line>
               <line x1="8" y1="11" x2="14" y2="11"></line>
             </svg>
@@ -343,11 +345,10 @@
 
           <!-- Stamp / Keycap / Emoji -->
           <button class="tool-icon-btn highlight-stamp" data-tool="stamp" id="toolStamp" role="button" aria-pressed="false" title="QA Damga & Emoji ( E )" aria-label="QA Damga ve Emoji (E)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M5 22h14"></path>
-              <path d="M19 17a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v2a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2z"></path>
-              <path d="M12 15V5a3 3 0 0 0-3-3v0a3 3 0 0 0-3 3v2"></path>
-              <path d="M15 5a3 3 0 0 0-3-3"></path>
+            <svg class="tool-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="4"></rect>
+              <circle cx="12" cy="12" r="7" stroke-dasharray="2 2"></circle>
+              <path d="m9.5 12 1.8 1.8 3.5-3.5"></path>
             </svg>
             <span class="tool-btn-label">Damga</span>
             <kbd class="tool-btn-key">E</kbd>

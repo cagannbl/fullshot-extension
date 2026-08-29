@@ -500,8 +500,8 @@ html, body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 4px;
+  gap: 5px;
+  padding: 8px 4px 6px;
   min-height: 52px;
   background: var(--bg-input);
   border: 1px solid var(--border-subtle);
@@ -513,11 +513,20 @@ html, body {
   outline: none;
 }
 
+.tool-svg {
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
 .tool-icon-btn:hover {
   background: var(--bg-surface-hover);
   border-color: var(--border-medium);
   color: var(--text-primary);
   transform: translateY(-1px);
+}
+
+.tool-icon-btn:hover .tool-svg {
+  transform: scale(1.08);
 }
 
 .tool-icon-btn:active {
@@ -531,14 +540,19 @@ html, body {
   box-shadow: 0 4px 12px var(--primary-glow);
 }
 
+.tool-icon-btn.active .tool-svg {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+}
+
 .tool-icon-btn.highlight-blur {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
 .tool-btn-label {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
   line-height: 1;
+  letter-spacing: 0.2px;
 }
 
 .tool-btn-key {
@@ -546,19 +560,21 @@ html, body {
   top: 3px;
   right: 3px;
   font-size: 8px;
-  font-family: ui-monospace, monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 700;
-  padding: 1px 3px;
+  padding: 1px 4px;
   border-radius: 3px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   color: var(--text-muted);
-  border: none;
-  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+  line-height: 1.1;
 }
 
 .tool-icon-btn.active .tool-btn-key {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.22);
   color: #FFFFE3;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .sidebar-divider {
