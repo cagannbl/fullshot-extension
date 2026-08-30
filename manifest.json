@@ -40,19 +40,15 @@
       },
       "description": "__MSG_cmdCaptureSelected__"
     },
-    "capture-element": {
-      "suggested_key": {
-        "default": "Alt+Shift+E",
-        "mac": "Alt+Shift+E"
-      },
-      "description": "__MSG_cmdCaptureElement__"
-    },
     "toggle-record": {
       "suggested_key": {
         "default": "Alt+Shift+R",
         "mac": "Alt+Shift+R"
       },
       "description": "__MSG_cmdToggleRecord__"
+    },
+    "capture-element": {
+      "description": "__MSG_cmdCaptureElement__"
     }
   },
   "action": {

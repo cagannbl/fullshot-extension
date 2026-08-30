@@ -161,13 +161,23 @@ if (fs.existsSync(manifestPath)) {
         'capture-element',
         'toggle-record'
       ];
+      let suggestedKeyCount = 0;
       requiredCommands.forEach((cmd) => {
         if (manifest.commands[cmd]) {
-          logPass(`Manifest Command configured: ${cmd} (${manifest.commands[cmd].suggested_key?.default || 'custom'})`);
+          if (manifest.commands[cmd].suggested_key) {
+            suggestedKeyCount++;
+          }
+          logPass(`Manifest Command configured: ${cmd} (${manifest.commands[cmd].suggested_key?.default || 'custom/manual'})`);
         } else {
           logFail(`Missing Manifest Command: ${cmd}`);
         }
       });
+
+      if (suggestedKeyCount <= 4) {
+        logPass(`Manifest Commands limit verified: ${suggestedKeyCount}/4 suggested shortcuts (Chrome strictly enforces max 4)`);
+      } else {
+        logFail(`Too many suggested_key shortcuts in manifest.commands: ${suggestedKeyCount} (Chrome maximum is 4)`);
+      }
     } else {
       logFail('Manifest missing commands section');
     }
